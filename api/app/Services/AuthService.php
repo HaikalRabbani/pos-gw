@@ -34,7 +34,8 @@ class AuthService
 
     public function login(string $email, string $password): array
     {
-        $user = User::where('email', $email)->first();
+        $tenantId = Tenant::orderBy('id')->value('id');
+        $user = User::where('email', $email)->where('tenant_id', $tenantId)->first();
 
         if (!$user || !Hash::check($password, $user->password)) {
             throw ValidationException::withMessages([
