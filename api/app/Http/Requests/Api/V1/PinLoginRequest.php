@@ -15,6 +15,7 @@ class PinLoginRequest extends FormRequest
     {
         return [
             'pin' => 'required|string|size:4',
+            'outlet_id' => 'nullable|exists:outlets,id',
         ];
     }
 }

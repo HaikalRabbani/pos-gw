@@ -2,11 +2,15 @@
 
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CategoryController;
+use App\Http\Controllers\Api\V1\DiscountController;
 use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\OutletController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\ProductController;
 use App\Http\Controllers\Api\V1\ShiftController;
+use App\Http\Controllers\Api\V1\TableController;
+use App\Http\Controllers\Api\V1\TaxController;
+use App\Http\Controllers\Api\V1\UserOutletController;
 use Illuminate\Support\Facades\Route;
 
 // Public
@@ -25,6 +29,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/v1/outlets', [OutletController::class, 'store']);
     Route::get('/v1/outlets/{outlet}', [OutletController::class, 'show']);
     Route::put('/v1/outlets/{outlet}', [OutletController::class, 'update']);
+    Route::delete('/v1/outlets/{outlet}', [OutletController::class, 'destroy']);
+
+    // Role assignment
+    Route::post('/v1/user-outlets/assign', [UserOutletController::class, 'assignRole']);
 
     // Categories
     Route::get('/v1/categories', [CategoryController::class, 'index']);
@@ -38,6 +46,25 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/v1/products/{product}', [ProductController::class, 'show']);
     Route::put('/v1/products/{product}', [ProductController::class, 'update']);
     Route::delete('/v1/products/{product}', [ProductController::class, 'destroy']);
+
+    // Taxes
+    Route::get('/v1/taxes', [TaxController::class, 'index']);
+    Route::post('/v1/taxes', [TaxController::class, 'store']);
+    Route::put('/v1/taxes/{tax}', [TaxController::class, 'update']);
+    Route::delete('/v1/taxes/{tax}', [TaxController::class, 'destroy']);
+
+    // Discounts
+    Route::get('/v1/discounts', [DiscountController::class, 'index']);
+    Route::post('/v1/discounts', [DiscountController::class, 'store']);
+    Route::put('/v1/discounts/{discount}', [DiscountController::class, 'update']);
+    Route::delete('/v1/discounts/{discount}', [DiscountController::class, 'destroy']);
+
+    // Tables
+    Route::get('/v1/tables', [TableController::class, 'index']);
+    Route::post('/v1/tables', [TableController::class, 'store']);
+    Route::put('/v1/tables/{table}', [TableController::class, 'update']);
+    Route::delete('/v1/tables/{table}', [TableController::class, 'destroy']);
+    Route::post('/v1/tables/{table}/regenerate-qr', [TableController::class, 'regenerateQr']);
 
     // Orders
     Route::get('/v1/orders', [OrderController::class, 'index']);

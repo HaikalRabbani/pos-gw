@@ -51,4 +51,18 @@ class OutletController extends Controller
 
         return response()->json(['success' => true, 'data' => $outlet]);
     }
+
+    public function destroy(Outlet $outlet)
+    {
+        if ($outlet->orders()->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot delete outlet with existing orders. Deactivate instead.',
+            ], 400);
+        }
+
+        $outlet->delete();
+
+        return response()->json(['success' => true, 'message' => 'Outlet deleted.']);
+    }
 }

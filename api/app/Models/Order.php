@@ -9,7 +9,7 @@ class Order extends Model
     protected $fillable = [
         'outlet_id', 'table_id', 'user_id', 'customer_name',
         'status', 'subtotal', 'discount_total', 'tax_total', 'grand_total',
-        'payment_status', 'payment_method', 'notes',
+        'payment_status', 'payment_method', 'notes', 'bill_group_id',
     ];
 
     public function outlet()

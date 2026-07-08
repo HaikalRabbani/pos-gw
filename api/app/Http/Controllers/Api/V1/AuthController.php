@@ -39,7 +39,10 @@ class AuthController extends Controller
 
     public function loginPin(PinLoginRequest $request)
     {
-        $result = $this->authService->loginByPin($request->input('pin'));
+        $result = $this->authService->loginByPin(
+            $request->input('pin'),
+            $request->input('outlet_id')
+        );
 
         return response()->json([
             'success' => true,
