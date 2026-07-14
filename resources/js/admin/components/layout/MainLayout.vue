@@ -1,16 +1,18 @@
 <template>
-  <div class="min-h-screen flex bg-slate-50">
+  <div class="relative h-screen flex bg-slate-50 overflow-hidden">
     <!-- Sidebar -->
     <aside
       :class="[collapsed ? 'w-16' : 'w-64']"
-      class="bg-gradient-to-b from-teal-900 via-teal-900 to-teal-950 text-white flex flex-col shrink-0 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] relative z-10 overflow-hidden"
+      class="relative h-full bg-gradient-to-b from-teal-900 via-teal-900 to-teal-950 text-white flex flex-col shrink-0 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] z-10"
     >
-      <!-- Decorative gradient blobs -->
-      <div class="absolute -top-20 -right-20 w-40 h-40 bg-teal-700/20 rounded-full blur-3xl pointer-events-none"></div>
-      <div class="absolute -bottom-20 -left-20 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <!-- Inner wrapper: decorative blobs + clip -->
+      <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute -top-20 -right-20 w-40 h-40 bg-teal-700/20 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-20 -left-20 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl"></div>
+      </div>
 
       <!-- Logo -->
-      <div class="px-5 py-4 border-b border-white/10 flex items-center justify-between gap-2.5 relative z-10">
+      <div :class="[collapsed ? 'px-[14px]' : 'px-5']" class="relative py-4 border-b border-white/10 flex items-center gap-2.5 z-10 shrink-0">
         <div class="flex items-center gap-2.5 overflow-hidden">
           <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center shadow-lg shadow-amber-500/25 shrink-0">
             <i class="pi pi-shopping-bag text-teal-950 text-lg"></i>
@@ -22,16 +24,10 @@
             </div>
           </transition>
         </div>
-        <button
-          @click="collapsed = !collapsed"
-          class="w-7 h-7 rounded-lg flex items-center justify-center text-teal-400 hover:text-white hover:bg-white/10 transition shrink-0"
-        >
-          <i class="pi text-xs transition-transform duration-300" :class="collapsed ? 'pi-chevron-right' : 'pi-chevron-left'"></i>
-        </button>
       </div>
 
-      <!-- Navigation -->
-      <nav class="flex-1 p-3 space-y-0.5 overflow-y-auto scrollbar-thin relative z-10">
+      <!-- Navigation (scrollable dengan thin scrollbar) -->
+      <nav class="flex-1 p-3 space-y-0.5 overflow-y-auto relative z-10 scrollbar-sidebar">
         <div v-if="auth.isManager && !collapsed" class="px-3 py-2 mb-1">
           <div class="text-[10px] text-teal-400/50 uppercase tracking-wider mb-1">Akses Outlet</div>
           <div class="flex flex-wrap gap-1">
@@ -43,77 +39,65 @@
         </div>
 
         <template v-for="group in visibleGroups" :key="group.title">
-          <div v-if="!collapsed" class="flex items-center gap-2 px-3 pt-4 pb-1">
-            <div class="h-px flex-1 bg-white/5"></div>
-            <p class="text-[10px] font-semibold text-teal-400/70 uppercase tracking-[0.15em]">{{ group.title }}</p>
-            <div class="h-px flex-1 bg-white/5"></div>
-          </div>
-          <router-link
-            v-for="item in group.items" :key="item.path" :to="item.path"
-            :title="collapsed ? item.label : ''"
-            :class="[collapsed ? 'justify-center' : 'gap-3']"
-            class="group relative flex items-center px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 text-teal-100/80 hover:text-white overflow-hidden"
-            active-class="!text-white"
-            v-slot="{ isActive }"
-          >
-            <!-- Active background -->
+          <!-- ====== EXPANDED MODE ====== -->
+          <template v-if="!collapsed">
+            <!-- Group Header (clickable toggle) -->
             <div
-              v-if="isActive"
-              class="absolute inset-0 bg-gradient-to-r from-teal-700/80 to-teal-600/40 rounded-xl shadow-inner"
-            ></div>
-            <!-- Hover background -->
-            <div
-              v-else
-              class="absolute inset-0 bg-white/0 group-hover:bg-white/[0.06] rounded-xl transition-all duration-200"
-            ></div>
-            <!-- Active indicator bar -->
-            <div
-              v-if="isActive && !collapsed"
-              class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-amber-400 rounded-r-full shadow-sm shadow-amber-400/50"
-            ></div>
-            <!-- Icon -->
-            <i
-              :class="[item.icon, isActive ? 'text-amber-400' : 'text-teal-300/70 group-hover:text-teal-200']"
-              class="relative z-10 w-5 text-center text-base shrink-0 transition-colors duration-200"
-            ></i>
-            <!-- Label -->
-            <span v-if="!collapsed" class="relative z-10 font-medium">{{ item.label }}</span>
-            <!-- Active dot indicator when collapsed -->
-            <div
-              v-if="isActive && collapsed"
-              class="absolute -right-0.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400/50"
-            ></div>
-          </router-link>
+              @click="toggleGroup(group.title)"
+              class="flex items-center gap-1.5 px-3 pt-4 pb-1 cursor-pointer select-none group-header hover:opacity-80 transition-opacity"
+            >
+              <div class="h-px flex-1 bg-white/5"></div>
+              <p class="text-[10px] font-semibold text-teal-400/70 uppercase tracking-[0.15em]">{{ group.title }}</p>
+              <i
+                class="pi pi-chevron-down text-[8px] text-teal-500/50 transition-transform duration-200"
+                :class="{ 'rotate-180': expandedGroups[group.title] }"
+              ></i>
+              <div class="h-px flex-1 bg-white/5"></div>
+            </div>
+
+            <!-- Submenu Items (with slide transition) -->
+            <Transition name="submenu-slide">
+              <div v-if="expandedGroups[group.title]" class="space-y-0.5 overflow-hidden">
+                <router-link
+                  v-for="item in group.items" :key="item.path" :to="item.path"
+                  class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 text-teal-100/80 hover:text-white overflow-hidden"
+                  active-class="!text-white"
+                  v-slot="{ isActive }"
+                >
+                  <div v-if="isActive" class="absolute inset-0 bg-gradient-to-r from-teal-700/80 to-teal-600/40 rounded-xl shadow-inner"></div>
+                  <div v-else class="absolute inset-0 bg-white/0 group-hover:bg-white/[0.06] rounded-xl transition-all duration-200"></div>
+                  <div v-if="isActive" class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-amber-400 rounded-r-full shadow-sm shadow-amber-400/50"></div>
+                  <i :class="[item.icon, isActive ? 'text-amber-400' : 'text-teal-300/70 group-hover:text-teal-200']" class="relative z-10 w-5 text-center text-base shrink-0 transition-colors duration-200"></i>
+                  <span class="relative z-10 font-medium">{{ item.label }}</span>
+                </router-link>
+              </div>
+            </Transition>
+          </template>
+
+          <!-- ====== COLLAPSED MODE ====== -->
+          <template v-else>
+            <router-link
+              v-for="item in group.items" :key="item.path" :to="item.path"
+              :title="item.label"
+              class="group relative flex items-center justify-center px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 text-teal-100/80 hover:text-white overflow-hidden"
+              active-class="!text-white"
+              v-slot="{ isActive }"
+            >
+              <div v-if="isActive" class="absolute inset-0 bg-gradient-to-r from-teal-700/80 to-teal-600/40 rounded-xl shadow-inner"></div>
+              <div v-else class="absolute inset-0 bg-white/0 group-hover:bg-white/[0.06] rounded-xl transition-all duration-200"></div>
+              <i :class="[item.icon, isActive ? 'text-amber-400' : 'text-teal-300/70 group-hover:text-teal-200']" class="relative z-10 text-base shrink-0 transition-colors duration-200"></i>
+              <div v-if="isActive" class="absolute -right-0.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400/50"></div>
+            </router-link>
+          </template>
         </template>
       </nav>
 
-      <!-- User Profile -->
-      <div class="p-3 border-t border-white/10 relative z-10">
-        <div
-          :class="[collapsed ? 'justify-center' : 'gap-3']"
-          class="flex items-center px-2 py-2 rounded-xl bg-white/[0.04]"
-        >
-          <div class="relative shrink-0">
-            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center text-sm font-bold text-teal-950 shadow-lg">
-              {{ initials }}
-            </div>
-            <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-teal-900"></div>
-          </div>
-          <div v-if="!collapsed" class="flex-1 min-w-0">
-            <p class="text-sm font-semibold truncate text-white">{{ auth.user?.name }}</p>
-            <div class="flex items-center gap-1">
-              <span class="text-[11px] text-teal-400/70 truncate">{{ auth.user?.email }}</span>
-              <span class="text-[10px] px-1.5 py-0.5 rounded-full font-semibold"
-                :class="roleBadgeClass">
-                {{ auth.roleLabel }}
-              </span>
-            </div>
-          </div>
-        </div>
+      <!-- Bottom — hanya logout -->
+      <div class="p-3 border-t border-white/10 relative z-10 shrink-0">
         <button
           @click="logout"
           :class="[collapsed ? 'justify-center' : 'gap-3']"
-          class="mt-1.5 w-full flex items-center px-3 py-2.5 rounded-xl text-sm text-teal-400/70 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200"
+          class="w-full flex items-center px-3 py-2.5 rounded-xl text-sm text-teal-400/70 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200"
         >
           <i class="pi pi-sign-out text-base w-5 text-center shrink-0"></i>
           <span v-if="!collapsed">Keluar</span>
@@ -121,22 +105,42 @@
       </div>
     </aside>
 
+    <!-- Minimize Toggle Button — diluar sidebar & main (biar ga kena stacking context) -->
+    <button
+      @click="toggleCollapsed"
+      :style="{ left: collapsed ? '52px' : '244px', top: '68px' }"
+      class="absolute -translate-y-1/2 z-40 w-6 h-6 rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center hover:bg-slate-50 transition-all duration-200 hover:shadow-md hover:scale-110"
+    >
+      <i
+        class="pi text-[10px] text-slate-400"
+        :class="collapsed ? 'pi-chevron-right' : 'pi-chevron-left'"
+      ></i>
+    </button>
+
     <!-- Main Content -->
-    <main class="flex-1 overflow-auto relative">
-      <!-- Top bar -->
+    <main class="flex-1 overflow-y-auto relative">
+      <!-- Top bar — dengan info akun di pojok kanan -->
       <div class="sticky top-0 z-20 bg-slate-50/80 backdrop-blur-md border-b border-slate-200/60 px-6 py-3 flex items-center justify-between">
         <div>
           <h2 class="text-sm font-semibold text-slate-700">{{ currentPageTitle }}</h2>
           <p class="text-[11px] text-slate-400">{{ currentDate }}</p>
         </div>
         <div class="flex items-center gap-3">
-          <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
-            :class="topBarBadgeClass">
-            {{ auth.roleLabel }}
-          </span>
-          <div class="text-xs text-slate-400">
-            <i class="pi pi-user mr-1"></i>
-            {{ auth.user?.name }}
+          <!-- User Info -->
+          <div class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl hover:bg-white/70 transition cursor-pointer">
+            <div class="text-right">
+              <p class="text-xs font-semibold text-slate-700 leading-tight">{{ auth.user?.name }}</p>
+              <span class="text-[10px] px-1.5 py-0.5 rounded-full font-semibold inline-block mt-0.5"
+                :class="topBarBadgeClass">
+                {{ auth.roleLabel }}
+              </span>
+            </div>
+            <div class="relative shrink-0">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center text-xs font-bold text-teal-950 shadow-sm">
+                {{ initials }}
+              </div>
+              <div class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-slate-50"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -150,14 +154,21 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
-const collapsed = ref(false)
+
+// Sidebar collapsed state — persisted in localStorage
+const collapsed = ref(localStorage.getItem('sidebar_collapsed') === 'true')
+
+function toggleCollapsed() {
+  collapsed.value = !collapsed.value
+  localStorage.setItem('sidebar_collapsed', collapsed.value)
+}
 
 const menuGroups = [
   {
@@ -170,6 +181,7 @@ const menuGroups = [
     title: 'Transaksi',
     items: [
       { path: '/orders', label: 'Pesanan', icon: 'pi pi-receipt' },
+      { path: '/shifts', label: 'Shift', icon: 'pi pi-clock' },
       { path: '/kitchen', label: 'Dapur', icon: 'pi pi-box' },
     ],
   },
@@ -189,6 +201,12 @@ const menuGroups = [
     ],
   },
   {
+    title: 'Keuangan',
+    items: [
+      { path: '/withdraw', label: 'Penarikan', icon: 'pi pi-credit-card' },
+    ],
+  },
+  {
     title: 'Laporan',
     items: [
       { path: '/report', label: 'Laporan', icon: 'pi pi-chart-bar' },
@@ -196,25 +214,42 @@ const menuGroups = [
   },
 ]
 
+// Submenu expand/collapse state per group
+const expandedGroups = reactive({})
+
+// Initialize — semua group default expanded
+function initExpandedGroups() {
+  menuGroups.forEach(g => {
+    expandedGroups[g.title] = true
+  })
+}
+
+// Auto-expand group yang berisi route aktif
+function expandActiveGroup() {
+  for (const group of menuGroups) {
+    if (group.items.some(item => item.path === route.path)) {
+      expandedGroups[group.title] = true
+      return
+    }
+  }
+}
+
+function toggleGroup(title) {
+  expandedGroups[title] = !expandedGroups[title]
+}
+
+// Watch route changes — expand group yg sesuai
+watch(() => route.path, () => {
+  expandActiveGroup()
+})
+
 /**
  * Filter menu groups based on user role.
- * - Developer / Admin (Owner): sees everything
- * - Manager: hides Pengaturan group (Users & Outlets)
- * - Cashier/Kitchen (Staff): redirected away by route guard
  */
 const visibleGroups = computed(() => {
   if (auth.isSuper) return menuGroups
   if (auth.isManager) return menuGroups.filter((_, i) => i !== 3) // hide Pengaturan
-  return [] // staff shouldn't reach here
-})
-
-const roleBadgeClass = computed(() => {
-  const map = {
-    developer: 'bg-purple-500/20 text-purple-300',
-    admin: 'bg-amber-500/20 text-amber-300',
-    manager: 'bg-blue-500/20 text-blue-300',
-  }
-  return map[auth.highestRole] || 'bg-teal-500/20 text-teal-300'
+  return []
 })
 
 const topBarBadgeClass = computed(() => {
@@ -235,7 +270,9 @@ const pageTitles = {
   '/taxes': 'Manajemen Pajak',
   '/users': 'Manajemen Pengguna',
   '/outlets': 'Manajemen Outlet',
+  '/shifts': 'Manajemen Shift',
   '/report': 'Laporan',
+  '/withdraw': 'Penarikan Saldo',
 }
 
 const currentPageTitle = computed(() => pageTitles[route.path] || 'Dashboard')
@@ -264,9 +301,34 @@ function logout() {
   auth.logout()
   router.push('/login')
 }
+
+onMounted(() => {
+  initExpandedGroups()
+  expandActiveGroup()
+})
 </script>
 
 <style scoped>
+/* Sidebar thin scrollbar */
+.scrollbar-sidebar::-webkit-scrollbar {
+  width: 3px;
+}
+.scrollbar-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+}
+.scrollbar-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+.scrollbar-sidebar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
+}
+
+/* Slide transitions */
 .slide-text-enter-active,
 .slide-text-leave-active {
   transition: opacity 0.2s ease, transform 0.2s ease;
@@ -278,5 +340,25 @@ function logout() {
 .slide-text-leave-to {
   opacity: 0;
   transform: translateX(8px);
+}
+
+/* Submenu slide animation */
+.submenu-slide-enter-active {
+  transition: all 0.2s ease-out;
+  max-height: 500px;
+  opacity: 1;
+}
+.submenu-slide-leave-active {
+  transition: all 0.15s ease-in;
+  max-height: 500px;
+  opacity: 1;
+}
+.submenu-slide-enter-from {
+  max-height: 0;
+  opacity: 0;
+}
+.submenu-slide-leave-to {
+  max-height: 0;
+  opacity: 0;
 }
 </style>

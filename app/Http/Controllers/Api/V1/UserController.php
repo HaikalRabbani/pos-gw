@@ -10,14 +10,26 @@ use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
+    private function isDeveloper(User $user): bool
+    {
+        $roles = $user->outlets->pluck('pivot.role')->unique();
+        return $roles->contains('developer');
+    }
+
     public function index(Request $request)
     {
         $authUser = $request->user();
         $query = User::with('outlets')
             ->where('tenant_id', $authUser->tenant_id);
 
-        // Manager: only see users assigned to their outlets
         $authRole = $this->getHighestRole($authUser);
+
+        // Admin (Owner): cannot see Developer users
+        if ($authRole === 'admin') {
+            $query->whereDoesntHave('outlets', fn($q) => $q->where('role', 'developer'));
+        }
+
+        // Manager: only see users assigned to their outlets
         if ($authRole === 'manager') {
             $outletIds = $authUser->outlets->pluck('id');
             $query->whereHas('outlets', fn($q) => $q->whereIn('outlet_id', $outletIds));
@@ -46,6 +58,11 @@ class UserController extends Controller
         $authUser = request()->user();
         $authRole = $this->getHighestRole($authUser);
 
+        // Admin (Owner): cannot view Developer users
+        if ($authRole === 'admin' && $this->isDeveloper($user)) {
+            abort(403, 'You cannot view this user.');
+        }
+
         // Manager: can only view users in their outlets
         if ($authRole === 'manager') {
             $outletIds = $authUser->outlets->pluck('id');
@@ -66,6 +83,11 @@ class UserController extends Controller
         $authUser = $request->user();
         $authRole = $this->getHighestRole($authUser);
 
+        // Admin (Owner): cannot edit Developer users
+        if ($authRole === 'admin' && $this->isDeveloper($user)) {
+            abort(403, 'You cannot edit this user.');
+        }
+
         // Manager: can only edit name of users in their outlets
         if ($authRole === 'manager') {
             $outletIds = $authUser->outlets->pluck('id');
@@ -84,6 +106,7 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
             'email' => 'sometimes|email|max:255|unique:users,email,' . $user->id,
+            'photo' => 'nullable|string|max:500',
             'is_active' => 'sometimes|boolean',
         ]);
 
@@ -96,6 +119,11 @@ class UserController extends Controller
     {
         $authUser = request()->user();
         $authRole = $this->getHighestRole($authUser);
+
+        // Admin (Owner): cannot toggle Developer users
+        if ($authRole === 'admin' && $this->isDeveloper($user)) {
+            abort(403, 'You cannot modify this user.');
+        }
 
         // Manager: can only toggle users in their outlets
         if ($authRole === 'manager') {
@@ -115,6 +143,11 @@ class UserController extends Controller
     {
         $authUser = $request->user();
         $authRole = $this->getHighestRole($authUser);
+
+        // Admin (Owner): cannot set PIN for Developer users
+        if ($authRole === 'admin' && $this->isDeveloper($user)) {
+            abort(403, 'You cannot modify this user.');
+        }
 
         // Manager: can only set PIN for users in their outlets
         if ($authRole === 'manager') {

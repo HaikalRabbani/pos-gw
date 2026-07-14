@@ -7,12 +7,16 @@ use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\OutletController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\ProductController;
+use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\ShiftController;
 use App\Http\Controllers\Api\V1\TableController;
 use App\Http\Controllers\Api\V1\TaxController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\UserOutletController;
+use App\Http\Controllers\Api\V1\WithdrawController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 // Public
 Route::post('/v1/auth/register', [AuthController::class, 'register']);
@@ -94,5 +98,30 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/v1/shifts', [ShiftController::class, 'index']);
         Route::post('/v1/shifts/start', [ShiftController::class, 'start']);
         Route::post('/v1/shifts/{shift}/end', [ShiftController::class, 'end']);
+
+        // Reports
+        Route::prefix('/v1/reports')->group(function () {
+            Route::get('/summary', [ReportController::class, 'summary']);
+            Route::get('/daily-sales', [ReportController::class, 'dailySales']);
+            Route::get('/top-products', [ReportController::class, 'topProducts']);
+        });
+
+        // Upload file
+        Route::post('/v1/upload', function (Request $request) {
+            $request->validate(['file' => 'required|image|max:2048']);
+            $path = $request->file('file')->store('uploads', 'public');
+            return response()->json([
+                'success' => true,
+                'url' => Storage::url($path),
+            ]);
+        });
+
+        // Withdraw (balance + payout)
+        Route::prefix('/v1/withdraw')->group(function () {
+            Route::get('/balance', [WithdrawController::class, 'balance']);
+            Route::get('/transactions', [WithdrawController::class, 'transactions']);
+            Route::get('/withdrawals', [WithdrawController::class, 'withdrawals']);
+            Route::post('/withdraw', [WithdrawController::class, 'withdraw']);
+        });
     });
 });

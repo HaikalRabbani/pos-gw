@@ -8,9 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
-
-#[Fillable(['tenant_id', 'name', 'email', 'password', 'pin', 'is_active'])]
+use Laravel\Sanctum\HasApiTokens;    #[Fillable(['tenant_id', 'name', 'email', 'password', 'pin', 'is_active', 'photo'])]
 #[Hidden(['password', 'remember_token', 'pin'])]
 class User extends Authenticatable
 {

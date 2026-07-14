@@ -4,15 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Tax extends Model
+class OutletBalance extends Model
 {
-    protected $fillable = ['outlet_id', 'name', 'rate', 'sort_order', 'is_active'];
+    protected $fillable = ['outlet_id', 'balance', 'total_withdrawn'];
 
     protected function casts(): array
     {
         return [
-            'is_active' => 'boolean',
-            'sort_order' => 'integer',
+            'balance' => 'integer',
+            'total_withdrawn' => 'integer',
         ];
     }
 

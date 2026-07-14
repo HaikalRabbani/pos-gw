@@ -13,7 +13,10 @@ class DiscountController extends Controller
         $request->validate(['outlet_id' => 'required|exists:outlets,id']);
         return response()->json([
             'success' => true,
-            'data' => Discount::where('outlet_id', $request->outlet_id)->orderBy('name')->get(),
+            'data' => Discount::where('outlet_id', $request->outlet_id)
+                ->with('targetProduct', 'targetCategory')
+                ->orderBy('name')
+                ->get(),
         ]);
     }
 
@@ -25,7 +28,23 @@ class DiscountController extends Controller
             'type' => 'required|string|in:percent,nominal',
             'value' => 'required|integer|min:0',
             'is_active' => 'nullable|boolean',
+            'target_type' => 'nullable|string|in:product,category,transaction',
+            'target_id' => 'nullable|integer|min:0',
+            'min_purchase' => 'nullable|integer|min:0',
+            'max_discount' => 'nullable|integer|min:0',
+            'buy_x' => 'nullable|integer|min:1',
+            'buy_y' => 'nullable|integer|min:1',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
         ]);
+
+        // target_id validation based on target_type
+        $targetType = $validated['target_type'] ?? 'transaction';
+        if ($targetType === 'product') {
+            $request->validate(['target_id' => 'required|integer|exists:products,id']);
+        } elseif ($targetType === 'category') {
+            $request->validate(['target_id' => 'required|integer|exists:categories,id']);
+        }
 
         return response()->json([
             'success' => true,
@@ -40,11 +59,27 @@ class DiscountController extends Controller
             'type' => 'sometimes|string|in:percent,nominal',
             'value' => 'sometimes|integer|min:0',
             'is_active' => 'nullable|boolean',
+            'target_type' => 'nullable|string|in:product,category,transaction',
+            'target_id' => 'nullable|integer|min:0',
+            'min_purchase' => 'nullable|integer|min:0',
+            'max_discount' => 'nullable|integer|min:0',
+            'buy_x' => 'nullable|integer|min:1',
+            'buy_y' => 'nullable|integer|min:1',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
         ]);
+
+        // target_id validation based on target_type
+        $targetType = $request->input('target_type', $discount->target_type ?? 'transaction');
+        if ($targetType === 'product') {
+            $request->validate(['target_id' => 'required|integer|exists:products,id']);
+        } elseif ($targetType === 'category') {
+            $request->validate(['target_id' => 'required|integer|exists:categories,id']);
+        }
 
         $discount->update($validated);
 
-        return response()->json(['success' => true, 'data' => $discount]);
+        return response()->json(['success' => true, 'data' => $discount->load('targetProduct', 'targetCategory')]);
     }
 
     public function destroy(Discount $discount)

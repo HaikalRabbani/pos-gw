@@ -37,7 +37,7 @@
         </div>
         <p class="text-3xl font-bold text-slate-900 tracking-tight">{{ card.value }}</p>
         <div class="flex items-center gap-1 mt-1">
-          <i :class="card.trendIcon" class="text-xs" :class="card.trendClass"></i>
+          <i :class="[card.trendIcon, card.trendClass, 'text-xs']"></i>
           <span class="text-xs" :class="card.trendClass">{{ card.trend }}</span>
         </div>
       </div>

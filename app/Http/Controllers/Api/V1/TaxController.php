@@ -13,7 +13,7 @@ class TaxController extends Controller
         $request->validate(['outlet_id' => 'required|exists:outlets,id']);
         return response()->json([
             'success' => true,
-            'data' => Tax::where('outlet_id', $request->outlet_id)->orderBy('name')->get(),
+            'data' => Tax::where('outlet_id', $request->outlet_id)->orderBy('sort_order')->orderBy('name')->get(),
         ]);
     }
 
@@ -23,6 +23,7 @@ class TaxController extends Controller
             'outlet_id' => 'required|exists:outlets,id',
             'name' => 'required|string|max:100',
             'rate' => 'required|numeric|min:0|max:100',
+            'sort_order' => 'nullable|integer|min:0|max:255',
             'is_active' => 'nullable|boolean',
         ]);
 
@@ -37,6 +38,7 @@ class TaxController extends Controller
         $validated = $request->validate([
             'name' => 'sometimes|string|max:100',
             'rate' => 'sometimes|numeric|min:0|max:100',
+            'sort_order' => 'nullable|integer|min:0|max:255',
             'is_active' => 'nullable|boolean',
         ]);
 

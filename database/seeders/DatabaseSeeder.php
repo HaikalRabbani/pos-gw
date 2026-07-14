@@ -126,6 +126,13 @@ class DatabaseSeeder extends Seeder
         ]);
         $dapur->outlets()->attach($pusat->id, ['role' => 'kitchen']);
 
+        // ──────────────────────────────────────────────
+        // 4. Transaction Seeder (dummy data)
+        // ──────────────────────────────────────────────
+        if (app()->environment('local', 'testing')) {
+            $this->call(TransactionSeeder::class);
+        }
+
         $this->command->info('✅ Seeder selesai!');
         $this->command->info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         $this->command->info('  Developer : dev@pos.com / password');

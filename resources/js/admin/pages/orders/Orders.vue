@@ -11,14 +11,22 @@
         <Select v-model="rowsPerPage" :options="[5, 10, 20, 50]" class="w-20" />
         <span class="text-sm text-slate-500">data</span>
       </div>
-      <DataTable :value="orders" paginator :rows="rowsPerPage"
+      <DataTable :value="orders" paginator :rows="rowsPerPage" stripedRows size="small"
         paginatorTemplate="CurrentPageReport PrevPageLink NextPageLink"
         currentPageReportTemplate="Halaman {currentPage} dari {totalPages}"
         class="text-sm">
+        <Column header="#" style="width: 50px">
+          <template #body="{ index }">
+            <span class="text-slate-400 text-xs font-mono">{{ index + 1 }}</span>
+          </template>
+        </Column>
         <template #empty>
-          <div class="flex flex-col items-center justify-center py-12 text-center">
-            <i class="pi pi-receipt text-4xl text-slate-200 mb-3"></i>
-            <p class="text-slate-400 text-sm">Belum ada pesanan.</p>
+          <div class="flex flex-col items-center justify-center py-16 text-center">
+            <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
+              <i class="pi pi-receipt text-2xl text-slate-300"></i>
+            </div>
+            <p class="text-slate-500 font-medium">Belum ada pesanan</p>
+            <p class="text-slate-400 text-xs mt-1">Pesanan baru akan muncul di sini</p>
           </div>
         </template>
         <Column field="id" header="ID" sortable />

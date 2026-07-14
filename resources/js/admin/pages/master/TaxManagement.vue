@@ -6,11 +6,7 @@
         <h1 class="text-2xl font-bold text-slate-900">Manajemen Pajak</h1>
         <p class="text-sm text-slate-500 mt-1">Kelola tarif pajak untuk setiap outlet</p>
       </div>
-      <div class="flex items-center gap-2">
-        <Select v-model="selectedOutletId" :options="outlets" optionLabel="name" optionValue="id"
-          placeholder="Pilih outlet" class="w-48" @change="fetchTaxes" />
-        <Button label="Tambah Pajak" icon="pi pi-plus" @click="openAddDialog" :disabled="!selectedOutletId" />
-      </div>
+
     </div>
 
     <!-- Summary Cards -->
@@ -67,11 +63,24 @@
 
     <!-- Table -->
     <div v-else class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-      <DataTable :value="taxes" class="text-sm">
+      <div class="p-3 border-b border-slate-100 flex items-center justify-end gap-2">
+        <Select v-model="selectedOutletId" :options="outlets" optionLabel="name" optionValue="id"
+          placeholder="Pilih outlet" class="w-44" @change="fetchTaxes" />
+        <Button label="Tambah Pajak" icon="pi pi-plus" size="small" @click="openAddDialog" :disabled="!selectedOutletId" />
+      </div>
+      <DataTable :value="taxes" stripedRows size="small" class="text-sm">
+        <Column header="#" style="width: 50px">
+          <template #body="{ index }">
+            <span class="text-slate-400 text-xs font-mono">{{ index + 1 }}</span>
+          </template>
+        </Column>
         <template #empty>
-          <div class="flex flex-col items-center justify-center py-12 text-center">
-            <i class="pi pi-percentage text-4xl text-slate-200 mb-3"></i>
-            <p class="text-slate-400 text-sm">Belum ada pajak untuk outlet ini.</p>
+          <div class="flex flex-col items-center justify-center py-16 text-center">
+            <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
+              <i class="pi pi-shield text-2xl text-slate-300"></i>
+            </div>
+            <p class="text-slate-500 font-medium">Belum ada pajak</p>
+            <p class="text-slate-400 text-xs mt-1">Tambahkan pajak untuk outlet ini</p>
           </div>
         </template>
         <Column field="name" header="Nama Pajak" sortable>
@@ -88,6 +97,11 @@
                   :style="{ width: Math.min(data.rate, 100) + '%' }"></div>
               </div>
             </div>
+          </template>
+        </Column>
+        <Column header="Urutan" style="width: 80px" sortable>
+          <template #body="{ data }">
+            <span class="text-xs font-mono text-slate-500">#{{ data.sort_order }}</span>
           </template>
         </Column>
         <Column header="Status" sortable>
@@ -127,6 +141,14 @@
             <InputNumber v-model="form.rate" class="flex-1" :min="0" :max="100"
               :minFractionDigits="1" :maxFractionDigits="1" suffix="%" required />
             <span class="text-xs text-slate-400">Maks 100%</span>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Urutan Perhitungan</label>
+          <div class="flex items-center gap-3">
+            <InputNumber v-model="form.sort_order" class="w-24" :min="0" :max="255"
+              placeholder="0" />
+            <span class="text-xs text-slate-400">Semakin kecil, semakin pertama dihitung</span>
           </div>
         </div>
         <div class="flex justify-end gap-2 pt-2">
@@ -178,7 +200,7 @@ const showDeleteDialog = ref(false)
 const editing = ref(false)
 const deletingTax = ref(null)
 
-const form = ref({ name: '', rate: 11 })
+const form = ref({ name: '', rate: 11, sort_order: 0 })
 
 const activeCount = computed(() => taxes.value.filter((t) => t.is_active).length)
 const inactiveCount = computed(() => taxes.value.filter((t) => !t.is_active).length)
@@ -206,13 +228,13 @@ async function fetchTaxes() {
 
 function openAddDialog() {
   editing.value = false
-  form.value = { name: '', rate: 11 }
+  form.value = { name: '', rate: 11, sort_order: 0 }
   showDialog.value = true
 }
 
 function openEditDialog(tax) {
   editing.value = true
-  form.value = { name: tax.name, rate: tax.rate, id: tax.id }
+  form.value = { name: tax.name, rate: tax.rate, sort_order: tax.sort_order ?? 0, id: tax.id }
   showDialog.value = true
 }
 
@@ -223,6 +245,7 @@ async function saveTax() {
       outlet_id: selectedOutletId.value,
       name: form.value.name,
       rate: form.value.rate,
+      sort_order: form.value.sort_order ?? 0,
     }
     if (editing.value) {
       await client.put(`/taxes/${form.value.id}`, payload)

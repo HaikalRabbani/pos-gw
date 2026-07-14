@@ -1,7 +1,7 @@
 # POS Admin — Project Notes
 
 ## Stack
-- **Backend**: Laravel 11 + Sanctum (API)
+- **Backend**: Laravel 13 + Sanctum (API)
 - **Frontend**: Vue 3 + Vite + Pinia + Vue Router + PrimeVue 4 + Tailwind CSS v4
 - **Database**: MySQL (via Docker)
 - **Realtime**: Laravel Reverb (WebSocket)
@@ -89,7 +89,8 @@ Outlet: Pusat (Jakarta), Cabang 1 (Bandung), Cabang 2 (Surabaya)
 - `pages/master/TaxManagement.vue` — CRUD pajak
 - `pages/users/UserManagement.vue` — CRUD user + role assignment
 - `pages/outlets/OutletManagement.vue` — CRUD outlet
-- `pages/report/Report.vue` — laporan (placeholder)
+- `pages/report/Report.vue` — laporan + Chart.js (bar/line/doughnut)
+- `pages/shifts/ShiftManagement.vue` — riwayat shift kasir
 
 ---
 
@@ -115,6 +116,11 @@ Outlet: Pusat (Jakarta), Cabang 1 (Bandung), Cabang 2 (Surabaya)
 - `GET/POST/PUT/DELETE /api/v1/tables`
 - `GET/POST /api/v1/orders` + items, status, pay
 
+### Reports
+- `GET /api/v1/reports/summary` — ringkasan keuangan (HPP, laba, margin)
+- `GET /api/v1/reports/daily-sales` — penjualan harian untuk grafik
+- `GET /api/v1/reports/top-products` — produk terlaris + profit margin
+
 Semua endpoint kecuali outlets & users butuh `outlet.access` middleware.
 
 ---
@@ -132,12 +138,34 @@ Semua endpoint kecuali outlets & users butuh `outlet.access` middleware.
 9. ✅ **Database seeder** — 7 akun test, 3 outlet
 10. ✅ **OutletFactory** — factory untuk testing
 
+---
+
+### Sesi 2 (14 Juli 2026)
+
+11. ✅ **Financial Report System** — HPP, laba kotor, margin, Chart.js
+    - Migration: field `cost` di products + `unit_cost` di order_items
+    - Backend: ReportService (summary, daily sales, top products)
+    - Backend: ReportController + 3 API endpoints (summary, daily-sales, top-products)
+    - Frontend: Report.vue dengan Chart.js (bar/line chart + doughnut composition)
+    - Filter periode (hari ini, 7 hari, 30 hari, bulan ini, kustom)
+12. ✅ **Transaction Seeder** — 30 hari data dummy (orders, items, payments)
+13. ✅ **Sidebar UI/UX Overhaul**
+    - Submenu/nested dengan toggle (click group header)
+    - Slide animation expand/collapse
+    - Thin custom scrollbar (webkit + firefox)
+    - Tombol minimize pindah ke border (bulat, di luar stacking context)
+    - Collapsed state persist di localStorage
+    - Sidebar no longer scrolls with main content (h-screen + overflow-hidden)
+    - User info dipindah dari sidebar ke top navbar kanan
+    - Logo ga kepotong pas collapsed (dynamic padding)
+14. ✅ **Shift Management Page** — `/shifts`
+    - Frontend read-only (start/end shift via POS mobile nanti)
+    - Active shift banner + summary cards + history DataTable
+
 ## Pending / Next
 
-- [ ] Halaman laporan dengan grafik real (Chart.js atau similar)
-- [ ] Seeder data transaksi (orders, items, payments)
-- [ ] Fitur export laporan (Excel/PDF)
-- [ ] Halaman shift management
+- [ ] Fitur export laporan (Excel/PDF) — Sudah ada tombol di Report.vue, tinggal backend
+- [ ] Dashboard real-time dengan data asli dari API
 - [ ] Manajemen metode pembayaran
-- [ ] Dark mode toggle? (user request)
 - [ ] POS Mobile (Flutter/RN — proyek terpisah)
+- [ ] Dark mode toggle? (user request)

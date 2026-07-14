@@ -6,16 +6,17 @@ use App\Models\Order;
 
 class MidtransService
 {
-    public function __construct()
+    public function __construct(
+        protected WithdrawService $withdrawService
+    ) {}
+
+    public function createTransaction(Order $order): array
     {
         \Midtrans\Config::$serverKey = config('midtrans.server_key');
         \Midtrans\Config::$isProduction = config('midtrans.is_production');
         \Midtrans\Config::$isSanitized = true;
         \Midtrans\Config::$is3ds = true;
-    }
 
-    public function createTransaction(Order $order): array
-    {
         $params = [
             'transaction_details' => [
                 'order_id' => 'POS-' . $order->id . '-' . time(),
@@ -36,6 +37,9 @@ class MidtransService
 
     public function handleNotification(array $notification): ?Order
     {
+        \Midtrans\Config::$serverKey = config('midtrans.server_key');
+        \Midtrans\Config::$isProduction = config('midtrans.is_production');
+
         $orderId = $notification['order_id'] ?? null;
         $transactionStatus = $notification['transaction_status'] ?? '';
         $fraudStatus = $notification['fraud_status'] ?? '';
@@ -54,7 +58,7 @@ class MidtransService
 
         if ($transactionStatus === 'capture' || $transactionStatus === 'settlement') {
             if ($fraudStatus === 'accept' || $fraudStatus === '') {
-                $order->payments()->create([
+                $payment = $order->payments()->create([
                     'method' => 'midtrans',
                     'amount' => $order->grand_total,
                     'midtrans_ref' => $notification['transaction_id'] ?? '',
@@ -66,6 +70,17 @@ class MidtransService
                     'payment_status' => 'paid',
                     'payment_method' => 'midtrans',
                 ]);
+
+                // Auto-add balance untuk outlet (QRIS / non-tunai)
+                if ($order->outlet) {
+                    $this->withdrawService->addBalance(
+                        $order->outlet,
+                        $order->grand_total,
+                        "Pembayaran QRIS Order #{$order->id}",
+                        'order',
+                        $order->id,
+                    );
+                }
             }
         }
 

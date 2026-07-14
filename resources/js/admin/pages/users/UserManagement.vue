@@ -6,17 +6,10 @@
         <h1 class="text-2xl font-bold text-slate-900">Manajemen Pengguna</h1>
         <p class="text-sm text-slate-500 mt-1">Kelola karyawan dan akses outlet</p>
       </div>
-      <div class="flex items-center gap-2">
-        <!-- Outlet Filter (for all roles) -->
-        <Select v-model="filterOutletId" :options="myOutlets"
-          optionLabel="name" optionValue="id" placeholder="Semua outlet" class="w-48" showClear
-          @change="fetchUsers" />
-        <Button v-if="auth.isSuper" label="Tambah User" icon="pi pi-plus" @click="showAddDialog = true" />
-      </div>
     </div>
 
     <!-- Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div class="bg-white rounded-2xl border border-slate-200 p-5">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
@@ -50,25 +43,61 @@
           </div>
         </div>
       </div>
+      <div class="bg-white rounded-2xl border border-slate-200 p-5">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center">
+            <i class="pi pi-camera text-violet-600 text-lg"></i>
+          </div>
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wider text-violet-600">Dengan Foto</p>
+            <p class="text-2xl font-bold text-slate-900 mt-0.5">{{ withPhotoCount }}</p>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Table -->
     <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-      <div class="p-3 border-b border-slate-100 flex items-center gap-2 bg-slate-50/50">
-        <span class="text-sm text-slate-500">Tampilkan</span>
-        <Select v-model="rowsPerPage" :options="[5, 10, 20, 50]" class="w-20" />
-        <span class="text-sm text-slate-500">data</span>
+      <div class="p-3 border-b border-slate-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-slate-500">Tampilkan</span>
+          <Select v-model="rowsPerPage" :options="[5, 10, 20, 50]" class="w-20" />
+          <span class="text-sm text-slate-500">data</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <Select v-model="filterOutletId" :options="myOutlets"
+            optionLabel="name" optionValue="id" placeholder="Semua outlet" class="w-44" showClear
+            @change="fetchUsers" />
+          <Button v-if="auth.isSuper" label="Tambah User" icon="pi pi-plus" size="small"
+            @click="showAddDialog = true" />
+        </div>
       </div>
-      <DataTable :value="users" paginator :rows="rowsPerPage"
+      <DataTable :value="users" paginator :rows="rowsPerPage" stripedRows size="small"
         paginatorTemplate="CurrentPageReport PrevPageLink NextPageLink"
         currentPageReportTemplate="Halaman {currentPage} dari {totalPages}"
         class="text-sm">
+        <Column header="#" style="width: 50px">
+          <template #body="{ index }">
+            <span class="text-slate-400 text-xs font-mono">{{ index + 1 }}</span>
+          </template>
+        </Column>
         <template #empty>
-          <div class="flex flex-col items-center justify-center py-12 text-center">
-            <i class="pi pi-users text-4xl text-slate-200 mb-3"></i>
-            <p class="text-slate-400 text-sm">Belum ada data user.</p>
+          <div class="flex flex-col items-center justify-center py-16 text-center">
+            <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
+              <i class="pi pi-users text-2xl text-slate-300"></i>
+            </div>
+            <p class="text-slate-500 font-medium">Belum ada data user</p>
+            <p class="text-slate-400 text-xs mt-1">Tambahkan user baru untuk memulai</p>
           </div>
         </template>
+        <Column header="Foto" style="width: 60px">
+          <template #body="{ data }">
+            <img v-if="data.photo" :src="data.photo" class="w-8 h-8 rounded-full object-cover border border-slate-200" />
+            <div v-else class="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center">
+              <i class="pi pi-user text-xs text-slate-400"></i>
+            </div>
+          </template>
+        </Column>
         <Column field="name" header="Nama" sortable />
         <Column field="email" header="Email" sortable />
         <Column header="Outlet & Role">
@@ -100,7 +129,11 @@
           <template #body="{ data }">
             <div class="flex gap-1">
               <Button icon="pi pi-pencil" text rounded size="small"
-                v-tooltip.top="'Edit Nama'" @click="openEditDialog(data)" />
+                v-tooltip.top="'Edit'"
+                @click="openEditDialog(data)" />
+              <Button icon="pi pi-camera" text rounded size="small" class="text-violet-600"
+                v-tooltip.top="'Ubah Foto'"
+                @click="openPhotoDialog(data)" />
               <Button v-if="auth.isSuper" icon="pi pi-user-edit" text rounded size="small"
                 v-tooltip.top="'Atur Role'" @click="openRoleDialog(data)" />
               <Button icon="pi pi-key" text rounded size="small" class="text-amber-600"
@@ -116,17 +149,53 @@
       </DataTable>
     </div>
 
-    <!-- Edit Name Dialog (Manager & Owner) -->
-    <Dialog v-model:visible="showEditDialog" header="Edit Nama User" modal class="w-sm">
-      <div v-if="selectedUser" class="space-y-4">
-        <p class="text-sm text-slate-600">User: <strong>{{ selectedUser.name }}</strong></p>
-        <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">Nama Baru</label>
-          <InputText v-model="editForm.name" class="w-full" required />
+    <!-- Edit User Dialog -->
+    <Dialog v-model:visible="showEditDialog" header="Edit User" modal class="w-md">
+      <form @submit.prevent="saveEdit" class="space-y-4">
+        <div v-if="selectedUser" class="space-y-4">
+          <div class="flex items-center gap-4">
+            <img v-if="selectedUser.photo" :src="selectedUser.photo"
+              class="w-16 h-16 rounded-full object-cover border border-slate-200" />
+            <div v-else class="w-16 h-16 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center">
+              <i class="pi pi-user text-xl text-slate-400"></i>
+            </div>
+            <div>
+              <p class="font-semibold text-slate-900">{{ selectedUser.name }}</p>
+              <p class="text-xs text-slate-500">{{ selectedUser.email }}</p>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Nama</label>
+            <InputText v-model="editForm.name" class="w-full" required />
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <Button label="Batal" severity="secondary" @click="showEditDialog = false" />
+            <Button type="submit" label="Simpan" :loading="savingEdit" />
+          </div>
         </div>
+      </form>
+    </Dialog>
+
+    <!-- Photo Upload Dialog -->
+    <Dialog v-model:visible="showPhotoDialog" header="Ubah Foto" modal class="w-sm">
+      <div v-if="selectedUser" class="space-y-4">
+        <div class="flex flex-col items-center gap-3">
+          <img v-if="photoPreview || selectedUser.photo" :src="photoPreview || selectedUser.photo"
+            class="w-24 h-24 rounded-full object-cover border-2 border-slate-200" />
+          <div v-else class="w-24 h-24 rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center">
+            <i class="pi pi-user text-2xl text-slate-400"></i>
+          </div>
+          <p class="text-sm text-slate-600"><strong>{{ selectedUser.name }}</strong></p>
+        </div>
+        <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
+          <input type="file" accept="image/*" class="text-sm text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100"
+            @change="onFileSelect" />
+        </div>
+        <div v-if="uploadError" class="text-xs text-red-500">{{ uploadError }}</div>
         <div class="flex justify-end gap-2 pt-2">
-          <Button label="Batal" severity="secondary" @click="showEditDialog = false" />
-          <Button label="Simpan" @click="saveEdit" :loading="savingEdit" />
+          <Button label="Batal" severity="secondary" @click="closePhotoDialog" />
+          <Button label="Simpan Foto" :loading="savingPhoto" :disabled="!selectedFile"
+            @click="uploadPhoto" />
         </div>
       </div>
     </Dialog>
@@ -219,11 +288,16 @@ const showAddDialog = ref(false)
 const showEditDialog = ref(false)
 const showRoleDialog = ref(false)
 const showPinDialog = ref(false)
+const showPhotoDialog = ref(false)
 const selectedUser = ref(null)
 const saving = ref(false)
 const savingEdit = ref(false)
 const savingRole = ref(false)
 const savingPin = ref(false)
+const savingPhoto = ref(false)
+const selectedFile = ref(null)
+const photoPreview = ref(null)
+const uploadError = ref('')
 
 const form = ref({ name: '', email: '', password: '' })
 const editForm = ref({ name: '' })
@@ -232,6 +306,7 @@ const pinForm = ref({ pin: '' })
 
 const activeCount = computed(() => users.value.filter((u) => u.is_active).length)
 const inactiveCount = computed(() => users.value.filter((u) => !u.is_active).length)
+const withPhotoCount = computed(() => users.value.filter((u) => u.photo).length)
 
 /** Outlets available for the current user's role */
 const myOutlets = computed(() => {
@@ -246,9 +321,11 @@ const roleOptions = computed(() => {
     { label: 'Dapur', value: 'kitchen' },
     { label: 'Manager', value: 'manager' },
   ]
-  if (auth.isSuper) {
+  if (auth.highestRole === 'developer') {
     base.unshift({ label: 'Owner (Admin)', value: 'admin' })
     base.unshift({ label: 'Developer', value: 'developer' })
+  } else if (auth.isSuper) {
+    base.unshift({ label: 'Owner (Admin)', value: 'admin' })
   }
   return base
 })
@@ -323,6 +400,58 @@ async function saveEdit() {
     alert(e.response?.data?.message || 'Gagal edit user')
   } finally {
     savingEdit.value = false
+  }
+}
+
+function openPhotoDialog(user) {
+  selectedUser.value = user
+  selectedFile.value = null
+  photoPreview.value = null
+  uploadError.value = ''
+  showPhotoDialog.value = true
+}
+
+function closePhotoDialog() {
+  showPhotoDialog.value = false
+  selectedFile.value = null
+  photoPreview.value = null
+  uploadError.value = ''
+}
+
+function onFileSelect(e) {
+  const file = e.target.files[0]
+  if (!file) return
+  if (!file.type.startsWith('image/')) {
+    uploadError.value = 'File harus berupa gambar'
+    return
+  }
+  if (file.size > 2 * 1024 * 1024) {
+    uploadError.value = 'Maksimal ukuran file 2MB'
+    return
+  }
+  selectedFile.value = file
+  uploadError.value = ''
+  const reader = new FileReader()
+  reader.onload = (ev) => { photoPreview.value = ev.target.result }
+  reader.readAsDataURL(file)
+}
+
+async function uploadPhoto() {
+  if (!selectedFile.value || !selectedUser.value) return
+  savingPhoto.value = true
+  try {
+    const formData = new FormData()
+    formData.append('file', selectedFile.value)
+    const { data } = await client.post('/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    await client.put(`/users/${selectedUser.value.id}`, { photo: data.url })
+    closePhotoDialog()
+    fetchUsers()
+  } catch (e) {
+    alert(e.response?.data?.message || 'Gagal upload foto')
+  } finally {
+    savingPhoto.value = false
   }
 }
 

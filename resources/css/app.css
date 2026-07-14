@@ -141,77 +141,179 @@ body {
     border-radius: 0.75rem !important;
     overflow: hidden !important;
 }
+.p-datatable-wrapper {
+    border-radius: 0.75rem !important;
+}
+
+/* Table base */
 .p-datatable-table {
     border-collapse: separate !important;
     border-spacing: 0 !important;
+    width: 100% !important;
 }
-.p-datatable-table th {
-    background: var(--brand-primary-800) !important;
+
+/* ── Header ── */
+.p-datatable-thead > tr > th {
+    background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%) !important;
     color: #ffffff !important;
-    font-weight: 600;
-    font-size: 0.75rem;
+    font-weight: 700 !important;
+    font-size: 0.6875rem !important;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 0.625rem 0.75rem !important;
+    letter-spacing: 0.06em;
+    padding: 0.75rem 0.875rem !important;
     text-align: left;
+    border: none !important;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
-.p-datatable-table th:first-child {
-    padding-left: 1rem !important;
+.p-datatable-thead > tr > th:first-child {
+    padding-left: 1.25rem !important;
 }
-.p-datatable-table th:last-child {
-    padding-right: 1rem !important;
+.p-datatable-thead > tr > th:last-child {
+    padding-right: 1.25rem !important;
 }
-.p-datatable-table td {
+.p-datatable-thead > tr > th .p-column-header-content {
+    color: rgba(255, 255, 255, 0.85) !important;
+}
+.p-datatable-thead > tr > th.p-highlight {
+    background: linear-gradient(135deg, #115e59 0%, #134e4a 100%) !important;
+}
+
+/* Sort icons */
+.p-datatable-thead > tr > th .p-sortable-column-icon {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+.p-datatable-thead > tr > th.p-highlight .p-sortable-column-icon {
+    color: #fbbf24 !important;
+}
+
+/* ── Body rows ── */
+.p-datatable-tbody > tr > td {
     background: #ffffff !important;
-    padding: 0.625rem 0.75rem !important;
+    padding: 0.6875rem 0.875rem !important;
     font-size: 0.8125rem;
     color: var(--text-body) !important;
     border-bottom: 1px solid #f1f5f9;
+    transition: background 0.15s ease;
 }
-.p-datatable-table td:first-child {
-    padding-left: 1rem !important;
+.p-datatable-tbody > tr > td:first-child {
+    padding-left: 1.25rem !important;
 }
-.p-datatable-table td:last-child {
-    padding-right: 1rem !important;
-}
-.p-datatable-table tr:last-child td {
-    border-bottom: none;
-}
-.p-datatable-table tr:hover td {
-    background: #f8fafc !important;
+.p-datatable-tbody > tr > td:last-child {
+    padding-right: 1.25rem !important;
 }
 
-/* -- Paginator -- */
+/* Last row no border */
+.p-datatable-tbody > tr:last-child > td {
+    border-bottom: none !important;
+}
+
+/* ── Hover ── */
+.p-datatable-tbody > tr {
+    transition: all 0.15s ease;
+}
+.p-datatable-tbody > tr:hover > td {
+    background: #f0fdfa !important;
+}
+.p-datatable-tbody > tr:hover {
+    box-shadow: inset 2px 0 0 0 #0d9488;
+}
+
+/* ── Striped rows ── */
+.p-datatable-striped .p-datatable-tbody > tr:nth-child(even) > td {
+    background: #f8fafc !important;
+}
+.p-datatable-striped .p-datatable-tbody > tr:nth-child(even):hover > td {
+    background: #f0fdfa !important;
+}
+
+/* ── Empty state ── */
+.p-datatable-emptymessage > td {
+    padding: 3rem 1rem !important;
+    text-align: center !important;
+    background: #ffffff !important;
+}
+
+/* ── Paginator ── */
 .p-paginator {
     background: #ffffff !important;
-    padding: 0.75rem 1rem !important;
+    padding: 0.625rem 1.25rem !important;
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    border-top: 1px solid #f1f5f9 !important;
+    border-top: 1px solid transparent !important;
+    gap: 0.5rem;
 }
 .p-paginator .p-paginator-current {
     color: #64748b !important;
     font-size: 0.8125rem !important;
     font-weight: 500 !important;
+    order: 0;
+}
+.p-paginator .p-paginator-pages {
+    order: 1;
+    display: flex;
+    gap: 2px;
 }
 .p-paginator .p-paginator-prev,
 .p-paginator .p-paginator-next {
     color: #64748b !important;
-    background: #f8fafc !important;
+    background: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
     min-width: 2rem !important;
     height: 2rem !important;
     border-radius: 0.5rem !important;
     cursor: pointer !important;
     transition: all 0.15s ease !important;
-    margin: 0 0.125rem;
 }
 .p-paginator .p-paginator-prev:hover,
 .p-paginator .p-paginator-next:hover {
     background: var(--brand-primary-800) !important;
     color: white !important;
     border-color: var(--brand-primary-800) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(15, 118, 110, 0.25) !important;
+}
+.p-paginator .p-paginator-prev:active,
+.p-paginator .p-paginator-next:active {
+    transform: translateY(0);
+}
+.p-paginator .p-paginator-prev.p-disabled,
+.p-paginator .p-paginator-next.p-disabled {
+    opacity: 0.4 !important;
+    cursor: default !important;
+}
+.p-paginator .p-paginator-prev.p-disabled:hover,
+.p-paginator .p-paginator-next.p-disabled:hover {
+    background: #ffffff !important;
+    color: #64748b !important;
+    border-color: #e2e8f0 !important;
+    transform: none;
+    box-shadow: none !important;
+}
+
+/* Page number buttons */
+.p-paginator .p-paginator-page {
+    min-width: 2rem !important;
+    height: 2rem !important;
+    border-radius: 0.5rem !important;
+    font-size: 0.8125rem !important;
+    font-weight: 500 !important;
+    color: #64748b !important;
+    border: 1px solid transparent !important;
+    transition: all 0.15s ease !important;
+    cursor: pointer !important;
+}
+.p-paginator .p-paginator-page:hover {
+    background: #f1f5f9 !important;
+    border-color: #e2e8f0 !important;
+}
+.p-paginator .p-paginator-page.p-highlight {
+    background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%) !important;
+    color: white !important;
+    border-color: transparent !important;
+    box-shadow: 0 2px 8px rgba(15, 118, 110, 0.25) !important;
 }
 
 /* -- Select (Dropdown) -- */

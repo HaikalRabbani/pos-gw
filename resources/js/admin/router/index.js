@@ -15,11 +15,13 @@ const routes = [
       { path: 'kitchen', name: 'Kitchen', component: () => import('../pages/kitchen/KitchenDisplay.vue') },
       { path: 'menu', name: 'Menu', component: () => import('../pages/menu/MenuManagement.vue') },
       { path: 'orders', name: 'Orders', component: () => import('../pages/orders/Orders.vue') },
+      { path: 'shifts', name: 'Shifts', component: () => import('../pages/shifts/ShiftManagement.vue') },
       { path: 'report', name: 'Report', component: () => import('../pages/report/Report.vue') },
       { path: 'users', name: 'Users', component: () => import('../pages/users/UserManagement.vue') },
       { path: 'outlets', name: 'Outlets', component: () => import('../pages/outlets/OutletManagement.vue') },
       { path: 'discounts', name: 'Discounts', component: () => import('../pages/master/DiscountManagement.vue') },
       { path: 'taxes', name: 'Taxes', component: () => import('../pages/master/TaxManagement.vue') },
+      { path: 'withdraw', name: 'Withdraw', component: () => import('../pages/withdraw/WithdrawManagement.vue') },
     ],
   },
 ]

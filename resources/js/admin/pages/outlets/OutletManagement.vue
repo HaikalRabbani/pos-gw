@@ -6,7 +6,6 @@
         <h1 class="text-2xl font-bold text-slate-900">Manajemen Outlet</h1>
         <p class="text-sm text-slate-500 mt-1">Kelola cabang dan lokasi bisnis</p>
       </div>
-      <Button label="Tambah Outlet" icon="pi pi-plus" @click="openAddDialog" />
     </div>
 
     <!-- Summary Cards -->
@@ -57,11 +56,22 @@
 
     <!-- Table -->
     <div v-else class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-      <DataTable :value="outlets" class="text-sm">
+      <div class="p-3 border-b border-slate-100 flex items-center justify-end gap-2">
+        <Button label="Tambah Outlet" icon="pi pi-plus" size="small" @click="openAddDialog" />
+      </div>
+      <DataTable :value="outlets" stripedRows size="small" class="text-sm">
+        <Column field="id" header="ID Outlet" style="width: 100px" sortable>
+          <template #body="{ data }">
+            <span class="font-mono text-xs font-bold text-teal-600 bg-teal-50 px-2 py-1 rounded-md">#{{ data.id }}</span>
+          </template>
+        </Column>
         <template #empty>
-          <div class="flex flex-col items-center justify-center py-12 text-center">
-            <i class="pi pi-building text-4xl text-slate-200 mb-3"></i>
-            <p class="text-slate-400 text-sm">Belum ada outlet. Tambahkan outlet pertama Anda!</p>
+          <div class="flex flex-col items-center justify-center py-16 text-center">
+            <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
+              <i class="pi pi-building text-2xl text-slate-300"></i>
+            </div>
+            <p class="text-slate-500 font-medium">Belum ada outlet</p>
+            <p class="text-slate-400 text-xs mt-1">Tambahkan outlet pertama Anda</p>
           </div>
         </template>
         <Column field="name" header="Nama Outlet" sortable>

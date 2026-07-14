@@ -30,6 +30,7 @@ class ProductController extends Controller
             'outlet_id' => 'required|exists:outlets,id',
             'category_id' => 'nullable|exists:categories,id',
             'name' => 'required|string|max:200',
+            'description' => 'nullable|string',
             'price' => 'required|integer|min:0',
             'image' => 'nullable|string',
             'sort_order' => 'nullable|integer|min:0',
@@ -50,6 +51,7 @@ class ProductController extends Controller
         $validated = $request->validate([
             'category_id' => 'nullable|exists:categories,id',
             'name' => 'sometimes|string|max:200',
+            'description' => 'nullable|string',
             'price' => 'sometimes|integer|min:0',
             'image' => 'nullable|string',
             'is_active' => 'sometimes|boolean',
