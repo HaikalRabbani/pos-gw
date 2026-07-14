@@ -5,8 +5,8 @@
       <p class="text-sm text-slate-500 mt-1">Daftar transaksi</p>
     </div>
 
-    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
-      <div class="p-3 border-b border-slate-100 flex items-center gap-2">
+    <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+      <div class="p-3 border-b border-slate-100 flex items-center gap-2 bg-slate-50/50">
         <span class="text-sm text-slate-500">Tampilkan</span>
         <Select v-model="rowsPerPage" :options="[5, 10, 20, 50]" class="w-20" />
         <span class="text-sm text-slate-500">data</span>
@@ -15,7 +15,12 @@
         paginatorTemplate="CurrentPageReport PrevPageLink NextPageLink"
         currentPageReportTemplate="Halaman {currentPage} dari {totalPages}"
         class="text-sm">
-        <template #empty>Belum ada pesanan.</template>
+        <template #empty>
+          <div class="flex flex-col items-center justify-center py-12 text-center">
+            <i class="pi pi-receipt text-4xl text-slate-200 mb-3"></i>
+            <p class="text-slate-400 text-sm">Belum ada pesanan.</p>
+          </div>
+        </template>
         <Column field="id" header="ID" sortable />
         <Column field="customer_name" header="Pelanggan" />
         <Column field="status" header="Status" sortable>
@@ -25,7 +30,7 @@
         </Column>
         <Column field="grand_total" header="Total" sortable>
           <template #body="{ data }">
-            <span class="font-medium">Rp {{ (data.grand_total / 100).toLocaleString('id-ID') }}</span>
+            <span class="font-semibold text-slate-900">Rp {{ (data.grand_total / 100).toLocaleString('id-ID') }}</span>
           </template>
         </Column>
         <Column field="payment_status" header="Pembayaran" sortable>

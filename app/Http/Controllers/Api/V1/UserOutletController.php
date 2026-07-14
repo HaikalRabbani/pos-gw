@@ -13,8 +13,20 @@ class UserOutletController extends Controller
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
             'outlet_id' => 'required|exists:outlets,id',
-            'role' => 'required|string|in:admin,cashier,kitchen',
+            'role' => 'required|string|in:admin,cashier,kitchen,manager,developer',
         ]);
+
+        // Check if auth user has super privileges globally (across any outlet)
+        $authUser = $request->user();
+        $authRoles = $authUser->outlets->pluck('pivot.role')->unique();
+        $isSuper = $authRoles->intersect(['developer', 'admin'])->isNotEmpty();
+
+        if (in_array($validated['role'], ['admin', 'developer']) && !$isSuper) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only owner or developer can assign this role.',
+            ], 403);
+        }
 
         $user = User::findOrFail($validated['user_id']);
 
