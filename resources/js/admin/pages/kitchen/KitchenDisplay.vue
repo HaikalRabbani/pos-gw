@@ -1,14 +1,17 @@
 <template>
-  <div>
-    <h1 class="text-2xl font-bold mb-4">Kitchen Display</h1>
+  <div class="space-y-6">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900">Kitchen Display</h1>
+      <p class="text-sm text-slate-500 mt-1">Pesanan yang sedang diproses</p>
+    </div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div v-for="order in orders" :key="order.id"
-        class="bg-white rounded-xl shadow p-4 border-l-4"
+        class="bg-white rounded-xl border border-slate-200 p-4 border-l-4"
         :class="orderBorder(order.status)">
         <div class="flex justify-between items-start">
           <div>
-            <p class="font-bold text-lg">#{{ order.id }}</p>
-            <p class="text-sm text-gray-500">{{ order.created_at }}</p>
+            <p class="font-bold text-lg text-slate-900">#{{ order.id }}</p>
+            <p class="text-sm text-slate-500">{{ order.created_at }}</p>
           </div>
           <Button v-if="order.status === 'confirmed'" label="Accept" size="small"
             @click="accept(order.id)" />
@@ -17,7 +20,7 @@
         </div>
         <div class="mt-2">
           <div v-for="item in order.items" :key="item.id"
-            class="text-sm">- {{ item.product_name }} x{{ item.qty }}</div>
+            class="text-sm text-slate-700">- {{ item.product_name }} x{{ item.qty }}</div>
         </div>
       </div>
     </div>

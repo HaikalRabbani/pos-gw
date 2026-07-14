@@ -9,28 +9,28 @@
       </div>
       <div class="grid grid-cols-3 md:grid-cols-4 gap-3">
         <div v-for="p in products" :key="p.id"
-          class="bg-white rounded-xl shadow p-3 cursor-pointer hover:shadow-md transition"
+          class="bg-white rounded-xl border border-slate-200 p-3 cursor-pointer hover:border-teal-300 transition"
           @click="addToCart(p)">
-          <p class="font-semibold">{{ p.name }}</p>
-          <p class="text-sm text-gray-500">{{ formatPrice(p.price) }}</p>
+          <p class="font-semibold text-slate-900">{{ p.name }}</p>
+          <p class="text-sm text-slate-500">{{ formatPrice(p.price) }}</p>
         </div>
       </div>
     </div>
     <!-- Cart -->
-    <div class="w-80 bg-white rounded-xl shadow p-4 flex flex-col">
-      <h2 class="font-bold text-lg mb-2">Cart</h2>
+    <div class="w-80 bg-white rounded-xl border border-slate-200 p-4 flex flex-col">
+      <h2 class="font-bold text-lg text-slate-900 mb-2">Cart</h2>
       <div class="flex-1 overflow-auto">
         <div v-for="(item, i) in cart" :key="i"
-          class="flex justify-between items-center py-2 border-b">
+          class="flex justify-between items-center py-2 border-b border-slate-100">
           <div>
-            <p class="font-medium">{{ item.name }}</p>
-            <p class="text-sm text-gray-500">{{ item.qty }} x {{ formatPrice(item.price) }}</p>
+            <p class="font-medium text-slate-900">{{ item.name }}</p>
+            <p class="text-sm text-slate-500">{{ item.qty }} x {{ formatPrice(item.price) }}</p>
           </div>
           <Button icon="pi pi-trash" severity="danger" text @click="cart.splice(i, 1)" />
         </div>
       </div>
-      <div class="border-t pt-3 mt-3">
-        <div class="flex justify-between font-bold text-lg">
+      <div class="border-t border-slate-100 pt-3 mt-3">
+        <div class="flex justify-between font-bold text-lg text-slate-900">
           <span>Total</span>
           <span>{{ formatPrice(total) }}</span>
         </div>

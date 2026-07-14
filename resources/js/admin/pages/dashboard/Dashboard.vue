@@ -1,11 +1,14 @@
 <template>
-  <div>
-    <h1 class="text-2xl font-bold mb-4">Dashboard</h1>
+  <div class="space-y-6">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900">Dashboard</h1>
+      <p class="text-sm text-slate-500 mt-1">Ringkasan performa hari ini</p>
+    </div>
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div v-for="card in stats" :key="card.label"
-        class="bg-white rounded-xl shadow p-6">
-        <p class="text-gray-500 text-sm">{{ card.label }}</p>
-        <p class="text-3xl font-bold mt-1">{{ card.value }}</p>
+        class="bg-white rounded-xl border border-slate-200 p-4">
+        <p class="text-sm text-slate-500">{{ card.label }}</p>
+        <p class="text-2xl font-bold text-slate-900 mt-1">{{ card.value }}</p>
       </div>
     </div>
   </div>

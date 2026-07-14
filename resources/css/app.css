@@ -11,17 +11,28 @@
 
 :root {
     font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+
+    /* Shared teal/slate tokens so table styling below stays in sync with the
+       PrimeVue preset (resources/js/admin/theme/preset.js) without repeating hex values. */
+    --brand-primary-900: #134e4a;
+    --brand-primary-800: #115e59;
+    --brand-primary-700: #0f766e;
+    --brand-primary-100: #ccfbf1;
+    --surface-page: #f1f5f9;
+    --surface-muted: #f8fafc;
+    --border-muted: #e2e8f0;
+    --text-body: #1e293b;
 }
 
 body {
     font-family: inherit;
-    background: #f1f5f9;
-    color: #1e293b;
+    background: var(--surface-page);
+    color: var(--text-body);
 }
 
 /* Table header */
 .p-datatable-table th {
-    background: #115e59 !important;
+    background: var(--brand-primary-800) !important;
     color: #ffffff !important;
     font-weight: 600;
     font-size: 0.75rem;
@@ -33,16 +44,16 @@ body {
 
 /* Table cell */
 .p-datatable-table td {
-    background: #f8fafc !important;
+    background: var(--surface-muted) !important;
     padding: 0.5rem 0.75rem !important;
     font-size: 0.8125rem;
-    color: #1e293b !important;
-    border-bottom: 1px solid #e2e8f0;
+    color: var(--text-body) !important;
+    border-bottom: 1px solid var(--border-muted);
 }
 
 /* Paginator */
 .p-paginator {
-    background: #115e59 !important;
+    background: var(--brand-primary-800) !important;
     padding: 0.5rem 0.75rem !important;
     display: flex !important;
     align-items: center !important;
@@ -50,13 +61,13 @@ body {
 }
 
 .p-paginator .p-paginator-current {
-    color: #ccfbf1 !important;
+    color: var(--brand-primary-100) !important;
     font-size: 0.8125rem !important;
 }
 
 .p-paginator .p-paginator-prev,
 .p-paginator .p-paginator-next {
-    color: #ccfbf1 !important;
+    color: var(--brand-primary-100) !important;
     background: transparent !important;
     border: none !important;
     min-width: 2rem !important;
@@ -67,5 +78,5 @@ body {
 
 .p-paginator .p-paginator-prev:hover,
 .p-paginator .p-paginator-next:hover {
-    background: #0f766e !important;
+    background: var(--brand-primary-700) !important;
 }
