@@ -1,0 +1,71 @@
+@import "tailwindcss";
+@import "primeicons/primeicons.css";
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+@theme {
+    --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+:root {
+    font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+    font-family: inherit;
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+/* Table header */
+.p-datatable-table th {
+    background: #115e59 !important;
+    color: #ffffff !important;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.5rem 0.75rem !important;
+    text-align: left;
+}
+
+/* Table cell */
+.p-datatable-table td {
+    background: #f8fafc !important;
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.8125rem;
+    color: #1e293b !important;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+/* Paginator */
+.p-paginator {
+    background: #115e59 !important;
+    padding: 0.5rem 0.75rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+}
+
+.p-paginator .p-paginator-current {
+    color: #ccfbf1 !important;
+    font-size: 0.8125rem !important;
+}
+
+.p-paginator .p-paginator-prev,
+.p-paginator .p-paginator-next {
+    color: #ccfbf1 !important;
+    background: transparent !important;
+    border: none !important;
+    min-width: 2rem !important;
+    height: 2rem !important;
+    border-radius: 0.25rem !important;
+    cursor: pointer !important;
+}
+
+.p-paginator .p-paginator-prev:hover,
+.p-paginator .p-paginator-next:hover {
+    background: #0f766e !important;
+}
