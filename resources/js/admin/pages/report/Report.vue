@@ -75,12 +75,12 @@
                 @click="chartType = t.value" />
             </div>
           </div>
-          <div class="relative">
-            <canvas ref="salesChartRef" class="w-full" style="height: 280px;"></canvas>
-          </div>
-          <div v-if="dailySales.length === 0" class="text-center py-6 -mt-40 relative z-10">
-            <i class="pi pi-chart-bar text-3xl text-slate-200 mb-2"></i>
-            <p class="text-sm text-slate-400">Belum ada data penjualan</p>
+          <div class="relative" style="height: 280px;">
+            <canvas v-show="dailySales.length > 0" ref="salesChartRef" class="w-full h-full"></canvas>
+            <div v-if="dailySales.length === 0" class="absolute inset-0 flex flex-col items-center justify-center text-center">
+              <i class="pi pi-chart-bar text-3xl text-slate-200 mb-2"></i>
+              <p class="text-sm text-slate-400">Belum ada data penjualan</p>
+            </div>
           </div>
         </div>
 
@@ -92,12 +92,12 @@
               Komposisi Penjualan
             </h3>
           </div>
-          <div class="relative">
-            <canvas ref="compositionChartRef" class="w-full" style="height: 280px;"></canvas>
-          </div>
-          <div v-if="dailySales.length === 0" class="text-center py-6 -mt-40 relative z-10">
-            <i class="pi pi-chart-pie text-3xl text-slate-200 mb-2"></i>
-            <p class="text-sm text-slate-400">Belum ada data keuangan</p>
+          <div class="relative" style="height: 280px;">
+            <canvas v-show="dailySales.length > 0" ref="compositionChartRef" class="w-full h-full"></canvas>
+            <div v-if="dailySales.length === 0" class="absolute inset-0 flex flex-col items-center justify-center text-center">
+              <i class="pi pi-chart-pie text-3xl text-slate-200 mb-2"></i>
+              <p class="text-sm text-slate-400">Belum ada data keuangan</p>
+            </div>
           </div>
         </div>
       </div>
