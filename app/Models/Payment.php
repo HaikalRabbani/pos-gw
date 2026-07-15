@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Payment extends Model
 {
     protected $fillable = [
-        'order_id', 'method', 'amount',
+        'order_id', 'method', 'amount', 'refunded_amount',
         'midtrans_ref', 'midtrans_status',
         'bill_group_id', 'paid_at',
     ];
@@ -20,5 +20,10 @@ class Payment extends Model
     public function order()
     {
         return $this->belongsTo(Order::class);
+    }
+
+    public function getRefundableAmountAttribute(): int
+    {
+        return $this->amount - $this->refunded_amount;
     }
 }

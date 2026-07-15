@@ -25,6 +25,8 @@ class OrderService
         'voided' => [],
     ];
 
+    const REFUND_STATUSES = ['partial', 'full'];
+
     public function createDraft(array $data): Order
     {
         $order = Order::create([
@@ -271,6 +273,104 @@ class OrderService
     protected function canTransition(string $from, string $to): bool
     {
         return in_array($to, self::TRANSITIONS[$from] ?? []);
+    }
+
+    /**
+     * Refund per-item.
+     *
+     * @param array $itemsData [{order_item_id: int, qty: int}, ...]
+     */
+    public function refund(Order $order, int $userId, array $itemsData, ?string $reason = null): Order
+    {
+        if ($order->payment_status !== 'paid') {
+            throw ValidationException::withMessages([
+                'order' => ['Order belum dibayar, tidak bisa refund.'],
+            ]);
+        }
+
+        if ($order->refund_status === 'full') {
+            throw ValidationException::withMessages([
+                'order' => ['Order sudah di-refund penuh.'],
+            ]);
+        }
+
+        $order->load('items');
+        $itemMap = $order->items->keyBy('id');
+
+        $totalRefundAmount = 0;
+
+        foreach ($itemsData as $data) {
+            $item = $itemMap->get($data['order_item_id']);
+            if (!$item) {
+                throw ValidationException::withMessages([
+                    'items' => ["Item ID {$data['order_item_id']} tidak ditemukan di pesanan ini."],
+                ]);
+            }
+
+            $refundQty = (int) $data['qty'];
+            if ($refundQty <= 0) continue;
+
+            $refundableQty = $item->refundable_qty;
+            if ($refundQty > $refundableQty) {
+                throw ValidationException::withMessages([
+                    'items' => ["Item '{$item->product_name}' hanya bisa di-refund {$refundableQty} (dari {$item->qty})."],
+                ]);
+            }
+
+            // Hitung refund amount: proporsional dari total_price
+            $refundAmount = (int) round(($item->total_price / $item->qty) * $refundQty);
+            $totalRefundAmount += $refundAmount;
+
+            // Kurangi qty refundable
+            $item->increment('refunded_qty', $refundQty);
+        }
+
+        if ($totalRefundAmount <= 0) {
+            throw ValidationException::withMessages([
+                'items' => ['Tidak ada item yang di-refund.'],
+            ]);
+        }
+
+        // Cek apakah refund melebihi total yang dibayar
+        $totalRefundedSoFar = (int) $order->payments()->sum('refunded_amount');
+        $totalPaid = (int) $order->payments()->sum('amount');
+        $remainingRefundable = $totalPaid - $totalRefundedSoFar;
+
+        if ($totalRefundAmount > $remainingRefundable) {
+            throw ValidationException::withMessages([
+                'items' => ["Jumlah refund melebihi sisa refundable (Rp " . number_format($remainingRefundable, 0, ',', '.') . ")."],
+            ]);
+        }
+
+        // Apply refund ke payment
+        $remainingAmount = $totalRefundAmount;
+        $payments = $order->payments()->whereColumn('amount', '>', 'refunded_amount')->get();
+        foreach ($payments as $payment) {
+            if ($remainingAmount <= 0) break;
+            $refundable = $payment->refundable_amount;
+            $toRefund = min($remainingAmount, $refundable);
+            $payment->increment('refunded_amount', $toRefund);
+            $remainingAmount -= $toRefund;
+        }
+
+        // Tentukan refund_status: full jika SEMUA item sudah refunded_qty = qty
+        // Reload items untuk dapetin refunded_qty terbaru setelah increment
+        $order->load('items');
+        $allFullyRefunded = $order->items->every(fn($i) => $i->refundable_qty === 0);
+        $newTotalRefunded = $totalRefundedSoFar + $totalRefundAmount;
+        $refundStatus = $allFullyRefunded ? 'full' : 'partial';
+
+        $order->update([
+            'refund_status' => $refundStatus,
+            'refund_note' => $reason,
+            'refunded_at' => now(),
+            'refunded_by' => $userId,
+        ]);
+
+        $itemDetails = collect($itemsData)->map(fn($d) => $itemMap->get($d['order_item_id'])?->product_name . ' x' . $d['qty'])->filter()->implode(', ');
+        $this->log($order->id, $order->status, $order->status, $userId, 'refund: Rp ' . number_format($totalRefundAmount, 0, ',', '.') . ' — ' . $itemDetails . ($reason ? ' (' . $reason . ')' : ''));
+
+        return $order->fresh()->load('items', 'payments', 'logs.user');
     }
 
     protected function log(int $orderId, ?string $from, string $to, int $userId, ?string $note = null): void

@@ -95,6 +95,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/v1/orders/{order}/status', [OrderController::class, 'updateStatus']);
         Route::post('/v1/orders/{order}/pay/cash', [OrderController::class, 'payCash']);
 
+        // Refund
+        Route::post('/v1/orders/{order}/refund', [OrderController::class, 'refund']);
+
         // Midtrans
         Route::post('/v1/orders/{order}/pay/midtrans', [PaymentController::class, 'snapToken']);
 
@@ -108,6 +111,8 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/summary', [ReportController::class, 'summary']);
             Route::get('/daily-sales', [ReportController::class, 'dailySales']);
             Route::get('/top-products', [ReportController::class, 'topProducts']);
+            Route::get('/export-excel', [ReportController::class, 'exportExcel']);
+            Route::get('/export-pdf', [ReportController::class, 'exportPdf']);
         });
 
         // Dashboard (optimized single endpoint)

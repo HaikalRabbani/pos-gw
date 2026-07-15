@@ -438,14 +438,61 @@ async function fetchData() {
   }
 }
 
-function exportExcel() {
-  // TODO: implement export Excel via API
-  alert('Export Excel akan segera tersedia!')
+async function exportExcel() {
+  if (!dateRange.value || dateRange.value.length !== 2) return
+  try {
+    const { data: outletRes } = await client.get('/outlets')
+    const outlet = outletRes.data[0]
+    if (!outlet) return
+
+    const params = {
+      outlet_id: outlet.id,
+      start_date: dateRange.value[0].toISOString().split('T')[0],
+      end_date: dateRange.value[1].toISOString().split('T')[0],
+    }
+
+    const res = await client.get('/reports/export-excel', {
+      params,
+      responseType: 'blob',
+    })
+
+    const url = window.URL.createObjectURL(new Blob([res.data]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `laporan-keuangan-${params.start_date}_${params.end_date}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+  } catch (err) {
+    alert('Gagal export Excel')
+  }
 }
 
-function exportPdf() {
-  // TODO: implement export PDF via API
-  alert('Export PDF akan segera tersedia!')
+async function exportPdf() {
+  if (!dateRange.value || dateRange.value.length !== 2) return
+  try {
+    const { data: outletRes } = await client.get('/outlets')
+    const outlet = outletRes.data[0]
+    if (!outlet) return
+
+    const params = {
+      outlet_id: outlet.id,
+      start_date: dateRange.value[0].toISOString().split('T')[0],
+      end_date: dateRange.value[1].toISOString().split('T')[0],
+    }
+
+    const res = await client.get('/reports/export-pdf', { params })
+
+    // Open in new tab — user bisa Ctrl+P / Save as PDF
+    const win = window.open('', '_blank')
+    if (win) {
+      win.document.write(res.data)
+      win.document.close()
+    }
+  } catch (err) {
+    alert('Gagal export PDF')
+  }
 }
 
 watch(chartType, () => {

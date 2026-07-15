@@ -61,7 +61,7 @@ class OrderController extends Controller
     {
         return response()->json([
             'success' => true,
-            'data' => $order->load('items', 'payments', 'logs.user', 'discounts'),
+            'data' => $order->load('items', 'payments', 'logs.user', 'discounts', 'refundedBy', 'table', 'user'),
         ]);
     }
 
@@ -109,6 +109,25 @@ class OrderController extends Controller
     public function payCash(Request $request, Order $order)
     {
         $order = $this->orderService->payCash($order, $request->user()->id);
+
+        return response()->json(['success' => true, 'data' => $order]);
+    }
+
+    public function refund(Request $request, Order $order)
+    {
+        $validated = $request->validate([
+            'items' => 'required|array|min:1',
+            'items.*.order_item_id' => 'required|integer|exists:order_items,id',
+            'items.*.qty' => 'required|integer|min:1',
+            'reason' => 'required|string|max:500',
+        ]);
+
+        $order = $this->orderService->refund(
+            $order,
+            $request->user()->id,
+            $validated['items'],
+            $validated['reason'] ?? null,
+        );
 
         return response()->json(['success' => true, 'data' => $order]);
     }

@@ -10,7 +10,15 @@ class Order extends Model
         'outlet_id', 'table_id', 'user_id', 'customer_name',
         'status', 'subtotal', 'discount_total', 'tax_total', 'grand_total',
         'payment_status', 'payment_method', 'notes', 'bill_group_id',
+        'refund_status', 'refund_note', 'refunded_at', 'refunded_by',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'refunded_at' => 'datetime',
+        ];
+    }
 
     public function outlet()
     {
@@ -25,6 +33,11 @@ class Order extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function refundedBy()
+    {
+        return $this->belongsTo(User::class, 'refunded_by');
     }
 
     public function items()
