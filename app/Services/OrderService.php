@@ -3,11 +3,12 @@
 namespace App\Services;
 
 use App\Events\OrderStatusUpdated;
+use App\Models\Discount;
 use App\Models\Order;
 use App\Models\OrderLog;
 use App\Models\Product;
 use App\Models\Tax;
-use App\Models\Discount;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class OrderService
@@ -17,12 +18,12 @@ class OrderService
     ];
 
     const TRANSITIONS = [
-        'draft' => ['confirmed', 'voided'],
+        'draft'     => ['confirmed', 'voided'],
         'confirmed' => ['preparing', 'voided'],
         'preparing' => ['done', 'cancelled'],
-        'done' => [],
+        'done'      => [],
         'cancelled' => [],
-        'voided' => [],
+        'voided'    => [],
     ];
 
     const REFUND_STATUSES = ['partial', 'full'];
@@ -30,11 +31,11 @@ class OrderService
     public function createDraft(array $data): Order
     {
         $order = Order::create([
-            'outlet_id' => $data['outlet_id'],
-            'table_id' => $data['table_id'] ?? null,
-            'user_id' => $data['user_id'],
+            'outlet_id'     => $data['outlet_id'],
+            'table_id'      => $data['table_id'] ?? null,
+            'user_id'       => $data['user_id'],
             'customer_name' => $data['customer_name'] ?? null,
-            'status' => 'draft',
+            'status'        => 'draft',
         ]);
 
         $this->log($order->id, null, 'draft', $data['user_id']);
@@ -68,19 +69,19 @@ class OrderService
         }
 
         // Capture unit_cost from product for HPP calculation
-        $product = Product::find($data['product_id']);
+        $product  = Product::find($data['product_id']);
         $unitCost = $product ? $product->cost : 0;
 
         $item = $order->items()->create([
-            'product_id' => $data['product_id'],
-            'variant_id' => $data['variant_id'] ?? null,
+            'product_id'   => $data['product_id'],
+            'variant_id'   => $data['variant_id'] ?? null,
             'product_name' => $data['product_name'],
             'variant_name' => $data['variant_name'] ?? null,
-            'qty' => $data['qty'],
-            'unit_price' => $data['unit_price'],
-            'unit_cost' => $unitCost,
-            'total_price' => $data['unit_price'] * $data['qty'],
-            'notes' => $data['notes'] ?? null,
+            'qty'          => $data['qty'],
+            'unit_price'   => $data['unit_price'],
+            'unit_cost'    => $unitCost,
+            'total_price'  => $data['unit_price'] * $data['qty'],
+            'notes'        => $data['notes'] ?? null,
         ]);
 
         $this->recalculate($order);
@@ -110,26 +111,28 @@ class OrderService
             ]);
         }
 
-        $order->payments()->create([
-            'method' => 'cash',
-            'amount' => $order->grand_total,
-            'paid_at' => now(),
-        ]);
+        return DB::transaction(function () use ($order, $userId) {
+            $order->payments()->create([
+                'method'  => 'cash',
+                'amount'  => $order->grand_total,
+                'paid_at' => now(),
+            ]);
 
-        $order->update([
-            'payment_status' => 'paid',
-            'payment_method' => 'cash',
-        ]);
+            $order->update([
+                'payment_status' => 'paid',
+                'payment_method' => 'cash',
+            ]);
 
-        $this->log($order->id, $order->status, $order->status, $userId, 'paid cash');
+            $this->log($order->id, $order->status, $order->status, $userId, 'paid cash');
 
-        return $order->fresh();
+            return $order->fresh();
+        });
     }
 
     protected function recalculate(Order $order): void
     {
         $subtotal = $order->items()->sum('total_price');
-        $items = $order->items;
+        $items    = $order->items;
 
         // Hitung diskon kompleks (otomatis dari master diskon aktif)
         $discountTotal = $this->calculateDiscounts($order, $subtotal, $items);
@@ -141,21 +144,22 @@ class OrderService
             ->where('is_active', true)
             ->orderBy('sort_order')
             ->get();
+
         $runningTotal = $afterDiscount;
-        $taxTotal = 0;
+        $taxTotal     = 0;
         foreach ($taxes as $tax) {
-            $taxAmount = (int) round($runningTotal * $tax->rate / 100);
-            $taxTotal += $taxAmount;
+            $taxAmount     = (int) round($runningTotal * $tax->rate / 100);
+            $taxTotal     += $taxAmount;
             $runningTotal += $taxAmount;
         }
 
         $grandTotal = max($runningTotal, 0);
 
         $order->update([
-            'subtotal' => $subtotal,
-            'tax_total' => $taxTotal,
+            'subtotal'       => $subtotal,
+            'tax_total'      => $taxTotal,
             'discount_total' => $discountTotal,
-            'grand_total' => $grandTotal,
+            'grand_total'    => $grandTotal,
         ]);
     }
 
@@ -165,7 +169,7 @@ class OrderService
      */
     protected function calculateDiscounts(Order $order, int $subtotal, $items): int
     {
-        $now = now();
+        $now           = now();
         $totalDiscount = 0;
 
         $discounts = Discount::where('outlet_id', $order->outlet_id)
@@ -246,15 +250,15 @@ class OrderService
         if ($discount->target_type === 'product' && $discount->target_id) {
             $targetItems = $items->where('product_id', $discount->target_id);
         } elseif ($discount->target_type === 'category' && $discount->target_id) {
-            $productIds = Product::where('category_id', $discount->target_id)->pluck('id');
+            $productIds  = Product::where('category_id', $discount->target_id)->pluck('id');
             $targetItems = $items->whereIn('product_id', $productIds);
         }
 
         $totalQty = (int) $targetItems->sum('qty');
-        $setSize = $discount->buy_x + $discount->buy_y;
+        $setSize  = $discount->buy_x + $discount->buy_y;
         if ($setSize <= 0 || $totalQty < $setSize) return 0;
 
-        $sets = intdiv($totalQty, $setSize);
+        $sets      = intdiv($totalQty, $setSize);
         $freeCount = $sets * $discount->buy_y;
 
         // Kumpulkan semua harga satuan item, lalu ambil termurah untuk digratiskan
@@ -294,93 +298,100 @@ class OrderService
             ]);
         }
 
-        $order->load('items');
-        $itemMap = $order->items->keyBy('id');
+        return DB::transaction(function () use ($order, $userId, $itemsData, $reason) {
+            $order->load('items');
+            $itemMap           = $order->items->keyBy('id');
+            $totalRefundAmount = 0;
 
-        $totalRefundAmount = 0;
+            // PASS 1: validasi semua item dulu, belum ada yang diubah ke DB
+            foreach ($itemsData as $data) {
+                $item = $itemMap->get($data['order_item_id']);
+                if (!$item) {
+                    throw ValidationException::withMessages([
+                        'items' => ["Item ID {$data['order_item_id']} tidak ditemukan di pesanan ini."],
+                    ]);
+                }
 
-        foreach ($itemsData as $data) {
-            $item = $itemMap->get($data['order_item_id']);
-            if (!$item) {
+                $refundQty = (int) $data['qty'];
+                if ($refundQty <= 0) continue;
+
+                $refundableQty = $item->refundable_qty;
+                if ($refundQty > $refundableQty) {
+                    throw ValidationException::withMessages([
+                        'items' => ["Item '{$item->product_name}' hanya bisa di-refund {$refundableQty} (dari {$item->qty})."],
+                    ]);
+                }
+
+                // Hitung refund amount: proporsional dari total_price
+                $refundAmount       = (int) round(($item->total_price / $item->qty) * $refundQty);
+                $totalRefundAmount += $refundAmount;
+            }
+
+            if ($totalRefundAmount <= 0) {
                 throw ValidationException::withMessages([
-                    'items' => ["Item ID {$data['order_item_id']} tidak ditemukan di pesanan ini."],
+                    'items' => ['Tidak ada item yang di-refund.'],
                 ]);
             }
 
-            $refundQty = (int) $data['qty'];
-            if ($refundQty <= 0) continue;
+            // Cek apakah refund melebihi total yang dibayar
+            $totalRefundedSoFar  = (int) $order->payments()->sum('refunded_amount');
+            $totalPaid           = (int) $order->payments()->sum('amount');
+            $remainingRefundable = $totalPaid - $totalRefundedSoFar;
 
-            $refundableQty = $item->refundable_qty;
-            if ($refundQty > $refundableQty) {
+            if ($totalRefundAmount > $remainingRefundable) {
                 throw ValidationException::withMessages([
-                    'items' => ["Item '{$item->product_name}' hanya bisa di-refund {$refundableQty} (dari {$item->qty})."],
+                    'items' => ["Jumlah refund melebihi sisa refundable (Rp " . number_format($remainingRefundable, 0, ',', '.') . ")."],
                 ]);
             }
 
-            // Hitung refund amount: proporsional dari total_price
-            $refundAmount = (int) round(($item->total_price / $item->qty) * $refundQty);
-            $totalRefundAmount += $refundAmount;
+            // PASS 2: semua validasi lulus, baru eksekusi perubahan data
+            foreach ($itemsData as $data) {
+                $item      = $itemMap->get($data['order_item_id']);
+                $refundQty = (int) $data['qty'];
+                if (!$item || $refundQty <= 0) continue;
+                $item->increment('refunded_qty', $refundQty);
+            }
 
-            // Kurangi qty refundable
-            $item->increment('refunded_qty', $refundQty);
-        }
+            // Apply refund ke payment
+            $remainingAmount = $totalRefundAmount;
+            $payments        = $order->payments()->whereColumn('amount', '>', 'refunded_amount')->get();
+            foreach ($payments as $payment) {
+                if ($remainingAmount <= 0) break;
+                $refundable = $payment->refundable_amount;
+                $toRefund   = min($remainingAmount, $refundable);
+                $payment->increment('refunded_amount', $toRefund);
+                $remainingAmount -= $toRefund;
+            }
 
-        if ($totalRefundAmount <= 0) {
-            throw ValidationException::withMessages([
-                'items' => ['Tidak ada item yang di-refund.'],
+            // Tentukan refund_status: full jika SEMUA item sudah refunded_qty = qty
+            // Reload items untuk dapetin refunded_qty terbaru setelah increment
+            $order->load('items');
+            $allFullyRefunded = $order->items->every(fn($i) => $i->refundable_qty === 0);
+            $newTotalRefunded = $totalRefundedSoFar + $totalRefundAmount;
+            $refundStatus     = $allFullyRefunded ? 'full' : 'partial';
+
+            $order->update([
+                'refund_status' => $refundStatus,
+                'refund_note'   => $reason,
+                'refunded_at'   => now(),
+                'refunded_by'   => $userId,
             ]);
-        }
 
-        // Cek apakah refund melebihi total yang dibayar
-        $totalRefundedSoFar = (int) $order->payments()->sum('refunded_amount');
-        $totalPaid = (int) $order->payments()->sum('amount');
-        $remainingRefundable = $totalPaid - $totalRefundedSoFar;
+            $itemDetails = collect($itemsData)->map(fn($d) => $itemMap->get($d['order_item_id'])?->product_name . ' x' . $d['qty'])->filter()->implode(', ');
+            $this->log($order->id, $order->status, $order->status, $userId, 'refund: Rp ' . number_format($totalRefundAmount, 0, ',', '.') . ' — ' . $itemDetails . ($reason ? ' (' . $reason . ')' : ''));
 
-        if ($totalRefundAmount > $remainingRefundable) {
-            throw ValidationException::withMessages([
-                'items' => ["Jumlah refund melebihi sisa refundable (Rp " . number_format($remainingRefundable, 0, ',', '.') . ")."],
-            ]);
-        }
-
-        // Apply refund ke payment
-        $remainingAmount = $totalRefundAmount;
-        $payments = $order->payments()->whereColumn('amount', '>', 'refunded_amount')->get();
-        foreach ($payments as $payment) {
-            if ($remainingAmount <= 0) break;
-            $refundable = $payment->refundable_amount;
-            $toRefund = min($remainingAmount, $refundable);
-            $payment->increment('refunded_amount', $toRefund);
-            $remainingAmount -= $toRefund;
-        }
-
-        // Tentukan refund_status: full jika SEMUA item sudah refunded_qty = qty
-        // Reload items untuk dapetin refunded_qty terbaru setelah increment
-        $order->load('items');
-        $allFullyRefunded = $order->items->every(fn($i) => $i->refundable_qty === 0);
-        $newTotalRefunded = $totalRefundedSoFar + $totalRefundAmount;
-        $refundStatus = $allFullyRefunded ? 'full' : 'partial';
-
-        $order->update([
-            'refund_status' => $refundStatus,
-            'refund_note' => $reason,
-            'refunded_at' => now(),
-            'refunded_by' => $userId,
-        ]);
-
-        $itemDetails = collect($itemsData)->map(fn($d) => $itemMap->get($d['order_item_id'])?->product_name . ' x' . $d['qty'])->filter()->implode(', ');
-        $this->log($order->id, $order->status, $order->status, $userId, 'refund: Rp ' . number_format($totalRefundAmount, 0, ',', '.') . ' — ' . $itemDetails . ($reason ? ' (' . $reason . ')' : ''));
-
-        return $order->fresh()->load('items', 'payments', 'logs.user');
+            return $order->fresh()->load('items', 'payments', 'logs.user');
+        });
     }
 
     protected function log(int $orderId, ?string $from, string $to, int $userId, ?string $note = null): void
     {
         OrderLog::create([
-            'order_id' => $orderId,
+            'order_id'    => $orderId,
             'from_status' => $from,
-            'to_status' => $to,
-            'user_id' => $userId,
-            'note' => $note,
+            'to_status'   => $to,
+            'user_id'     => $userId,
+            'note'        => $note,
         ]);
     }
 }
