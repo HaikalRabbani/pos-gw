@@ -48,12 +48,9 @@ Jalankan `php artisan db:seed` — semua password: **`password`**
 | dev@pos.com | Developer | — | Semua |
 | admin@pos.com | Owner | 123456 | Semua |
 | manager@pos.com | Manager | 111111 | Outlet Pusat |
-| manager2@pos.com | Manager | 222222 | Outlet Cabang 1 |
 | kasir@pos.com | Kasir | 333333 | Outlet Pusat |
-| kasir2@pos.com | Kasir | 444444 | Outlet Cabang 1 |
-| dapur@pos.com | Koki | 555555 | Outlet Pusat |
 
-Outlet: Pusat (Jakarta), Cabang 1 (Bandung), Cabang 2 (Surabaya)
+Outlet: Outlet Pusat, Outlet Cabang
 
 ---
 
@@ -75,7 +72,7 @@ Seeder sekarang minimalis — hanya **2 data** per entitas untuk testing:
 - 2 pajak (PPN 11%, Service Charge 5%)
 - 2 diskon (10%, Rp 5.000)
 - 2 order (hari ini & kemarin)
-- 7 user + 3 outlet (tetap dari DatabaseSeeder)
+- 4 user + 2 outlet (tetap dari DatabaseSeeder)
 
 ---
 
@@ -112,8 +109,7 @@ Seeder sekarang minimalis — hanya **2 data** per entitas untuk testing:
 - `pages/auth/NoAccess.vue` — halaman staff tanpa akses
 - `pages/dashboard/Dashboard.vue` — dashboard real-time dari API
 - `pages/orders/Orders.vue` — daftar pesanan
-- `pages/kitchen/KitchenDisplay.vue` — display dapur
-- `pages/menu/MenuManagement.vue` — CRUD produk + deskripsi
+- `pages/menu/MenuManagement.vue` — CRUD produk + deskripsi + kategori & station inline
 - `pages/master/DiscountManagement.vue` — CRUD diskon kompleks
 - `pages/master/TaxManagement.vue` — CRUD pajak + urutan perhitungan
 - `pages/users/UserManagement.vue` — CRUD user + foto + role assignment
@@ -121,7 +117,7 @@ Seeder sekarang minimalis — hanya **2 data** per entitas untuk testing:
 - `pages/report/Report.vue` — laporan + Chart.js (bar/line/doughnut)
 - `pages/shifts/ShiftManagement.vue` — riwayat shift kasir
 - `pages/withdraw/WithdrawManagement.vue` — saldo QRIS + withdraw otomatis
-- `pages/pos/PosCashier.vue` — POS kasir (simulasi, nanti pindah ke mobile)
+- `pages/auth/ProfileSettings.vue` — edit profil sendiri (nama, email, password, foto, PIN)
 
 ---
 
@@ -186,6 +182,7 @@ Seeder sekarang minimalis — hanya **2 data** per entitas untuk testing:
 
 ### Seeder
 17. ✅ **TransactionSeeder** — hanya 2 data per entitas
+18. ✅ **Session Auth** — Login pake cookie/session (ganti dari token Bearer). AuthService pake `Auth::login()`, bootstrap/app.php tambah middleware session di API group
 
 ## Progress Sesi Ini (15 Juli 2026)
 
@@ -208,6 +205,7 @@ Seeder sekarang minimalis — hanya **2 data** per entitas untuk testing:
 14. ✅ **Duplicate dashboard route dihapus** — Route `GET /v1/dashboard` di dalam `outlet.access` middleware dihapus (dead code)
 15. ✅ **UserManagement sembunyikan akun sendiri** — User yg login difilter dari daftar (edit via Profile Settings)
 16. ✅ **Smart Auto Outlet Mode** — Kalo cuma 1 outlet, selector `outlet` di toolbar otomatis ilang (Tax, Discount, Tables, Withdraw). Kalo tiba-tiba nambah outlet >1, selector muncul lagi otomatis
+17. ✅ **Migration Konsolidasi (35→6 file)** — Semua migration digabung jadi 6 file tematik (user/auth, cache/jobs, pos_core, order_tables, finance, placeholder). Semua kolom & FK di-CREATE langsung, gak ada ALTER tambahan di file terpisah. FK `tenants` dipindah ke file #1 biar gak error FK reference
 
 ### Pending / Next
 - [ ] Sistem refund (frontend flow) — dialog detail refund + pilih item

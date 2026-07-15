@@ -319,6 +319,7 @@ const pageTitles = {
   '/shifts': 'Manajemen Shift',
   '/report': 'Laporan',
   '/withdraw': 'Penarikan Saldo',
+  '/profile': 'Pengaturan Profil',
 }
 
 const currentPageTitle = computed(() => pageTitles[route.path] || 'Dashboard')
@@ -343,8 +344,8 @@ const initials = computed(() => {
     .slice(0, 2)
 })
 
-function logout() {
-  auth.logout()
+async function logout() {
+  await auth.logout()
   router.push('/login')
 }
 

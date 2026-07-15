@@ -8,6 +8,7 @@ use App\Http\Requests\Api\V1\PinLoginRequest;
 use App\Http\Requests\Api\V1\RegisterRequest;
 use App\Services\AuthService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -34,6 +35,8 @@ class AuthController extends Controller
             $request->input('password')
         );
 
+        $request->session()->regenerate();
+
         return response()->json([
             'success' => true,
             'data' => $result,
@@ -46,6 +49,8 @@ class AuthController extends Controller
             $request->input('pin'),
             $request->input('outlet_id')
         );
+
+        $request->session()->regenerate();
 
         return response()->json([
             'success' => true,
@@ -92,9 +97,11 @@ class AuthController extends Controller
         ]);
     }
 
-    public function logout()
+    public function logout(Request $request)
     {
-        request()->user()->currentAccessToken()->delete();
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return response()->json([
             'success' => true,

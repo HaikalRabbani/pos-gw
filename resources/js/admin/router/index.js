@@ -29,17 +29,26 @@ const routes = [
 
 const router = createRouter({ history: createWebHistory(), routes })
 
-router.beforeEach((to, _, next) => {
+router.beforeEach(async (to, _, next) => {
   const auth = useAuthStore()
 
+  // Cek session kalo user blm terisi
+  if (!auth.user) {
+    const hasSession = await auth.checkSession()
+    if (!hasSession && to.meta.requiresAuth) {
+      return next('/login')
+    }
+  }
+
   // Must be logged in for protected routes
-  if (to.meta.requiresAuth && !auth.token) return next('/login')
+  if (to.meta.requiresAuth && !auth.user) return next('/login')
 
   // If already logged in and going to login page, redirect to dashboard
-  if (to.path === '/login' && auth.token) return next('/dashboard')
+  if (to.path === '/login' && auth.user) return next('/dashboard')
+  if (to.path === '/pin-login' && auth.user) return next('/dashboard')
 
   // Check admin panel access: cashier/kitchen staff cannot access admin panel
-  if (to.meta.requiresAdminAccess && auth.token && !auth.canAccessAdmin) {
+  if (to.meta.requiresAdminAccess && auth.user && !auth.canAccessAdmin) {
     return next('/no-access')
   }
 

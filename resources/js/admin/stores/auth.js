@@ -5,14 +5,10 @@ import client from '../api/client'
 const ROLE_HIERARCHY = ['developer', 'admin', 'manager', 'cashier', 'kitchen']
 
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref(localStorage.getItem('pos_token'))
-  const user = ref(JSON.parse(localStorage.getItem('pos_user') || 'null'))
+  const user = ref(null)
 
-  function save(t, u) {
-    token.value = t
+  function setUser(u) {
     user.value = u
-    localStorage.setItem('pos_token', t)
-    localStorage.setItem('pos_user', JSON.stringify(u))
   }
 
   /**
@@ -65,38 +61,38 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function login(email, password) {
     const { data } = await client.post('/auth/login', { email, password })
-    save(data.data.token, data.data.user)
-    await loadProfile()
+    user.value = data.data.user
     return data.data
   }
 
   async function loginPin(pin) {
     const { data } = await client.post('/auth/login-pin', { pin })
-    save(data.data.token, data.data.user)
-    await loadProfile()
+    user.value = data.data.user
     return data.data
   }
 
-  async function loadProfile() {
+  async function checkSession() {
     try {
       const { data } = await client.get('/auth/me')
       if (data.data) {
         user.value = data.data
-        localStorage.setItem('pos_user', JSON.stringify(data.data))
+        return true
       }
     } catch (_) {}
+    user.value = null
+    return false
   }
 
-  function logout() {
-    token.value = null
+  async function logout() {
+    try {
+      await client.post('/auth/logout')
+    } catch (_) {}
     user.value = null
-    localStorage.removeItem('pos_token')
-    localStorage.removeItem('pos_user')
   }
 
   return {
-    token, user,
-    login, loginPin, logout, loadProfile,
+    user, setUser,
+    login, loginPin, logout, checkSession,
     highestRole, roleLabel, canAccessAdmin, isSuper, isManager, isStaff, outletIds,
   }
 })

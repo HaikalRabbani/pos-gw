@@ -77,7 +77,7 @@ async function handleLogin() {
     await auth.loginPin(pin.value)
     router.push('/dashboard')
   } catch (e) {
-    alert(e.response?.data?.message || 'Invalid PIN')
+    alert(e.response?.data?.errors?.pin?.[0] || e.response?.data?.message || 'PIN salah')
   } finally {
     loading.value = false
   }

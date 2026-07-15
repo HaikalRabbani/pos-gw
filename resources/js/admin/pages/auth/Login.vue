@@ -92,7 +92,7 @@ async function handleLogin() {
     await auth.login(email.value, password.value)
     router.push('/dashboard')
   } catch (e) {
-    alert(e.response?.data?.message || 'Login failed')
+    alert(e.response?.data?.errors?.email?.[0] || e.response?.data?.message || 'Login gagal. Periksa email dan password Anda.')
   } finally {
     loading.value = false
   }

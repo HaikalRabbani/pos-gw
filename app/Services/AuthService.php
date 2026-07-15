@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Shift;
 use App\Models\Tenant;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -49,10 +50,10 @@ class AuthService
             ]);
         }
 
-        $token = $user->createToken('pos-token')->plainTextToken;
+        Auth::guard('web')->login($user);
         $user->load('outlets');
 
-        return ['token' => $token, 'user' => $user];
+        return ['user' => $user];
     }
 
     public function loginByPin(string $pin, ?int $outletId = null): array
@@ -79,10 +80,10 @@ class AuthService
             }
         }
 
-        $token = $user->createToken('pos-pin-token')->plainTextToken;
+        Auth::guard('web')->login($user);
         $user->load('outlets');
 
-        return ['token' => $token, 'user' => $user];
+        return ['user' => $user];
     }
 
     public function setPin(User $user, string $pin): void
