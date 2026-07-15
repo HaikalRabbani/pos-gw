@@ -31,9 +31,9 @@
         <div v-if="auth.isManager && !collapsed" class="px-3 py-2 mb-1">
           <div class="text-[10px] text-teal-400/50 uppercase tracking-wider mb-1">Akses Outlet</div>
           <div class="flex flex-wrap gap-1">
-            <span v-for="id in auth.outletIds" :key="id"
+            <span v-for="outlet in auth.user?.outlets" :key="outlet.id"
               class="text-[10px] px-1.5 py-0.5 rounded bg-teal-700/50 text-teal-200">
-              Outlet #{{ id }}
+              {{ outlet.name }}
             </span>
           </div>
         </div>

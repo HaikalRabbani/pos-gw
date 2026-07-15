@@ -13,11 +13,11 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div class="bg-white rounded-2xl border border-slate-200 p-5">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center">
-            <i class="pi pi-percentage text-orange-600 text-lg"></i>
+          <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+            <i class="pi pi-percentage text-blue-600 text-lg"></i>
           </div>
           <div>
-            <p class="text-xs font-semibold uppercase tracking-wider text-orange-600">Total Pajak</p>
+            <p class="text-xs font-semibold uppercase tracking-wider text-blue-600">Total Pajak</p>
             <p class="text-2xl font-bold text-slate-900 mt-0.5">{{ taxes.length }}</p>
           </div>
         </div>
@@ -35,11 +35,11 @@
       </div>
       <div class="bg-white rounded-2xl border border-slate-200 p-5">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
-            <i class="pi pi-ban text-red-400 text-lg"></i>
+          <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
+            <i class="pi pi-ban text-slate-400 text-lg"></i>
           </div>
           <div>
-            <p class="text-xs font-semibold uppercase tracking-wider text-red-500">Non-Aktif</p>
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Non-Aktif</p>
             <p class="text-2xl font-bold text-slate-400 mt-0.5">{{ inactiveCount }}</p>
           </div>
         </div>

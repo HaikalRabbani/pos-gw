@@ -12,11 +12,11 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div class="bg-white rounded-2xl border border-slate-200 p-5">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-teal-100 flex items-center justify-center">
-            <i class="pi pi-building text-teal-600 text-lg"></i>
+          <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+            <i class="pi pi-building text-blue-600 text-lg"></i>
           </div>
           <div>
-            <p class="text-xs font-semibold uppercase tracking-wider text-teal-600">Total Outlet</p>
+            <p class="text-xs font-semibold uppercase tracking-wider text-blue-600">Total Outlet</p>
             <p class="text-2xl font-bold text-slate-900 mt-0.5">{{ outlets.length }}</p>
           </div>
         </div>
