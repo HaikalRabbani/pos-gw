@@ -42,18 +42,19 @@
           <!-- ====== EXPANDED MODE ====== -->
           <template v-if="!collapsed">
             <!-- Group Header (clickable toggle) -->
-            <div
+            <button
+              type="button"
               @click="toggleGroup(group.title)"
-              class="flex items-center gap-1.5 px-3 pt-4 pb-1 cursor-pointer select-none group-header hover:opacity-80 transition-opacity"
+              class="w-full flex items-center justify-between mt-3 mb-0.5 px-2.5 py-1.5 rounded-lg text-left select-none transition-colors duration-150 hover:bg-white/[0.06]"
             >
-              <div class="h-px flex-1 bg-white/5"></div>
-              <p class="text-[10px] font-semibold text-teal-400/70 uppercase tracking-[0.15em]">{{ group.title }}</p>
-              <i
-                class="pi pi-chevron-down text-[8px] text-teal-500/50 transition-transform duration-200"
-                :class="{ 'rotate-180': expandedGroups[group.title] }"
-              ></i>
-              <div class="h-px flex-1 bg-white/5"></div>
-            </div>
+              <span class="text-[10px] font-semibold text-teal-300/80 uppercase tracking-[0.08em]">{{ group.title }}</span>
+              <span class="flex items-center justify-center w-[18px] h-[18px] rounded-md bg-white/10 shrink-0">
+                <i
+                  class="pi pi-chevron-down text-[9px] text-teal-100 transition-transform duration-200"
+                  :class="{ 'rotate-180': expandedGroups[group.title] }"
+                ></i>
+              </span>
+            </button>
 
             <!-- Submenu Items (with slide transition) -->
             <Transition name="submenu-slide">
