@@ -29,6 +29,7 @@ Route::post('/v1/midtrans/notification', [PaymentController::class, 'notificatio
 // Protected
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/v1/auth/me', [AuthController::class, 'me']);
+    Route::put('/v1/auth/me', [AuthController::class, 'updateProfile']);
     Route::post('/v1/auth/logout', [AuthController::class, 'logout']);
 
     // Outlets — index/store are open to any authenticated user
@@ -46,7 +47,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/v1/users/{user}/pin', [UserController::class, 'setPin']);
 
     // Dashboard (aggregate across all user outlets, no single outlet_id needed)
-    Route::get('/v1/dashboard', [\App\Http\Controllers\Api\V1\DashboardController::class, 'index']);
+    Route::get('/v1/dashboard', [DashboardController::class, 'index']);
 
     // All routes below require outlet access verification
     Route::middleware('outlet.access')->group(function () {
@@ -131,8 +132,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/export-pdf', [ReportController::class, 'exportPdf']);
         });
 
-        // Dashboard (optimized single endpoint)
-        Route::get('/v1/dashboard', [DashboardController::class, 'index']);
+
 
         // Upload file
         Route::post('/v1/upload', function (Request $request) {

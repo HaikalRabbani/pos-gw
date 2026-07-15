@@ -300,6 +300,6 @@ class ReportController extends Controller
 
     private function formatRupiah(int $val): string
     {
-        return 'Rp ' . number_format($val, 0, ',', '.');
+        return 'Rp ' . number_format($val / 100, 0, ',', '.');
     }
 }

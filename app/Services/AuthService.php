@@ -50,6 +50,7 @@ class AuthService
         }
 
         $token = $user->createToken('pos-token')->plainTextToken;
+        $user->load('outlets');
 
         return ['token' => $token, 'user' => $user];
     }
@@ -79,6 +80,7 @@ class AuthService
         }
 
         $token = $user->createToken('pos-pin-token')->plainTextToken;
+        $user->load('outlets');
 
         return ['token' => $token, 'user' => $user];
     }

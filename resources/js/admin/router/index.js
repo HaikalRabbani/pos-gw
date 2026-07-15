@@ -22,6 +22,7 @@ const routes = [
       { path: 'taxes', name: 'Taxes', component: () => import('../pages/master/TaxManagement.vue') },
       { path: 'tables', name: 'Tables', component: () => import('../pages/tables/TableManagement.vue') },
       { path: 'withdraw', name: 'Withdraw', component: () => import('../pages/withdraw/WithdrawManagement.vue') },
+      { path: 'profile', name: 'Profile', component: () => import('../pages/auth/ProfileSettings.vue') },
     ],
   },
 ]

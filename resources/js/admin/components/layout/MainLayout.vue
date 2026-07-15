@@ -126,22 +126,49 @@
           <h2 class="text-sm font-semibold text-slate-700">{{ currentPageTitle }}</h2>
           <p class="text-[11px] text-slate-400">{{ currentDate }}</p>
         </div>
-        <div class="flex items-center gap-3">
-          <!-- User Info -->
-          <div class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl hover:bg-white/70 transition cursor-pointer">
-            <div class="text-right">
-              <p class="text-xs font-semibold text-slate-700 leading-tight">{{ auth.user?.name }}</p>
-              <span class="text-[10px] px-1.5 py-0.5 rounded-full font-semibold inline-block mt-0.5"
-                :class="topBarBadgeClass">
-                {{ auth.roleLabel }}
-              </span>
-            </div>
-            <div class="relative shrink-0">
-              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center text-xs font-bold text-teal-950 shadow-sm">
-                {{ initials }}
+        <div class="flex items-center gap-3 relative">
+          <!-- User Info / Profile Dropdown -->
+          <div class="relative" ref="profileDropdownRef">
+            <button @click="toggleDropdown"
+              class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl hover:bg-white/70 transition cursor-pointer">
+              <div class="text-right">
+                <p class="text-xs font-semibold text-slate-700 leading-tight">{{ auth.user?.name }}</p>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-full font-semibold inline-block mt-0.5"
+                  :class="topBarBadgeClass">
+                  {{ auth.roleLabel }}
+                </span>
               </div>
-              <div class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-slate-50"></div>
-            </div>
+              <div class="relative shrink-0">
+                <img v-if="auth.user?.photo" :src="auth.user.photo"
+                  class="w-8 h-8 rounded-full object-cover border-2 border-slate-200" />
+                <div v-else
+                  class="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center text-xs font-bold text-teal-950 shadow-sm">
+                  {{ initials }}
+                </div>
+                <div class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-slate-50"></div>
+              </div>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <transition name="dropdown-slide">
+              <div v-if="profileDropdown"
+                class="absolute right-0 top-full mt-1 w-48 bg-white rounded-xl shadow-lg border border-slate-200 py-1 z-50">
+                <div class="px-3 py-2 border-b border-slate-100">
+                  <p class="text-xs font-semibold text-slate-800">{{ auth.user?.name }}</p>
+                  <p class="text-[10px] text-slate-400">{{ auth.user?.email }}</p>
+                </div>
+                <router-link to="/profile" @click="profileDropdown = false"
+                  class="flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition">
+                  <i class="pi pi-user-edit text-sm"></i>
+                  Pengaturan Profil
+                </router-link>
+                <button @click="logout"
+                  class="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-red-500 hover:bg-red-50 transition">
+                  <i class="pi pi-sign-out text-sm"></i>
+                  Keluar
+                </button>
+              </div>
+            </transition>
           </div>
         </div>
       </div>
@@ -155,7 +182,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import { roleBadgeClass } from '../../utils/roleBadge'
@@ -163,6 +190,30 @@ import { roleBadgeClass } from '../../utils/roleBadge'
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
+
+// Profile dropdown
+const profileDropdown = ref(false)
+const profileDropdownRef = ref(null)
+
+function toggleDropdown() {
+  profileDropdown.value = !profileDropdown.value
+}
+
+function closeDropdown(e) {
+  if (profileDropdownRef.value && !profileDropdownRef.value.contains(e.target)) {
+    profileDropdown.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', closeDropdown)
+  initExpandedGroups()
+  expandActiveGroup()
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', closeDropdown)
+})
 
 // Sidebar collapsed state — persisted in localStorage
 const collapsed = ref(localStorage.getItem('sidebar_collapsed') === 'true')
@@ -297,10 +348,7 @@ function logout() {
   router.push('/login')
 }
 
-onMounted(() => {
-  initExpandedGroups()
-  expandActiveGroup()
-})
+
 </script>
 
 <style scoped>

@@ -15,18 +15,11 @@ class OutletFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->company() . ' ' . fake()->randomElement(['Outlet', 'Cabang', 'Store']),
+            'name' => fake()->company() . ' Outlet',
             'address' => fake()->address(),
             'phone' => fake()->phoneNumber(),
             'token_public' => bin2hex(random_bytes(32)),
             'is_active' => true,
         ];
-    }
-
-    public function inactive(): static
-    {
-        return $this->state(fn(array $attributes) => [
-            'is_active' => false,
-        ]);
     }
 }

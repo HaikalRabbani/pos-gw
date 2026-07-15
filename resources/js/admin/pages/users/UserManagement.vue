@@ -323,7 +323,8 @@ async function fetchUsers() {
       params.outlet_id = filterOutletId.value
     }
     const { data } = await client.get('/users', { params })
-    users.value = data.data
+    // Sembunyikan akun yg sedang login dari daftar (edit via Profile Settings)
+    users.value = data.data.filter(u => u.id !== auth.user?.id)
   } catch (_) {
   } finally {
     loading.value = false

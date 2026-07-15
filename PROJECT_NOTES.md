@@ -195,12 +195,18 @@ Seeder sekarang minimalis — hanya **2 data** per entitas untuk testing:
 3. ✅ **Sample Order Button** — Generate dummy draft/confirmed orders langsung dari halaman Orders buat testing
 4. ✅ **Stations Feature** — Migration `stations` + `station_id` di products + CRUD controller + print-groups API (`GET /orders/{id}/print-groups`) untuk routing thermal printer per station
 5. ✅ **RBAC (Role-Based Access Control)** — Backend middleware rules (void=cashier, split/merge=cashier, refund=manager, shifts=cashier, users=admin, stations=manager) + Frontend action gating (`usePermission.js` composable)
+6. ✅ **Profile Settings** — Halaman `/profile` untuk edit nama, email, password, PIN, foto profil. Dropdown di navbar avatar → link ke Profile Settings + tombol Keluar
 
 ### Perbaikan & Refactor
-6. ✅ **PosCashier.vue & KitchenDisplay.vue dihapus** — POS pindah ke Flutter, KDS belum ada rencana. File dikosongkan, route & sidebar dibersihkan
-7. ✅ **Kategori & Station Modal Inline** — Manajemen kategori & station jadi modal dialog di halaman Menu, bukan halaman terpisah. StationManagement.vue dikosongkan
-8. ✅ **Column header # → No.** — Semua 10 DataTable columns di 9 file diganti
-9. ✅ **Format Rupiah Diseragamkan** — Shared helper `utils/format.js` (formatRupiah ÷ 100 + Rp prefix), 5 local functions dihapus, 3 bug fix (Shift/Report/Dashboard tadinya gak ÷ 100), 9 template `Rp ` ganda di Orders.vue diperbaiki, chart tooltip labels Report.vue diperbaiki
+7. ✅ **PosCashier.vue & KitchenDisplay.vue dihapus** — POS pindah ke Flutter, KDS belum ada rencana. File dikosongkan, route & sidebar dibersihkan
+8. ✅ **Kategori & Station Modal Inline** — Manajemen kategori & station jadi modal dialog di halaman Menu, bukan halaman terpisah. StationManagement.vue dikosongkan
+9. ✅ **Column header # → No.** — Semua 10 DataTable columns di 9 file diganti
+10. ✅ **Format Rupiah Diseragamkan** — Shared helper `utils/format.js` (formatRupiah ÷ 100 + Rp prefix), 5 local functions dihapus, 3 bug fix (Shift/Report/Dashboard tadinya gak ÷ 100), 9 template `Rp ` ganda di Orders.vue diperbaiki, chart tooltip labels Report.vue diperbaiki
+11. ✅ **ReportController formatRupiah ÷ 100** — Export Excel/PDF tadinya gak bagi 100 (keliatan 100x lipat)
+12. ✅ **Seeder disederhanakan** — Hanya 4 akun (dev, owner, manager, kasir) + 2 outlet. Pake `User::create()` langsung, gak pake factory
+13. ✅ **N+1 query fix** — AuthService login & login-pin sekarang eager load outlets biar gak N+1
+14. ✅ **Duplicate dashboard route dihapus** — Route `GET /v1/dashboard` di dalam `outlet.access` middleware dihapus (dead code)
+15. ✅ **UserManagement sembunyikan akun sendiri** — User yg login difilter dari daftar (edit via Profile Settings)
 
 ### Pending / Next
 - [ ] Sistem refund (frontend flow) — dialog detail refund + pilih item
