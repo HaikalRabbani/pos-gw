@@ -8,21 +8,21 @@
     </div>
 
     <div class="grid grid-cols-3 gap-4">
-      <div class="bg-white rounded-xl border border-slate-200 p-4">
+      <div class="bg-white rounded-2xl border border-slate-200 p-4">
         <p class="text-sm text-slate-500">Total Produk</p>
         <p class="text-2xl font-bold text-slate-900 mt-1">{{ products.length }}</p>
       </div>
-      <div class="bg-white rounded-xl border border-slate-200 p-4">
+      <div class="bg-white rounded-2xl border border-slate-200 p-4">
         <p class="text-sm text-slate-500">Aktif</p>
         <p class="text-2xl font-bold text-teal-600 mt-1">{{ activeCount }}</p>
       </div>
-      <div class="bg-white rounded-xl border border-slate-200 p-4">
+      <div class="bg-white rounded-2xl border border-slate-200 p-4">
         <p class="text-sm text-slate-500">Non-Aktif</p>
         <p class="text-2xl font-bold text-slate-400 mt-1">{{ inactiveCount }}</p>
       </div>
     </div>
 
-    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+    <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
       <div class="p-3 border-b border-slate-100">
         <div class="flex items-center gap-3">
           <span class="flex-1">
