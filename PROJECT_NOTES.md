@@ -207,6 +207,7 @@ Seeder sekarang minimalis — hanya **2 data** per entitas untuk testing:
 13. ✅ **N+1 query fix** — AuthService login & login-pin sekarang eager load outlets biar gak N+1
 14. ✅ **Duplicate dashboard route dihapus** — Route `GET /v1/dashboard` di dalam `outlet.access` middleware dihapus (dead code)
 15. ✅ **UserManagement sembunyikan akun sendiri** — User yg login difilter dari daftar (edit via Profile Settings)
+16. ✅ **Smart Auto Outlet Mode** — Kalo cuma 1 outlet, selector `outlet` di toolbar otomatis ilang (Tax, Discount, Tables, Withdraw). Kalo tiba-tiba nambah outlet >1, selector muncul lagi otomatis
 
 ### Pending / Next
 - [ ] Sistem refund (frontend flow) — dialog detail refund + pilih item

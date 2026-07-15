@@ -64,7 +64,7 @@
     <!-- Table -->
     <div v-else class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
       <div class="p-3 border-b border-slate-100 flex items-center justify-end gap-2">
-        <Select v-model="selectedOutletId" :options="outlets" optionLabel="name" optionValue="id"
+        <Select v-if="outlets.length > 1" v-model="selectedOutletId" :options="outlets" optionLabel="name" optionValue="id"
           placeholder="Pilih outlet" class="w-44" @change="fetchTaxes" />
         <Button v-if="perm.can('manageTaxes')" label="Tambah Pajak" icon="pi pi-plus" size="small" @click="openAddDialog" :disabled="!selectedOutletId" />
       </div>

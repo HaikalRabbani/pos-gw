@@ -27,7 +27,7 @@
         <div class="bg-gradient-to-br from-teal-500 to-teal-700 rounded-2xl p-6 text-white shadow-lg">
           <div class="flex items-center justify-between mb-2">
             <div class="flex items-center gap-2">
-              <Select v-model="selectedOutletId" :options="outlets" optionLabel="name" optionValue="id"
+              <Select v-if="outlets.length > 1" v-model="selectedOutletId" :options="outlets" optionLabel="name" optionValue="id"
                 class="w-44 bg-white/20 border-white/30 text-white [&_.p-select-label]:text-white [&_.p-select-trigger]:text-white/70"
                 @change="fetchData" />
             </div>
