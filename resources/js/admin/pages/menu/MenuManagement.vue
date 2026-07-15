@@ -7,7 +7,7 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div class="bg-white rounded-2xl border border-slate-200 p-4">
         <p class="text-sm text-slate-500">Total Produk</p>
         <p class="text-2xl font-bold text-slate-900 mt-1">{{ products.length }}</p>
@@ -22,7 +22,16 @@
       </div>
     </div>
 
-    <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+    <!-- Loading State -->
+    <div v-if="loading" class="bg-white rounded-2xl border border-slate-200 p-6">
+      <div class="animate-pulse space-y-3">
+        <div class="h-10 bg-slate-200 rounded-lg w-full"></div>
+        <div class="h-10 bg-slate-100 rounded-lg w-full"></div>
+        <div class="h-10 bg-slate-100 rounded-lg w-full"></div>
+      </div>
+    </div>
+
+    <div v-else class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
       <div class="p-3 border-b border-slate-100">
         <div class="flex items-center gap-3">
           <span class="flex-1">
@@ -164,6 +173,7 @@ import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
 import Tooltip from 'primevue/tooltip'
 
+const loading = ref(true)
 const products = ref([])
 const categories = ref([])
 const search = ref('')
@@ -194,6 +204,7 @@ const filteredProducts = computed(() => {
 })
 
 async function fetchData() {
+  loading.value = true
   try {
     const { data: outletRes } = await client.get('/outlets')
     const outletId = outletRes.data[0]?.id
@@ -204,7 +215,10 @@ async function fetchData() {
     ])
     products.value = prodRes.data.data
     categories.value = catRes.data.data
-  } catch (_) {}
+  } catch (_) {
+  } finally {
+    loading.value = false
+  }
 }
 
 function openProductDialog(product) {

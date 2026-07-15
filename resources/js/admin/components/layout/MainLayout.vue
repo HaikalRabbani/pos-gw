@@ -157,6 +157,7 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
+import { roleBadgeClass } from '../../utils/roleBadge'
 
 const router = useRouter()
 const route = useRoute()
@@ -252,14 +253,7 @@ const visibleGroups = computed(() => {
   return []
 })
 
-const topBarBadgeClass = computed(() => {
-  const map = {
-    developer: 'bg-purple-100 text-purple-700',
-    admin: 'bg-amber-100 text-amber-700',
-    manager: 'bg-blue-100 text-blue-700',
-  }
-  return map[auth.highestRole] || 'bg-teal-100 text-teal-700'
-})
+const topBarBadgeClass = computed(() => roleBadgeClass(auth.highestRole))
 
 const pageTitles = {
   '/dashboard': 'Dashboard',

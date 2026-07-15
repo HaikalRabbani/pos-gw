@@ -14,8 +14,17 @@
       <Button label="Refresh" icon="pi pi-refresh" severity="secondary" text size="small" @click="fetchOrders" />
     </div>
 
+    <!-- Loading State -->
+    <div v-if="loading" class="bg-white rounded-2xl border border-slate-200 p-6">
+      <div class="animate-pulse space-y-3">
+        <div class="h-10 bg-slate-200 rounded-lg w-full"></div>
+        <div class="h-10 bg-slate-100 rounded-lg w-full"></div>
+        <div class="h-10 bg-slate-100 rounded-lg w-full"></div>
+      </div>
+    </div>
+
     <!-- Orders Table -->
-    <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+    <div v-else class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
       <DataTable :value="orders" paginator :rows="rowsPerPage" stripedRows size="small"
         paginatorTemplate="CurrentPageReport PrevPageLink NextPageLink"
         currentPageReportTemplate="Halaman {currentPage} dari {totalPages}"
@@ -236,6 +245,7 @@ import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import Textarea from 'primevue/textarea'
 
+const loading = ref(true)
 const orders = ref([])
 const rowsPerPage = ref(10)
 
@@ -383,6 +393,7 @@ function formatDateTime(dateStr) {
 }
 
 async function fetchOrders() {
+  loading.value = true
   try {
     const { data: outletRes } = await client.get('/outlets')
     const outletId = outletRes.data[0]?.id
@@ -402,7 +413,10 @@ async function fetchOrders() {
       result = result.filter(o => o.refund_status)
     }
     orders.value = result
-  } catch (_) {}
+  } catch (_) {
+  } finally {
+    loading.value = false
+  }
 }
 
 async function openDetail(order) {

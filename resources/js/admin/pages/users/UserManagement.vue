@@ -56,8 +56,17 @@
       </div>
     </div>
 
+    <!-- Loading State -->
+    <div v-if="loading" class="bg-white rounded-2xl border border-slate-200 p-6">
+      <div class="animate-pulse space-y-3">
+        <div class="h-10 bg-slate-200 rounded-lg w-full"></div>
+        <div class="h-10 bg-slate-100 rounded-lg w-full"></div>
+        <div class="h-10 bg-slate-100 rounded-lg w-full"></div>
+      </div>
+    </div>
+
     <!-- Table -->
-    <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+    <div v-else class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
       <div class="p-3 border-b border-slate-100 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <span class="text-sm text-slate-500">Tampilkan</span>
@@ -253,9 +262,11 @@ import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
 import Tooltip from 'primevue/tooltip'
+import { roleLabel, roleBadgeClass } from '../../utils/roleBadge'
 
 const auth = useAuthStore()
 
+const loading = ref(true)
 const users = ref([])
 const outlets = ref([])
 const rowsPerPage = ref(10)
@@ -304,29 +315,8 @@ const roleOptions = computed(() => {
   return base
 })
 
-function roleLabel(role) {
-  const map = {
-    developer: 'Developer',
-    admin: 'Owner',
-    manager: 'Manager',
-    cashier: 'Kasir',
-    kitchen: 'Dapur',
-  }
-  return map[role] || role
-}
-
-function roleBadgeClass(role) {
-  const map = {
-    developer: 'bg-purple-100 text-purple-700',
-    admin: 'bg-amber-100 text-amber-700',
-    manager: 'bg-blue-100 text-blue-700',
-    cashier: 'bg-teal-100 text-teal-700',
-    kitchen: 'bg-slate-100 text-slate-700',
-  }
-  return map[role] || 'bg-slate-100 text-slate-600'
-}
-
 async function fetchUsers() {
+  loading.value = true
   try {
     const params = { per_page: 50 }
     if (filterOutletId.value) {
@@ -334,7 +324,10 @@ async function fetchUsers() {
     }
     const { data } = await client.get('/users', { params })
     users.value = data.data
-  } catch (_) {}
+  } catch (_) {
+  } finally {
+    loading.value = false
+  }
 }
 
 async function fetchOutlets() {
