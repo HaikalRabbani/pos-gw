@@ -205,7 +205,7 @@ const statCards = computed(() => {
 // ── Quick Actions ──
 const quickActions = [
   { to: '/orders', label: 'Pesanan', icon: 'pi pi-receipt', iconClass: 'text-blue-600', textClass: 'text-blue-700', bgClass: 'bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-200/60 hover:from-blue-100 hover:to-blue-200/50' },
-  { to: '/kitchen', label: 'Dapur', icon: 'pi pi-box', iconClass: 'text-amber-600', textClass: 'text-amber-700', bgClass: 'bg-gradient-to-br from-amber-50 to-amber-100/50 border border-amber-200/60 hover:from-amber-100 hover:to-amber-200/50' },
+  { to: '/shifts', label: 'Shift', icon: 'pi pi-clock', iconClass: 'text-amber-600', textClass: 'text-amber-700', bgClass: 'bg-gradient-to-br from-amber-50 to-amber-100/50 border border-amber-200/60 hover:from-amber-100 hover:to-amber-200/50' },
   { to: '/menu', label: 'Menu', icon: 'pi pi-list', iconClass: 'text-emerald-600', textClass: 'text-emerald-700', bgClass: 'bg-gradient-to-br from-emerald-50 to-emerald-100/50 border border-emerald-200/60 hover:from-emerald-100 hover:to-emerald-200/50' },
   { to: '/users', label: 'Pengguna', icon: 'pi pi-users', iconClass: 'text-violet-600', textClass: 'text-violet-700', bgClass: 'bg-gradient-to-br from-violet-50 to-violet-100/50 border border-violet-200/60 hover:from-violet-100 hover:to-violet-200/50' },
   { to: '/report', label: 'Laporan', icon: 'pi pi-chart-bar', iconClass: 'text-purple-600', textClass: 'text-purple-700', bgClass: 'bg-gradient-to-br from-purple-50 to-purple-100/50 border border-purple-200/60 hover:from-purple-100 hover:to-purple-200/50' },

@@ -76,7 +76,7 @@
       <div class="p-3 border-b border-slate-100 flex items-center justify-end gap-2">
         <Select v-model="selectedOutletId" :options="outlets" optionLabel="name" optionValue="id"
           placeholder="Pilih outlet" class="w-44" @change="fetchDiscounts" />
-        <Button label="Tambah Diskon" icon="pi pi-plus" size="small" @click="openAddDialog" :disabled="!selectedOutletId" />
+        <Button v-if="perm.can('manageDiscounts')" label="Tambah Diskon" icon="pi pi-plus" size="small" @click="openAddDialog" :disabled="!selectedOutletId" />
       </div>
       <DataTable :value="discounts" stripedRows size="small" class="text-sm">
         <Column header="#" style="width: 50px">
@@ -142,14 +142,14 @@
         <Column header="Aksi" style="width: 120px">
           <template #body="{ data }">
             <div class="flex gap-3">
-              <Button icon="pi pi-pencil" text rounded size="small"
+              <Button v-if="perm.can('manageDiscounts')" icon="pi pi-pencil" text rounded size="small"
                 v-tooltip.top="'Edit'" @click="openEditDialog(data)" />
-              <Button :icon="data.is_active ? 'pi pi-ban' : 'pi pi-check-circle'"
+              <Button v-if="perm.can('manageDiscounts')" :icon="data.is_active ? 'pi pi-ban' : 'pi pi-check-circle'"
                 text rounded size="small"
                 :class="data.is_active ? 'text-amber-600' : 'text-teal-600'"
                 v-tooltip.top="data.is_active ? 'Nonaktifkan' : 'Aktifkan'"
                 @click="toggleActive(data)" />
-              <Button icon="pi pi-trash" text rounded severity="danger" size="small"
+              <Button v-if="perm.can('manageDiscounts')" icon="pi pi-trash" text rounded severity="danger" size="small"
                 v-tooltip.top="'Hapus'" @click="confirmDelete(data)" />
             </div>
           </template>
@@ -272,6 +272,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { usePermission } from '../../utils/usePermission'
 import client from '../../api/client'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
@@ -283,6 +284,8 @@ import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
 import Tooltip from 'primevue/tooltip'
+
+const perm = usePermission()
 
 const discounts = ref([])
 const outlets = ref([])

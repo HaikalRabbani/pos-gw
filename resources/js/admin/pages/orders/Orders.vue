@@ -5,13 +5,22 @@
       <p class="text-sm text-slate-500 mt-1">Daftar dan kelola transaksi</p>
     </div>
 
-    <!-- Filter Bar -->
+    <!-- Filter Bar + Merge Action -->
     <div class="flex flex-wrap items-center gap-3">
       <Select v-model="filterStatus" :options="statusOptions" optionLabel="label" optionValue="value"
         placeholder="Semua Status" class="w-44" @change="fetchOrders" />
       <Select v-model="filterPayment" :options="paymentOptions" optionLabel="label" optionValue="value"
         placeholder="Semua Pembayaran" class="w-48" @change="fetchOrders" />
       <Button label="Refresh" icon="pi pi-refresh" severity="secondary" text size="small" @click="fetchOrders" />
+      <Button v-if="perm.isAdmin" label="Sample Order" icon="pi pi-flask" severity="contrast" text size="small"
+        v-tooltip.top="'Buat data dummy untuk testing Split/Merge'"
+        @click="seedTestOrder" :disabled="seeding" :loading="seeding" />
+      <div v-if="perm.can('mergeBill') && selectedOrderIds.length >= 2" class="ml-auto">
+        <Button label="Merge Bill" icon="pi pi-chevron-circle-up"
+          severity="contrast" size="small"
+          :badge="String(selectedOrderIds.length)" badgeClass="p-badge p-component"
+          @click="openMergeDialog" />
+      </div>
     </div>
 
     <!-- Loading State -->
@@ -29,7 +38,11 @@
         paginatorTemplate="CurrentPageReport PrevPageLink NextPageLink"
         currentPageReportTemplate="Halaman {currentPage} dari {totalPages}"
         sortField="created_at" :sortOrder="-1"
-        class="text-sm" @row-click="openDetail">
+        v-model:selection="selectedOrders"
+        dataKey="id"
+        class="text-sm">
+        <Column selectionMode="multiple" headerStyle="width: 2rem" style="width: 40px">
+        </Column>
         <template #empty>
           <div class="flex flex-col items-center justify-center py-16 text-center">
             <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
@@ -44,28 +57,28 @@
             <span class="text-slate-400 text-xs font-mono">{{ index + 1 }}</span>
           </template>
         </Column>
-        <Column field="id" header="ID" sortable style="width: 80px" />
+        <Column field="id" header="ID" sortable style="width: 70px" />
         <Column field="customer_name" header="Pelanggan" sortable>
           <template #body="{ data }">
             <span>{{ data.customer_name || '—' }}</span>
           </template>
         </Column>
-        <Column field="status" header="Status" sortable style="width: 130px">
+        <Column field="status" header="Status" sortable style="width: 120px">
           <template #body="{ data }">
             <Tag :value="statusLabel(data.status)" :severity="statusSeverity(data.status)" rounded />
           </template>
         </Column>
-        <Column field="grand_total" header="Total" sortable style="width: 140px">
+        <Column field="grand_total" header="Total" sortable style="width: 130px">
           <template #body="{ data }">
             <span class="font-semibold text-slate-900">Rp {{ formatRupiah(data.grand_total) }}</span>
           </template>
         </Column>
-        <Column field="payment_status" header="Pembayaran" sortable style="width: 130px">
+        <Column field="payment_status" header="Pembayaran" sortable style="width: 120px">
           <template #body="{ data }">
             <Tag :value="paymentLabel(data)" :severity="paymentSeverity(data)" rounded />
           </template>
         </Column>
-        <Column field="created_at" header="Tanggal" sortable style="width: 170px">
+        <Column field="created_at" header="Tanggal" sortable style="width: 160px">
           <template #body="{ data }">
             <span class="text-slate-500 text-xs">{{ formatDate(data.created_at) }}</span>
           </template>
@@ -81,12 +94,11 @@
       </DataTable>
     </div>
 
-    <!-- Detail + Edit Dialog (gabungan) -->
+    <!-- Detail Dialog (gabungan: info, refund, split) -->
     <Dialog v-model:visible="dialogVisible" :header="'Pesanan #' + selectedOrder?.id" modal
-      class="w-full max-w-3xl" :closable="true">
+      class="w-full max-w-3xl" :closable="true" @hide="resetModes">
       <div v-if="selectedOrder" class="space-y-5 max-h-[70vh] overflow-y-auto pr-1">
-
-        <!-- Info cards — dari kiri, masing-masing card sendiri -->
+        <!-- Info cards -->
         <div class="flex flex-wrap items-start gap-3">
           <div class="bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-sm min-w-[130px]">
             <p class="text-xs text-slate-400 mb-0.5">Pelanggan</p>
@@ -99,6 +111,12 @@
           <div class="bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-sm min-w-[130px]">
             <p class="text-xs text-slate-400 mb-0.5">Kasir</p>
             <p class="font-medium text-slate-800">{{ selectedOrder.user?.name || '—' }}</p>
+          </div>
+          <div v-if="selectedOrder.bill_group_id" class="bg-violet-50 border border-violet-200 rounded-xl px-3 py-2.5 text-sm min-w-[140px]">
+            <p class="text-xs text-violet-500 mb-0.5">Bill Group</p>
+            <p class="font-mono text-xs text-violet-700 truncate max-w-[160px]" :title="selectedOrder.bill_group_id">
+              {{ selectedOrder.bill_group_id.substring(0, 12) }}...
+            </p>
           </div>
           <template v-for="payment in selectedOrder.payments" :key="payment.id">
             <div class="bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-sm min-w-[130px]">
@@ -115,17 +133,21 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex gap-2">
-          <Button v-if="canVoid(selectedOrder)" label="Void" icon="pi pi-ban" severity="danger" text size="small"
-            :loading="voidLoading" @click="voidOrder" />
-          <Button v-if="canRefund(selectedOrder) && !refundMode" label="Refund" icon="pi pi-undo" severity="warning" text size="small"
-            @click="enableRefundMode" />
-          <Button v-if="refundMode" label="Batal Refund" icon="pi pi-times" severity="secondary" text size="small"
-            @click="disableRefundMode" />
+        <div class="flex flex-wrap gap-2">
+          <Button v-if="perm.can('voidOrder') && canVoid(selectedOrder) && !refundMode && !splitMode" label="Void" icon="pi pi-ban"
+            severity="danger" text size="small" :loading="voidLoading" @click="voidOrder" />
+          <Button v-if="perm.can('refundOrder') && canRefund(selectedOrder) && !refundMode && !splitMode" label="Refund"
+            icon="pi pi-undo" severity="warning" text size="small" @click="enableRefundMode" />
+          <Button v-if="perm.can('splitBill') && canSplit(selectedOrder) && !refundMode && !splitMode" label="Split Bill"
+            icon="pi pi-sitemap" severity="contrast" text size="small" @click="enableSplitMode" />
+          <Button v-if="refundMode" label="Batal Refund" icon="pi pi-times" severity="secondary"
+            text size="small" @click="disableRefundMode" />
+          <Button v-if="splitMode" label="Batal Split" icon="pi pi-times" severity="secondary"
+            text size="small" @click="disableSplitMode" />
         </div>
 
-        <!-- Items (read-only) — sembunyi kalo refund mode aktif -->
-        <div v-if="!refundMode">
+        <!-- Items (read-only) -->
+        <div v-if="!refundMode && !splitMode">
           <h3 class="text-sm font-semibold text-slate-800 mb-2">Item Pesanan</h3>
           <div class="space-y-2">
             <div v-for="item in selectedOrder.items" :key="item.id"
@@ -142,13 +164,12 @@
           </div>
         </div>
 
-        <!-- Refund Controls (muncul setelah klik tombol Refund) -->
+        <!-- Refund Controls -->
         <div v-if="refundMode" class="space-y-3 pt-2 border-t border-slate-200">
           <div class="flex items-center justify-between">
             <h3 class="text-sm font-semibold text-slate-800">Refund Item</h3>
             <span class="text-xs text-slate-400">Total dibayar: Rp {{ formatRupiah(totalPaid) }}</span>
           </div>
-
           <div class="space-y-2">
             <div v-for="item in refundableItems" :key="item.id"
               class="flex items-center gap-3 p-3 rounded-xl border border-slate-200"
@@ -168,9 +189,7 @@
                   class="w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold transition-all"
                   :class="(refundQtys[item.id] || 0) > 0
                     ? 'bg-red-100 text-red-600 hover:bg-red-200 active:scale-95'
-                    : 'bg-slate-100 text-slate-300 cursor-not-allowed'">
-                  -
-                </button>
+                    : 'bg-slate-100 text-slate-300 cursor-not-allowed'">-</button>
                 <span class="w-6 text-center font-bold text-base tabular-nums text-slate-800">
                   {{ refundQtys[item.id] || 0 }}
                 </span>
@@ -179,15 +198,11 @@
                   class="w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold transition-all"
                   :class="(refundQtys[item.id] || 0) < item.refundable_qty
                     ? 'bg-emerald-100 text-emerald-600 hover:bg-emerald-200 active:scale-95'
-                    : 'bg-slate-100 text-slate-300 cursor-not-allowed'">
-                  +
-                </button>
+                    : 'bg-slate-100 text-slate-300 cursor-not-allowed'">+</button>
                 <span class="text-xs text-slate-400 w-8 text-right">/{{ item.refundable_qty }}</span>
               </div>
             </div>
           </div>
-
-          <!-- Total Refund + Alasan + Proses -->
           <div v-if="totalRefundAmount > 0" class="bg-teal-50 border border-teal-200 rounded-xl p-3">
             <div class="flex items-center justify-between mb-3">
               <span class="text-sm font-semibold text-teal-800">Total Refund</span>
@@ -195,7 +210,8 @@
             </div>
             <div class="space-y-1">
               <label class="text-xs font-medium text-teal-700">Alasan Refund</label>
-              <Textarea v-model="refundReason" rows="1" class="w-full text-sm" placeholder="Alasan refund (wajib diisi)" />
+              <Textarea v-model="refundReason" rows="1" class="w-full text-sm"
+                placeholder="Alasan refund (wajib diisi)" />
             </div>
             <div class="flex justify-end gap-2 mt-3">
               <Button label="Proses Refund" icon="pi pi-undo" severity="danger" size="small"
@@ -204,9 +220,83 @@
           </div>
         </div>
 
+        <!-- Split Bill Controls -->
+        <div v-if="splitMode" class="space-y-4 pt-2 border-t border-slate-200">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-semibold text-slate-800">Split Bill</h3>
+            <span class="text-xs text-slate-400">Pisahkan item ke beberapa tagihan</span>
+          </div>
 
+          <!-- Split Groups -->
+          <div v-for="(group, gi) in splitGroups" :key="gi"
+            class="rounded-xl border p-4 space-y-3"
+            :class="gi === 0 ? 'border-teal-200 bg-teal-50/30' : 'border-slate-200 bg-white'">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                :class="gi === 0 ? 'bg-teal-200 text-teal-800' : 'bg-slate-200 text-slate-600'">
+                {{ String.fromCharCode(65 + gi) }}
+              </div>
+              <InputText v-model="group.customer_name"
+                :placeholder="'Pelanggan ' + String.fromCharCode(65 + gi)"
+                class="flex-1 text-sm" />
+              <Button v-if="splitGroups.length > 2" icon="pi pi-trash" text rounded severity="danger"
+                size="small" @click="removeSplitGroup(gi)" />
+            </div>
 
-        <!-- Aktivitas (log + refund info, semuanya di sini) -->
+            <!-- Items in this group -->
+            <div class="space-y-1.5">
+              <div v-for="item in selectedOrder.items" :key="item.id"
+                class="flex items-center gap-2 text-xs bg-white rounded-lg px-2.5 py-2 border border-slate-100"
+                :class="{ 'opacity-40': getSplitQty(item.id, gi) === 0 }">
+                <span class="flex-1 font-medium text-slate-700 truncate">{{ item.product_name }}</span>
+                <div class="flex items-center gap-1 shrink-0">
+                  <button @click="adjustSplit(item.id, gi, -1)"
+                    :disabled="getSplitQty(item.id, gi) <= 0"
+                    class="w-6 h-6 rounded flex items-center justify-center font-bold text-xs transition-all"
+                    :class="getSplitQty(item.id, gi) > 0
+                      ? 'bg-red-100 text-red-600 hover:bg-red-200'
+                      : 'bg-slate-50 text-slate-300 cursor-not-allowed'">-</button>
+                  <span class="w-5 text-center font-bold text-sm tabular-nums text-slate-800">
+                    {{ getSplitQty(item.id, gi) }}
+                  </span>
+                  <button @click="adjustSplit(item.id, gi, 1)"
+                    :disabled="getSplitQty(item.id, gi) >= getRemainingQty(item.id, gi)"
+                    class="w-6 h-6 rounded flex items-center justify-center font-bold text-xs transition-all"
+                    :class="getSplitQty(item.id, gi) < getRemainingQty(item.id)
+                      ? 'bg-teal-100 text-teal-700 hover:bg-teal-200'
+                      : 'bg-slate-50 text-slate-300 cursor-not-allowed'">+</button>
+                </div>
+                <span class="w-12 text-right text-slate-400 tabular-nums shrink-0">
+                  /{{ item.qty }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Group total -->
+            <div class="flex justify-end text-sm font-semibold text-slate-700">
+              <span>Total: <span class="text-teal-600">Rp {{ formatRupiah(computeGroupTotal(gi)) }}</span></span>
+            </div>
+          </div>
+
+          <!-- Add Group Button -->
+          <Button label="+ Tambah Bagian" icon="pi pi-plus" severity="secondary" text size="small"
+            @click="addSplitGroup" :disabled="splitGroups.length >= 6" />
+
+          <!-- Validation -->
+          <div v-if="!isSplitValid" class="flex items-center gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200">
+            <i class="pi pi-exclamation-triangle text-amber-500"></i>
+            <p class="text-xs text-amber-700">Semua item harus terbagi habis ke semua bagian sebelum split.</p>
+          </div>
+
+          <!-- Process Split -->
+          <div class="flex justify-end gap-2 pt-2 border-t border-slate-200">
+            <Button label="Proses Split" icon="pi pi-sitemap" severity="contrast"
+              :disabled="!isSplitValid || splitSaving"
+              :loading="splitSaving" @click="processSplit" />
+          </div>
+        </div>
+
+        <!-- Activity Log -->
         <div>
           <h3 class="text-sm font-semibold text-slate-800 mb-2">Aktivitas</h3>
           <div class="space-y-1.5">
@@ -216,6 +306,8 @@
               <div class="flex-1">
                 <span class="text-slate-700">{{ log.user?.name || 'System' }}</span>
                 <span v-if="log.note?.startsWith('refund:')" class="text-orange-600 ml-1">{{ log.note }}</span>
+                <span v-else-if="log.note?.startsWith('split')" class="text-violet-600 ml-1">{{ log.note }}</span>
+                <span v-else-if="log.note?.startsWith('merged')" class="text-blue-600 ml-1">{{ log.note }}</span>
                 <span v-else class="ml-1">
                   {{ statusLabel(log.to_status) }}
                   <span v-if="log.from_status">(dari {{ statusLabel(log.from_status) }})</span>
@@ -223,11 +315,45 @@
                 <span class="ml-2 text-slate-400">{{ formatDateTime(log.created_at) }}</span>
               </div>
             </div>
-            <!-- Tidak ada log sama sekali? -->
             <div v-if="!selectedOrder.logs?.length" class="text-xs text-slate-400 italic">
               Belum ada aktivitas
             </div>
           </div>
+        </div>
+      </div>
+    </Dialog>
+
+    <!-- Merge Bill Dialog -->
+    <Dialog v-model:visible="mergeDialogVisible" header="Merge Bill" modal class="w-md">
+      <div class="space-y-4">
+        <div class="flex items-center gap-3 p-3 rounded-xl bg-blue-50 border border-blue-100">
+          <i class="pi pi-chevron-circle-up text-blue-500 text-xl"></i>
+          <p class="text-sm text-blue-700">
+            Gabungkan <strong>{{ selectedOrderIds.length }} pesanan</strong> menjadi satu tagihan.
+          </p>
+        </div>
+
+        <!-- Orders to merge -->
+        <div class="space-y-1.5">
+          <p class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Pesanan yang akan di-merge:</p>
+          <div v-for="oid in selectedOrderIds" :key="oid" class="text-xs text-slate-600 flex items-center gap-2">
+            <i class="pi pi-receipt text-slate-300"></i>
+            <span class="font-mono">#{{ oid }}</span>
+            <span class="text-slate-400">—</span>
+            <span>{{ getOrderName(oid) }}</span>
+          </div>
+        </div>
+
+        <!-- Customer Name -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Nama Pelanggan (opsional)</label>
+          <InputText v-model="mergeCustomerName" class="w-full" placeholder="Misal: Meja 3 Gabungan" />
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-200">
+          <Button label="Batal" severity="secondary" @click="mergeDialogVisible = false" />
+          <Button label="Merge Sekarang" icon="pi pi-chevron-circle-up" severity="contrast"
+            :loading="mergeSaving" @click="processMerge" />
         </div>
       </div>
     </Dialog>
@@ -236,6 +362,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { usePermission } from '../../utils/usePermission'
 import client from '../../api/client'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -244,10 +371,14 @@ import Select from 'primevue/select'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import Textarea from 'primevue/textarea'
+import InputText from 'primevue/inputtext'
+
+const perm = usePermission()
 
 const loading = ref(true)
 const orders = ref([])
 const rowsPerPage = ref(10)
+const seeding = ref(false)
 
 // Filters
 const filterStatus = ref('')
@@ -268,15 +399,32 @@ const paymentOptions = [
   { label: 'Refund', value: 'refunded' },
 ]
 
-// Dialog gabungan (detail + refund)
+// Selection for Merge
+const selectedOrders = ref([])
+const selectedOrderIds = computed(() => selectedOrders.value.map(o => o.id))
+
+// Detail dialog
 const dialogVisible = ref(false)
 const selectedOrder = ref(null)
+
+// Refund mode
 const refundMode = ref(false)
 const refundQtys = ref({})
 const refundReason = ref('')
 const refundLoading = ref(false)
 const voidLoading = ref(false)
 
+// Split mode
+const splitMode = ref(false)
+const splitGroups = ref([])
+const splitSaving = ref(false)
+
+// Merge mode
+const mergeDialogVisible = ref(false)
+const mergeCustomerName = ref('')
+const mergeSaving = ref(false)
+
+// --- Computed ---
 const totalPaid = computed(() => {
   if (!selectedOrder.value?.payments) return 0
   return selectedOrder.value.payments.reduce((sum, p) => sum + p.amount, 0)
@@ -298,6 +446,19 @@ const totalRefundAmount = computed(() => {
   return total
 })
 
+const isSplitValid = computed(() => {
+  if (!selectedOrder.value?.items || splitGroups.value.length < 2) return false
+  for (const item of selectedOrder.value.items) {
+    let total = 0
+    for (let gi = 0; gi < splitGroups.value.length; gi++) {
+      total += getSplitQty(item.id, gi)
+    }
+    if (total !== item.qty) return false
+  }
+  return true
+})
+
+// --- Helpers ---
 function canRefund(order) {
   return order.payment_status === 'paid' && order.refund_status !== 'full'
 }
@@ -306,8 +467,17 @@ function canVoid(order) {
   return ['draft', 'confirmed'].includes(order.status)
 }
 
+function canSplit(order) {
+  return ['draft', 'confirmed'].includes(order.status) && order.payment_status !== 'paid'
+}
+
+function getOrderName(orderId) {
+  const o = orders.value.find(o => o.id === orderId)
+  return o?.customer_name || `Pesanan #${orderId}`
+}
+
+// --- Refund ---
 function enableRefundMode() {
-  // Init refund qty = refundable (full all)
   const qtyMap = {}
   for (const item of selectedOrder.value.items) {
     qtyMap[item.id] = item.refundable_qty
@@ -323,21 +493,6 @@ function disableRefundMode() {
   refundReason.value = ''
 }
 
-async function voidOrder() {
-  if (!confirm('Yakin ingin void pesanan ini?')) return
-  voidLoading.value = true
-  try {
-    await client.put(`/orders/${selectedOrder.value.id}/status`, { status: 'voided' })
-    alert('Pesanan telah di-void')
-    dialogVisible.value = false
-    await fetchOrders()
-  } catch (err) {
-    alert(err.response?.data?.message || 'Gagal void pesanan')
-  } finally {
-    voidLoading.value = false
-  }
-}
-
 function adjustRefund(itemId, delta) {
   const current = refundQtys.value[itemId] || 0
   const item = selectedOrder.value?.items?.find(i => i.id === itemId)
@@ -347,35 +502,217 @@ function adjustRefund(itemId, delta) {
   refundQtys.value = { ...refundQtys.value, [itemId]: next }
 }
 
+async function processRefund() {
+  const items = []
+  for (const item of selectedOrder.value.items) {
+    const qty = refundQtys.value[item.id] || 0
+    if (qty > 0 && qty <= item.refundable_qty) {
+      items.push({ order_item_id: item.id, qty })
+    }
+  }
+  if (items.length === 0) { alert('Pilih minimal 1 item untuk di-refund'); return }
+
+  refundLoading.value = true
+  try {
+    await client.post(`/orders/${selectedOrder.value.id}/refund`, { items, reason: refundReason.value })
+    alert('Refund berhasil')
+    dialogVisible.value = false
+    await fetchOrders()
+  } catch (err) {
+    const msg = err.response?.data?.message || err.response?.data?.errors?.items?.[0] || 'Gagal refund'
+    alert(msg)
+  } finally { refundLoading.value = false }
+}
+
+async function voidOrder() {
+  if (!confirm('Yakin ingin void pesanan ini?')) return
+  voidLoading.value = true
+  try {
+    await client.put(`/orders/${selectedOrder.value.id}/status`, { status: 'voided' })
+    alert('Pesanan telah di-void')
+    dialogVisible.value = false
+    await fetchOrders()
+  } catch (err) {
+    alert(err.response?.data?.message || 'Gagal void')
+  } finally { voidLoading.value = false }
+}
+
+// --- Split Bill ---
+function enableSplitMode() {
+  splitMode.value = true
+  // Initialize with 2 groups
+  splitGroups.value = [
+    { customer_name: '', items: {} },
+    { customer_name: '', items: {} },
+  ]
+  // Assign all items to first group by default
+  if (selectedOrder.value?.items) {
+    for (const item of selectedOrder.value.items) {
+      splitGroups.value[0].items[item.id] = item.qty
+    }
+  }
+}
+
+function disableSplitMode() {
+  splitMode.value = false
+  splitGroups.value = []
+}
+
+function addSplitGroup() {
+  if (splitGroups.value.length >= 6) return
+  splitGroups.value.push({ customer_name: '', items: {} })
+}
+
+function removeSplitGroup(gi) {
+  if (splitGroups.value.length <= 2) return
+  // Move items back to first group
+  const removed = splitGroups.value[gi]
+  for (const itemId of Object.keys(removed.items)) {
+    const qty = removed.items[itemId] || 0
+    if (qty > 0) {
+      splitGroups.value[0].items[itemId] = (splitGroups.value[0].items[itemId] || 0) + qty
+    }
+  }
+  splitGroups.value.splice(gi, 1)
+}
+
+function getSplitQty(itemId, groupIndex) {
+  return splitGroups.value[groupIndex]?.items[itemId] || 0
+}
+
+function getRemainingQty(itemId, groupIndex) {
+  const item = selectedOrder.value?.items?.find(i => i.id === itemId)
+  if (!item) return 0
+  let totalAssigned = 0
+  for (const group of splitGroups.value) {
+    totalAssigned += group.items[itemId] || 0
+  }
+  const current = getSplitQty(itemId, groupIndex)
+  return item.qty - totalAssigned + current
+}
+
+function adjustSplit(itemId, groupIndex, delta) {
+  const current = getSplitQty(itemId, groupIndex)
+  const item = selectedOrder.value?.items?.find(i => i.id === itemId)
+  if (!item) return
+
+  if (delta > 0) {
+    // Check total assigned across all groups
+    let totalAssigned = 0
+    for (const group of splitGroups.value) {
+      totalAssigned += group.items[itemId] || 0
+    }
+    if (totalAssigned >= item.qty) return
+  }
+
+  const next = Math.max(0, current + delta)
+  splitGroups.value[groupIndex].items = {
+    ...splitGroups.value[groupIndex].items,
+    [itemId]: next,
+  }
+}
+
+function computeGroupTotal(groupIndex) {
+  const group = splitGroups.value[groupIndex]
+  if (!group || !selectedOrder.value?.items) return 0
+  let total = 0
+  for (const item of selectedOrder.value.items) {
+    const qty = group.items[item.id] || 0
+    if (qty > 0) {
+      total += item.unit_price * qty
+    }
+  }
+  return total
+}
+
+async function processSplit() {
+  if (!isSplitValid.value) return
+
+  splitSaving.value = true
+  try {
+    const splits = splitGroups.value.map(group => ({
+      customer_name: group.customer_name || null,
+      items: Object.entries(group.items)
+        .filter(([, qty]) => qty > 0)
+        .map(([itemId, qty]) => ({ order_item_id: parseInt(itemId), qty })),
+    })).filter(s => s.items.length > 0)
+
+    const { data } = await client.post(`/orders/${selectedOrder.value.id}/split`, { splits })
+    const count = data.data.length
+    alert(`Split berhasil! ${count} tagihan baru dibuat.`)
+    dialogVisible.value = false
+    await fetchOrders()
+  } catch (err) {
+    const msg = err.response?.data?.message || err.response?.data?.errors?.splits?.[0] || 'Gagal split'
+    alert(msg)
+  } finally {
+    splitSaving.value = false
+  }
+}
+
+// --- Merge Bill ---
+function openMergeDialog() {
+  mergeCustomerName.value = ''
+  mergeDialogVisible.value = true
+}
+
+async function processMerge() {
+  mergeSaving.value = true
+  try {
+    const { data: outletRes } = await client.get('/outlets')
+    const outletId = outletRes.data[0]?.id
+
+    const { data } = await client.post('/orders/merge', {
+      outlet_id: outletId,
+      order_ids: selectedOrderIds.value,
+      customer_name: mergeCustomerName.value || null,
+    })
+    alert(`Merge berhasil! Pesanan #${data.data.id} dibuat.`)
+    mergeDialogVisible.value = false
+    selectedOrders.value = []
+    await fetchOrders()
+  } catch (err) {
+    const msg = err.response?.data?.message || err.response?.data?.errors?.orders?.[0] || 'Gagal merge'
+    alert(msg)
+  } finally {
+    mergeSaving.value = false
+  }
+}
+
+// --- Reset ---
+function resetModes() {
+  refundMode.value = false
+  refundQtys.value = {}
+  refundReason.value = ''
+  splitMode.value = false
+  splitGroups.value = []
+}
+
+// --- Status helpers ---
 function statusLabel(s) {
   const map = { draft: 'Draft', confirmed: 'Dikonfirmasi', preparing: 'Dimasak', done: 'Selesai', cancelled: 'Batal', voided: 'Void' }
   return map[s] || s
 }
-
 function statusSeverity(s) {
   const map = { draft: 'info', confirmed: 'warn', preparing: 'warn', done: 'success', cancelled: 'danger', voided: 'danger' }
   return map[s] || 'info'
 }
-
 function paymentLabel(order) {
   if (order.refund_status === 'full') return 'Refund Full'
   if (order.refund_status === 'partial') return 'Refund Sebagian'
   if (order.payment_status === 'paid') return 'Lunas'
   return 'Pending'
 }
-
 function paymentSeverity(order) {
   if (order.refund_status === 'full') return 'danger'
   if (order.refund_status === 'partial') return 'warn'
   if (order.payment_status === 'paid') return 'success'
   return 'warning'
 }
-
 function formatRupiah(val) {
   if (!val && val !== 0) return '0'
   return Math.round(val / 100).toLocaleString('id-ID')
 }
-
 function formatDate(dateStr) {
   if (!dateStr) return '—'
   return new Date(dateStr).toLocaleDateString('id-ID', {
@@ -383,7 +720,6 @@ function formatDate(dateStr) {
     hour: '2-digit', minute: '2-digit',
   })
 }
-
 function formatDateTime(dateStr) {
   if (!dateStr) return '—'
   return new Date(dateStr).toLocaleDateString('id-ID', {
@@ -392,6 +728,7 @@ function formatDateTime(dateStr) {
   })
 }
 
+// --- Data fetching ---
 async function fetchOrders() {
   loading.value = true
   try {
@@ -414,54 +751,71 @@ async function fetchOrders() {
     }
     orders.value = result
   } catch (_) {
-  } finally {
-    loading.value = false
-  }
+  } finally { loading.value = false }
 }
 
 async function openDetail(order) {
   try {
     const { data } = await client.get(`/orders/${order.id}`)
-    const fullOrder = data.data
-    selectedOrder.value = fullOrder
-
-    refundMode.value = false
-    refundQtys.value = {}
-    refundReason.value = ''
-    refundLoading.value = false
+    selectedOrder.value = data.data
+    resetModes()
     dialogVisible.value = true
-  } catch (_) {
-    alert('Gagal memuat detail pesanan')
-  }
+  } catch (_) { alert('Gagal memuat detail pesanan') }
 }
 
-async function processRefund() {
-  const items = []
-  for (const item of selectedOrder.value.items) {
-    const qty = refundQtys.value[item.id] || 0
-    if (qty > 0 && qty <= item.refundable_qty) {
-      items.push({ order_item_id: item.id, qty })
-    }
-  }
-  if (items.length === 0) {
-    alert('Pilih minimal 1 item untuk di-refund')
-    return
-  }
-
-  refundLoading.value = true
+// --- Seed Test Data ---
+async function seedTestOrder() {
+  seeding.value = true
   try {
-    await client.post(`/orders/${selectedOrder.value.id}/refund`, {
-      items,
-      reason: refundReason.value,
+    const { data: outletRes } = await client.get('/outlets')
+    const outlet = outletRes.data[0]
+    if (!outlet) { alert('Tidak ada outlet. Buat outlet dulu!'); return }
+
+    const { data: prodRes } = await client.get('/products', {
+      params: { outlet_id: outlet.id }
     })
-    alert(`Refund berhasil — ${items.length} item`)
-    dialogVisible.value = false
+    const products = prodRes.data
+    if (products.length < 2) {
+      alert('Butuh minimal 2 produk. Tambah menu dulu!')
+      return
+    }
+
+    // Pilih 3 random produk
+    const shuffled = [...products].sort(() => Math.random() - 0.5)
+    const selected = shuffled.slice(0, 3)
+
+    // 1. Buat draft order
+    const { data: orderRes } = await client.post('/orders', {
+      outlet_id: outlet.id,
+      customer_name: 'Sample ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+    })
+    const order = orderRes.data
+
+    // 2. Add items — pakai nama asli produk dari database
+    for (let i = 0; i < selected.length; i++) {
+      const p = selected[i]
+      const qty = Math.floor(Math.random() * 3) + 1
+      await client.post(`/orders/${order.id}/items`, {
+        product_id: p.id,
+        product_name: p.name,
+        qty,
+        unit_price: p.price,
+        notes: i === 0 ? 'Extra pedas' : null,
+      })
+    }
+
+    // 3. Confirm order (biar ga cuma draft)
+    if (Math.random() > 0.3) {
+      await client.put(`/orders/${order.id}/status`, { status: 'confirmed' })
+    }
+
+    alert(`✅ Sample order #${order.id} berhasil dibuat dengan ${selected.length} item!`)
     await fetchOrders()
   } catch (err) {
-    const msg = err.response?.data?.message || err.response?.data?.errors?.reason?.[0] || err.response?.data?.errors?.items?.[0] || 'Gagal memproses refund'
-    alert(msg)
+    const msg = err.response?.data?.message || err.message || 'Gagal buat sample'
+    alert('Gagal: ' + msg)
   } finally {
-    refundLoading.value = false
+    seeding.value = false
   }
 }
 

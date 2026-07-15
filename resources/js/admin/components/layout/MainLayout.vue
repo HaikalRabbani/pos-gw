@@ -184,7 +184,6 @@ const menuGroups = [
     items: [
       { path: '/orders', label: 'Pesanan', icon: 'pi pi-receipt' },
       { path: '/shifts', label: 'Shift', icon: 'pi pi-clock' },
-      { path: '/kitchen', label: 'Dapur', icon: 'pi pi-box' },
     ],
   },
   {
@@ -193,6 +192,7 @@ const menuGroups = [
       { path: '/menu', label: 'Menu', icon: 'pi pi-list' },
       { path: '/discounts', label: 'Diskon', icon: 'pi pi-percentage' },
       { path: '/taxes', label: 'Pajak', icon: 'pi pi-shield' },
+      { path: '/tables', label: 'Meja', icon: 'pi pi-table' },
     ],
   },
   {
@@ -259,10 +259,10 @@ const topBarBadgeClass = computed(() => roleBadgeClass(auth.highestRole))
 const pageTitles = {
   '/dashboard': 'Dashboard',
   '/orders': 'Pesanan',
-  '/kitchen': 'Dapur',
   '/menu': 'Menu Management',
   '/discounts': 'Manajemen Diskon',
   '/taxes': 'Manajemen Pajak',
+  '/tables': 'Manajemen Meja',
   '/users': 'Manajemen Pengguna',
   '/outlets': 'Manajemen Outlet',
   '/shifts': 'Manajemen Shift',

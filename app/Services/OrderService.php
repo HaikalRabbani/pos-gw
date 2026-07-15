@@ -9,6 +9,7 @@ use App\Models\OrderLog;
 use App\Models\Product;
 use App\Models\Tax;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class OrderService
@@ -381,6 +382,183 @@ class OrderService
             $this->log($order->id, $order->status, $order->status, $userId, 'refund: Rp ' . number_format($totalRefundAmount, 0, ',', '.') . ' — ' . $itemDetails . ($reason ? ' (' . $reason . ')' : ''));
 
             return $order->fresh()->load('items', 'payments', 'logs.user');
+        });
+    }
+
+    /**
+     * Split an order into multiple sub-orders (split bill).
+     *
+     * @param array $splits [{customer_name, items: [{order_item_id, qty}]}]
+     */
+    public function splitOrder(Order $order, int $userId, array $splits): array
+    {
+        if (!in_array($order->status, ['draft', 'confirmed'])) {
+            throw ValidationException::withMessages([
+                'order' => ['Hanya pesanan draft/confirmed yang bisa di-split.'],
+            ]);
+        }
+
+        if ($order->payment_status === 'paid') {
+            throw ValidationException::withMessages([
+                'order' => ['Pesanan sudah dibayar, tidak bisa di-split.'],
+            ]);
+        }
+
+        $order->load('items');
+
+        return DB::transaction(function () use ($order, $userId, $splits) {
+            $billGroupId = (string) Str::uuid();
+            $newOrders = [];
+
+            // Build item map for validation
+            $itemMap = $order->items->keyBy('id');
+
+            // Validate: sum of split qty equals original qty for each item
+            $totalSplitQty = [];
+            foreach ($splits as $split) {
+                foreach ($split['items'] as $itemData) {
+                    $itemId = $itemData['order_item_id'];
+                    $qty = (int) $itemData['qty'];
+                    if (!isset($itemMap[$itemId])) {
+                        throw ValidationException::withMessages([
+                            'splits' => ["Item ID {$itemId} tidak ditemukan."],
+                        ]);
+                    }
+                    $totalSplitQty[$itemId] = ($totalSplitQty[$itemId] ?? 0) + $qty;
+                }
+            }
+
+            foreach ($itemMap as $itemId => $item) {
+                $totalQty = $totalSplitQty[$itemId] ?? 0;
+                if ($totalQty !== $item->qty) {
+                    throw ValidationException::withMessages([
+                        'splits' => ["Item '{$item->product_name}' harus di-split total {$item->qty}, tapi hanya {$totalQty}."],
+                    ]);
+                }
+            }
+
+            // Create new orders for each split
+            foreach ($splits as $split) {
+                $newOrder = Order::create([
+                    'outlet_id'     => $order->outlet_id,
+                    'table_id'      => $order->table_id,
+                    'user_id'       => $userId,
+                    'customer_name' => $split['customer_name'] ?? null,
+                    'status'        => 'draft',
+                    'bill_group_id' => $billGroupId,
+                ]);
+
+                // Create items for the new order
+                foreach ($split['items'] as $itemData) {
+                    $origItem = $itemMap[$itemData['order_item_id']];
+                    $qty = (int) $itemData['qty'];
+                    if ($qty <= 0) continue;
+
+                    $newOrder->items()->create([
+                        'product_id'   => $origItem->product_id,
+                        'variant_id'   => $origItem->variant_id,
+                        'product_name' => $origItem->product_name,
+                        'variant_name' => $origItem->variant_name,
+                        'qty'          => $qty,
+                        'unit_price'   => $origItem->unit_price,
+                        'unit_cost'    => $origItem->unit_cost,
+                        'total_price'  => $origItem->unit_price * $qty,
+                        'notes'        => $origItem->notes,
+                    ]);
+                }
+
+                // Recalculate taxes for each split
+                $this->recalculate($newOrder);
+                $this->log($newOrder->id, null, 'draft', $userId, 'split from order #' . $order->id);
+
+                $newOrders[] = $newOrder->fresh()->load('items');
+            }
+
+            // Void the original order with note
+            $this->updateStatus($order, 'voided', $userId, 'Split bill — ' . count($splits) . ' tagihan (group: ' . $billGroupId . ')');
+            $order->update(['bill_group_id' => $billGroupId]);
+
+            return $newOrders;
+        });
+    }
+
+    /**
+     * Merge multiple orders into a single order (merge bill).
+     */
+    public function mergeOrders(array $orders, int $userId, ?string $customerName = null): Order
+    {
+        if (count($orders) < 2) {
+            throw ValidationException::withMessages([
+                'orders' => ['Minimal 2 pesanan untuk merge.'],
+            ]);
+        }
+
+        $outletId = null;
+        $tableId = null;
+
+        foreach ($orders as $order) {
+            if (!in_array($order->status, ['draft', 'confirmed'])) {
+                throw ValidationException::withMessages([
+                    'orders' => ["Pesanan #{$order->id} bukan draft/confirmed."],
+                ]);
+            }
+            if ($order->payment_status === 'paid') {
+                throw ValidationException::withMessages([
+                    'orders' => ["Pesanan #{$order->id} sudah dibayar."],
+                ]);
+            }
+
+            if ($outletId === null) {
+                $outletId = $order->outlet_id;
+                $tableId = $order->table_id;
+            } elseif ($order->outlet_id !== $outletId) {
+                throw ValidationException::withMessages([
+                    'orders' => ['Semua pesanan harus dari outlet yang sama.'],
+                ]);
+            }
+
+            $order->load('items');
+        }
+
+        $billGroupId = (string) Str::uuid();
+
+        return DB::transaction(function () use ($orders, $userId, $customerName, $outletId, $tableId, $billGroupId) {
+            // Create new merged order
+            $mergedOrder = Order::create([
+                'outlet_id'     => $outletId,
+                'table_id'      => $tableId,
+                'user_id'       => $userId,
+                'customer_name' => $customerName ?? 'Merged Bill',
+                'status'        => 'draft',
+                'bill_group_id' => $billGroupId,
+            ]);
+
+            // Move all items from original orders to merged order
+            foreach ($orders as $order) {
+                foreach ($order->items as $item) {
+                    $mergedOrder->items()->create([
+                        'product_id'   => $item->product_id,
+                        'variant_id'   => $item->variant_id,
+                        'product_name' => $item->product_name,
+                        'variant_name' => $item->variant_name,
+                        'qty'          => $item->qty,
+                        'unit_price'   => $item->unit_price,
+                        'unit_cost'    => $item->unit_cost,
+                        'total_price'  => $item->total_price,
+                        'notes'        => $item->notes,
+                    ]);
+                }
+
+                // Void the original order
+                $this->updateStatus($order, 'voided', $userId, 'Merged into order #' . $mergedOrder->id);
+                $order->update(['bill_group_id' => $billGroupId]);
+            }
+
+            // Recalculate the merged order
+            $this->recalculate($mergedOrder);
+            $this->log($mergedOrder->id, null, 'draft', $userId, 'merged from ' . count($orders) . ' orders');
+
+            return $mergedOrder->fresh()->load('items');
         });
     }
 

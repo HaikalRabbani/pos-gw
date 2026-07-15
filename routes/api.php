@@ -98,6 +98,12 @@ Route::middleware('auth:sanctum')->group(function () {
         // Refund
         Route::post('/v1/orders/{order}/refund', [OrderController::class, 'refund']);
 
+        // Split Bill
+        Route::post('/v1/orders/{order}/split', [OrderController::class, 'split']);
+
+        // Merge Bill
+        Route::post('/v1/orders/merge', [OrderController::class, 'merge']);
+
         // Midtrans
         Route::post('/v1/orders/{order}/pay/midtrans', [PaymentController::class, 'snapToken']);
 

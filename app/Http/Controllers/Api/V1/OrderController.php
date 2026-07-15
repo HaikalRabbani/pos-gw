@@ -131,4 +131,58 @@ class OrderController extends Controller
 
         return response()->json(['success' => true, 'data' => $order]);
     }
+
+    public function split(Request $request, Order $order)
+    {
+        $validated = $request->validate([
+            'splits' => 'required|array|min:2',
+            'splits.*.customer_name' => 'nullable|string|max:100',
+            'splits.*.items' => 'required|array|min:1',
+            'splits.*.items.*.order_item_id' => 'required|integer|exists:order_items,id',
+            'splits.*.items.*.qty' => 'required|integer|min:1',
+        ]);
+
+        $newOrders = $this->orderService->splitOrder(
+            $order,
+            $request->user()->id,
+            $validated['splits'],
+        );
+
+        return response()->json([
+            'success' => true,
+            'data' => $newOrders,
+            'message' => 'Berhasil split menjadi ' . count($newOrders) . ' tagihan.',
+        ]);
+    }
+
+    public function merge(Request $request)
+    {
+        $validated = $request->validate([
+            'outlet_id' => 'required|exists:outlets,id',
+            'order_ids' => 'required|array|min:2',
+            'order_ids.*' => 'required|integer|exists:orders,id',
+            'customer_name' => 'nullable|string|max:100',
+        ]);
+
+        $orders = Order::whereIn('id', $validated['order_ids'])->get();
+
+        if ($orders->count() !== count($validated['order_ids'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Beberapa pesanan tidak ditemukan.',
+            ], 404);
+        }
+
+        $mergedOrder = $this->orderService->mergeOrders(
+            $orders->all(),
+            $request->user()->id,
+            $validated['customer_name'] ?? null,
+        );
+
+        return response()->json([
+            'success' => true,
+            'data' => $mergedOrder,
+            'message' => 'Berhasil merge ' . count($orders) . ' pesanan.',
+        ]);
+    }
 }

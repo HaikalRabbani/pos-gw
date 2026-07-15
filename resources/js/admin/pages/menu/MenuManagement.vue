@@ -39,7 +39,7 @@
           </span>
           <Select v-model="selectedCategory" :options="categories" optionLabel="name" optionValue="id"
             placeholder="Semua kategori" class="w-48" :showClear="true" />
-          <Button label="Tambah Produk" icon="pi pi-plus" size="small" class="shrink-0"
+          <Button v-if="perm.can('manageProducts')" label="Tambah Produk" icon="pi pi-plus" size="small" class="shrink-0"
             @click="openProductDialog()" />
         </div>
       </div>
@@ -89,14 +89,14 @@
         <Column header="Aksi" :exportable="false" style="width: 140px">
           <template #body="{ data }">
             <div class="flex gap-3">
-              <Button icon="pi pi-pencil" text severity="secondary" rounded size="small"
+              <Button v-if="perm.can('manageProducts')" icon="pi pi-pencil" text severity="secondary" rounded size="small"
                 v-tooltip.top="'Edit'"
                 @click="openProductDialog(data)" />
-              <Button icon="pi pi-power-off" text rounded size="small"
+              <Button v-if="perm.can('manageProducts')" icon="pi pi-power-off" text rounded size="small"
                 :class="data.is_active ? 'text-amber-600' : 'text-teal-600'"
                 v-tooltip.top="data.is_active ? 'Nonaktifkan' : 'Aktifkan'"
                 @click="toggleActive(data)" />
-              <Button icon="pi pi-trash" text severity="danger" rounded size="small"
+              <Button v-if="perm.can('manageProducts')" icon="pi pi-trash" text severity="danger" rounded size="small"
                 v-tooltip.top="'Hapus'"
                 @click="confirmDelete(data)" />
             </div>
@@ -161,6 +161,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { usePermission } from '../../utils/usePermission'
 import client from '../../api/client'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
@@ -172,6 +173,8 @@ import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
 import Tooltip from 'primevue/tooltip'
+
+const perm = usePermission()
 
 const loading = ref(true)
 const products = ref([])

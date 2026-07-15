@@ -55,10 +55,27 @@ class VerifyOutletAccess
         ['method' => 'POST',   'pattern' => 'v1/orders',           'min_role' => 'cashier'],
         ['method' => 'POST',   'pattern' => 'refund',              'min_role' => 'manager'],
 
+        // Void/status, Split, Merge — semua role (udah ada audit log)
+        ['method' => 'PUT',    'pattern' => 'status',             'min_role' => 'cashier'],
+        ['method' => 'PUT',    'pattern' => 'v1/orders',           'min_role' => 'cashier'],
+        ['method' => 'POST',   'pattern' => 'split',              'min_role' => 'cashier'],
+        ['method' => 'POST',   'pattern' => 'merge',              'min_role' => 'cashier'],
+
         // Tables write — manager ke atas
         ['method' => 'POST',   'pattern' => 'v1/tables',           'min_role' => 'manager'],
         ['method' => 'PUT',    'pattern' => 'v1/tables',           'min_role' => 'manager'],
         ['method' => 'DELETE', 'pattern' => 'v1/tables',           'min_role' => 'manager'],
+
+        // Shifts — cashier boleh lihat & start sendiri, tapi end shift sendiri
+        ['method' => 'GET',    'pattern' => 'v1/shifts',           'min_role' => 'cashier'],
+        ['method' => 'POST',   'pattern' => 'v1/shifts',           'min_role' => 'cashier'],
+
+        // Menu (products) write — manager ke atas (already exists)
+
+        // Users & Outlets management — admin ke atas
+        ['method' => 'POST',   'pattern' => 'v1/users',            'min_role' => 'admin'],
+        ['method' => 'PUT',    'pattern' => 'v1/users',            'min_role' => 'admin'],
+        ['method' => 'POST',   'pattern' => 'user-outlets',        'min_role' => 'admin'],
     ];
 
     public function handle(Request $request, Closure $next): Response

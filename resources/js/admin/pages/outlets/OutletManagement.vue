@@ -57,7 +57,7 @@
     <!-- Table -->
     <div v-else class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
       <div class="p-3 border-b border-slate-100 flex items-center justify-end gap-2">
-        <Button label="Tambah Outlet" icon="pi pi-plus" size="small" @click="openAddDialog" />
+        <Button v-if="perm.can('manageOutlets')" label="Tambah Outlet" icon="pi pi-plus" size="small" @click="openAddDialog" />
       </div>
       <DataTable :value="outlets" stripedRows size="small" class="text-sm">
         <Column field="id" header="ID Outlet" style="width: 100px" sortable>
@@ -112,14 +112,14 @@
         <Column header="Aksi" style="width: 160px">
           <template #body="{ data }">
             <div class="flex gap-3">
-              <Button icon="pi pi-pencil" text rounded size="small"
+              <Button v-if="perm.can('manageOutlets')" icon="pi pi-pencil" text rounded size="small"
                 v-tooltip.top="'Edit'" @click="openEditDialog(data)" />
-              <Button :icon="data.is_active ? 'pi pi-ban' : 'pi pi-check-circle'"
+              <Button v-if="perm.can('manageOutlets')" :icon="data.is_active ? 'pi pi-ban' : 'pi pi-check-circle'"
                 text rounded size="small"
                 :class="data.is_active ? 'text-amber-600' : 'text-teal-600'"
                 v-tooltip.top="data.is_active ? 'Nonaktifkan' : 'Aktifkan'"
                 @click="toggleActive(data)" />
-              <Button icon="pi pi-trash" text rounded severity="danger" size="small"
+              <Button v-if="perm.can('manageOutlets')" icon="pi pi-trash" text rounded severity="danger" size="small"
                 v-tooltip.top="'Hapus'" @click="confirmDelete(data)" />
             </div>
           </template>
@@ -170,6 +170,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { usePermission } from '../../utils/usePermission'
 import client from '../../api/client'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
@@ -179,6 +180,8 @@ import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
 import Tooltip from 'primevue/tooltip'
+
+const perm = usePermission()
 
 const outlets = ref([])
 const loading = ref(true)
