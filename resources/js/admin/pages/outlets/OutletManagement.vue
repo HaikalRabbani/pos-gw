@@ -111,7 +111,7 @@
         </Column>
         <Column header="Aksi" style="width: 160px">
           <template #body="{ data }">
-            <div class="flex gap-1">
+            <div class="flex gap-3">
               <Button icon="pi pi-pencil" text rounded size="small"
                 v-tooltip.top="'Edit'" @click="openEditDialog(data)" />
               <Button :icon="data.is_active ? 'pi pi-ban' : 'pi pi-check-circle'"

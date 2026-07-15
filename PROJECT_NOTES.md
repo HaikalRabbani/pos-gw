@@ -3,9 +3,9 @@
 ## Stack
 - **Backend**: Laravel 13 + Sanctum (API)
 - **Frontend**: Vue 3 + Vite + Pinia + Vue Router + PrimeVue 4 + Tailwind CSS v4
-- **Database**: MySQL (via Docker)
+- **Database**: SQLite (dev) / MySQL (prod via Docker)
 - **Realtime**: Laravel Reverb (WebSocket)
-- **Payment**: Midtrans (snap)
+- **Payment**: Midtrans (snap) + Xendit (disbursement/payout)
 - **POS Mobile**: Rencana pakai Flutter / React Native (terpisah)
 
 ---
@@ -28,13 +28,14 @@
 
 ```
 Ringkasan     → Dashboard
-Transaksi     → Pesanan, Dapur
+Transaksi     → Pesanan, Dapur, Shift
 Master Data   → Menu, Diskon, Pajak
-Pengaturan    → Pengguna, Outlet           ← disembunyikan utk Manager
+Keuangan      → Penarikan Saldo          ← BARU
+Pengaturan    → Pengguna, Outlet         ← disembunyikan utk Manager
 Laporan       → Laporan
 ```
 
-Total: **9 menu** (6 untuk Manager)
+Total: **11 menu** (8 untuk Manager)
 
 ---
 
@@ -56,6 +57,28 @@ Outlet: Pusat (Jakarta), Cabang 1 (Bandung), Cabang 2 (Surabaya)
 
 ---
 
+## Payment Integration
+
+- **Midtrans** — QRIS / pembayaran online (via Snap)
+- **Xendit** — Disbursement/Payout (kirim dana ke rekening owner)
+- **Withdraw system** — auto cair tanpa approval, tracking balance per outlet
+- **Sandbox**: Xendit API key sudah terisi, bisa test withdraw langsung
+
+---
+
+## Seeder Data
+
+Seeder sekarang minimalis — hanya **2 data** per entitas untuk testing:
+
+- 2 kategori (Makanan, Minuman)
+- 2 produk (Nasi Goreng, Es Teh Manis)
+- 2 pajak (PPN 11%, Service Charge 5%)
+- 2 diskon (10%, Rp 5.000)
+- 2 order (hari ini & kemarin)
+- 7 user + 3 outlet (tetap dari DatabaseSeeder)
+
+---
+
 ## Key Files
 
 ### Backend (PHP)
@@ -64,8 +87,14 @@ Outlet: Pusat (Jakarta), Cabang 1 (Bandung), Cabang 2 (Surabaya)
 - `app/Http/Controllers/Api/V1/` — controllers by name
 - `app/Http/Middleware/VerifyOutletAccess.php` — middleware outlet-scoped access
 - `app/Services/AuthService.php` — auth logic
+- `app/Services/OrderService.php` — order logic + diskon kompleks + pajak bertingkat
+- `app/Services/ReportService.php` — laporan keuangan (HPP, laba, margin)
+- `app/Services/WithdrawService.php` — balance tracking + Xendit payout
+- `app/Services/MidtransService.php` — Midtrans snap + auto-add balance
 - `database/seeders/DatabaseSeeder.php` — seeder akun & outlet
+- `database/seeders/TransactionSeeder.php` — seeder transaksi dummy (2 data)
 - `database/factories/OutletFactory.php` — factory outlet
+- `app/Console/Commands/SeedBalance.php` — isi dummy balance withdraw
 
 ### Frontend (Vue)
 - `resources/js/admin/main.js` — entry point
@@ -81,16 +110,18 @@ Outlet: Pusat (Jakarta), Cabang 1 (Bandung), Cabang 2 (Surabaya)
 - `pages/auth/Login.vue` — login form
 - `pages/auth/PinLogin.vue` — PIN login
 - `pages/auth/NoAccess.vue` — halaman staff tanpa akses
-- `pages/dashboard/Dashboard.vue` — dashboard utama
+- `pages/dashboard/Dashboard.vue` — dashboard real-time dari API
 - `pages/orders/Orders.vue` — daftar pesanan
 - `pages/kitchen/KitchenDisplay.vue` — display dapur
-- `pages/menu/MenuManagement.vue` — CRUD menu
-- `pages/master/DiscountManagement.vue` — CRUD diskon
-- `pages/master/TaxManagement.vue` — CRUD pajak
-- `pages/users/UserManagement.vue` — CRUD user + role assignment
-- `pages/outlets/OutletManagement.vue` — CRUD outlet
+- `pages/menu/MenuManagement.vue` — CRUD produk + deskripsi
+- `pages/master/DiscountManagement.vue` — CRUD diskon kompleks
+- `pages/master/TaxManagement.vue` — CRUD pajak + urutan perhitungan
+- `pages/users/UserManagement.vue` — CRUD user + foto + role assignment
+- `pages/outlets/OutletManagement.vue` — CRUD outlet + token publik
 - `pages/report/Report.vue` — laporan + Chart.js (bar/line/doughnut)
 - `pages/shifts/ShiftManagement.vue` — riwayat shift kasir
+- `pages/withdraw/WithdrawManagement.vue` — saldo QRIS + withdraw otomatis
+- `pages/pos/PosCashier.vue` — POS kasir (simulasi, nanti pindah ke mobile)
 
 ---
 
@@ -103,6 +134,7 @@ Outlet: Pusat (Jakarta), Cabang 1 (Bandung), Cabang 2 (Surabaya)
 - `POST /api/v1/midtrans/notification`
 
 ### Authenticated
+- `GET /api/v1/dashboard` — optimized single-endpoint dashboard
 - `GET/POST /api/v1/outlets` — list & create
 - `GET/PUT/DELETE /api/v1/outlets/{id}` — detail, update, delete
 - `POST /api/v1/user-outlets/assign` — assign role ke user di outlet
@@ -115,57 +147,49 @@ Outlet: Pusat (Jakarta), Cabang 1 (Bandung), Cabang 2 (Surabaya)
 - `GET/POST/PUT/DELETE /api/v1/discounts`
 - `GET/POST/PUT/DELETE /api/v1/tables`
 - `GET/POST /api/v1/orders` + items, status, pay
+- `GET /api/v1/withdraw/balance` — lihat saldo outlet
+- `GET /api/v1/withdraw/transactions` — riwayat mutasi
+- `GET /api/v1/withdraw/withdrawals` — riwayat penarikan
+- `POST /api/v1/withdraw/withdraw` — proses penarikan
+- `POST /api/v1/upload` — upload file/foto
 
 ### Reports
 - `GET /api/v1/reports/summary` — ringkasan keuangan (HPP, laba, margin)
 - `GET /api/v1/reports/daily-sales` — penjualan harian untuk grafik
 - `GET /api/v1/reports/top-products` — produk terlaris + profit margin
 
-Semua endpoint kecuali outlets & users butuh `outlet.access` middleware.
-
 ---
 
-## What's Been Done (Sesi Ini)
+## Progress Sesi Ini (14 Juli 2026)
 
-1. ✅ **Design overhaul** — sidebar glass effect, transition, cards, login page, etc
-2. ✅ **Navigation restructure** — 5 grup, POS Kasir dihapus
-3. ✅ **Outlet CRUD page** — `/outlets`
-4. ✅ **Discount CRUD page** — `/discounts`
-5. ✅ **Tax CRUD page** — `/taxes`
-6. ✅ **Role system** — Developer, Owner, Manager, Cashier, Kitchen
-7. ✅ **Role-based access** — sidebar visibility, route guard, no-access page
-8. ✅ **Manager outlet-scoped** — hanya lihat & kelola user di outletnya
-9. ✅ **Database seeder** — 7 akun test, 3 outlet
-10. ✅ **OutletFactory** — factory untuk testing
+### Fitur Baru
+1. ✅ **Pajak Bertingkat** — Service Charge dulu, baru PPN (sequential)
+2. ✅ **Deskripsi Produk** — migration + frontend
+3. ✅ **Avatar/Foto User** — migration + upload + frontend
+4. ✅ **Diskon Kompleks** — target_type (produk/kategori/transaksi), min_purchase, max_discount, buy_x_get_y, masa aktif
+5. ✅ **Notes Order Item** — catatan per item di POS Cashier
+6. ✅ **Withdraw QRIS System** — Xendit disbursement, auto cair, tracking balance per outlet
 
----
+### Perbaikan
+7. ✅ **RBAC Fix** — Owner tidak bisa lihat/edit Developer
+8. ✅ **DataTable Redesign** — gradient header, striped rows, paginator
+9. ✅ **CRUD buttons** — pindah ke toolbar tabel, gap lebih lega
+10. ✅ **Dialog opacity fix** — modal putih solid
+11. ✅ **Dropdown overlay fix** — background putih
+12. ✅ **Button icon size** — lebih kecil, ada gap
+13. ✅ **Edit user** — foto digabung ke dialog edit
 
-### Sesi 2 (14 Juli 2026)
+### Dashboard
+14. ✅ **Dashboard real-time** — data asli dari API, optimized query
+15. ✅ **DashboardController** — single endpoint, scoped ke user outlets
+16. ✅ **Auto-refresh dihapus** — manual refresh aja
 
-11. ✅ **Financial Report System** — HPP, laba kotor, margin, Chart.js
-    - Migration: field `cost` di products + `unit_cost` di order_items
-    - Backend: ReportService (summary, daily sales, top products)
-    - Backend: ReportController + 3 API endpoints (summary, daily-sales, top-products)
-    - Frontend: Report.vue dengan Chart.js (bar/line chart + doughnut composition)
-    - Filter periode (hari ini, 7 hari, 30 hari, bulan ini, kustom)
-12. ✅ **Transaction Seeder** — 30 hari data dummy (orders, items, payments)
-13. ✅ **Sidebar UI/UX Overhaul**
-    - Submenu/nested dengan toggle (click group header)
-    - Slide animation expand/collapse
-    - Thin custom scrollbar (webkit + firefox)
-    - Tombol minimize pindah ke border (bulat, di luar stacking context)
-    - Collapsed state persist di localStorage
-    - Sidebar no longer scrolls with main content (h-screen + overflow-hidden)
-    - User info dipindah dari sidebar ke top navbar kanan
-    - Logo ga kepotong pas collapsed (dynamic padding)
-14. ✅ **Shift Management Page** — `/shifts`
-    - Frontend read-only (start/end shift via POS mobile nanti)
-    - Active shift banner + summary cards + history DataTable
+### Seeder
+17. ✅ **TransactionSeeder** — hanya 2 data per entitas
 
 ## Pending / Next
-
-- [ ] Fitur export laporan (Excel/PDF) — Sudah ada tombol di Report.vue, tinggal backend
-- [ ] Dashboard real-time dengan data asli dari API
+- [ ] Sistem refund dengan order log
+- [ ] Export laporan Excel/PDF
 - [ ] Manajemen metode pembayaran
 - [ ] POS Mobile (Flutter/RN — proyek terpisah)
-- [ ] Dark mode toggle? (user request)
+- [ ] Dark mode toggle

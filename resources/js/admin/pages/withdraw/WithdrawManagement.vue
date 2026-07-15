@@ -56,7 +56,7 @@
               </div>
               <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1">Bank</label>
-                <Select v-model="withdrawForm.bank_name" :options="bankOptions" class="w-full" placeholder="Pilih bank" />
+                <Select v-model="withdrawForm.bank_name" :options="bankOptions" optionLabel="label" optionValue="value" class="w-full" placeholder="Pilih bank" />
               </div>
               <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1">No. Rekening</label>

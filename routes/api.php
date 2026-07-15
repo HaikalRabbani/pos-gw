@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CategoryController;
+use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\DiscountController;
 use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\OutletController;
@@ -42,6 +43,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/v1/users/{user}', [UserController::class, 'update']);
     Route::post('/v1/users/{user}/toggle-active', [UserController::class, 'toggleActive']);
     Route::post('/v1/users/{user}/pin', [UserController::class, 'setPin']);
+
+    // Dashboard (aggregate across all user outlets, no single outlet_id needed)
+    Route::get('/v1/dashboard', [\App\Http\Controllers\Api\V1\DashboardController::class, 'index']);
 
     // All routes below require outlet access verification
     Route::middleware('outlet.access')->group(function () {
@@ -105,6 +109,9 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/daily-sales', [ReportController::class, 'dailySales']);
             Route::get('/top-products', [ReportController::class, 'topProducts']);
         });
+
+        // Dashboard (optimized single endpoint)
+        Route::get('/v1/dashboard', [DashboardController::class, 'index']);
 
         // Upload file
         Route::post('/v1/upload', function (Request $request) {

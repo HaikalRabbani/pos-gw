@@ -127,13 +127,10 @@
         </Column>
         <Column :header="auth.isSuper ? 'Aksi' : 'Kelola'" :style="{ width: auth.isSuper ? '200px' : '160px' }">
           <template #body="{ data }">
-            <div class="flex gap-1">
+            <div class="flex gap-3">
               <Button icon="pi pi-pencil" text rounded size="small"
                 v-tooltip.top="'Edit'"
                 @click="openEditDialog(data)" />
-              <Button icon="pi pi-camera" text rounded size="small" class="text-violet-600"
-                v-tooltip.top="'Ubah Foto'"
-                @click="openPhotoDialog(data)" />
               <Button v-if="auth.isSuper" icon="pi pi-user-edit" text rounded size="small"
                 v-tooltip.top="'Atur Role'" @click="openRoleDialog(data)" />
               <Button icon="pi pi-key" text rounded size="small" class="text-amber-600"
@@ -149,20 +146,23 @@
       </DataTable>
     </div>
 
-    <!-- Edit User Dialog -->
+    <!-- Edit User Dialog (Nama + Foto) -->
     <Dialog v-model:visible="showEditDialog" header="Edit User" modal class="w-md">
       <form @submit.prevent="saveEdit" class="space-y-4">
         <div v-if="selectedUser" class="space-y-4">
-          <div class="flex items-center gap-4">
-            <img v-if="selectedUser.photo" :src="selectedUser.photo"
-              class="w-16 h-16 rounded-full object-cover border border-slate-200" />
-            <div v-else class="w-16 h-16 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center">
-              <i class="pi pi-user text-xl text-slate-400"></i>
+          <!-- Foto & Preview -->
+          <div class="flex flex-col items-center gap-3 pb-2">
+            <div class="relative">
+              <img v-if="photoPreview || selectedUser.photo" :src="photoPreview || selectedUser.photo"
+                class="w-20 h-20 rounded-full object-cover border-2 border-slate-200" />
+              <div v-else class="w-20 h-20 rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center">
+                <i class="pi pi-user text-2xl text-slate-400"></i>
+              </div>
             </div>
-            <div>
-              <p class="font-semibold text-slate-900">{{ selectedUser.name }}</p>
-              <p class="text-xs text-slate-500">{{ selectedUser.email }}</p>
-            </div>
+            <p class="text-sm text-slate-600 font-medium">{{ selectedUser.name }}</p>
+            <input type="file" accept="image/*" class="text-xs text-slate-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100"
+              @change="onFileSelect" />
+            <div v-if="uploadError" class="text-xs text-red-500">{{ uploadError }}</div>
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-700 mb-1">Nama</label>
@@ -174,30 +174,6 @@
           </div>
         </div>
       </form>
-    </Dialog>
-
-    <!-- Photo Upload Dialog -->
-    <Dialog v-model:visible="showPhotoDialog" header="Ubah Foto" modal class="w-sm">
-      <div v-if="selectedUser" class="space-y-4">
-        <div class="flex flex-col items-center gap-3">
-          <img v-if="photoPreview || selectedUser.photo" :src="photoPreview || selectedUser.photo"
-            class="w-24 h-24 rounded-full object-cover border-2 border-slate-200" />
-          <div v-else class="w-24 h-24 rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center">
-            <i class="pi pi-user text-2xl text-slate-400"></i>
-          </div>
-          <p class="text-sm text-slate-600"><strong>{{ selectedUser.name }}</strong></p>
-        </div>
-        <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
-          <input type="file" accept="image/*" class="text-sm text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100"
-            @change="onFileSelect" />
-        </div>
-        <div v-if="uploadError" class="text-xs text-red-500">{{ uploadError }}</div>
-        <div class="flex justify-end gap-2 pt-2">
-          <Button label="Batal" severity="secondary" @click="closePhotoDialog" />
-          <Button label="Simpan Foto" :loading="savingPhoto" :disabled="!selectedFile"
-            @click="uploadPhoto" />
-        </div>
-      </div>
     </Dialog>
 
     <!-- Add User Dialog (Owner/Developer only) -->
@@ -288,13 +264,11 @@ const showAddDialog = ref(false)
 const showEditDialog = ref(false)
 const showRoleDialog = ref(false)
 const showPinDialog = ref(false)
-const showPhotoDialog = ref(false)
 const selectedUser = ref(null)
 const saving = ref(false)
 const savingEdit = ref(false)
 const savingRole = ref(false)
 const savingPin = ref(false)
-const savingPhoto = ref(false)
 const selectedFile = ref(null)
 const photoPreview = ref(null)
 const uploadError = ref('')
@@ -387,13 +361,30 @@ async function addUser() {
 function openEditDialog(user) {
   selectedUser.value = user
   editForm.value = { name: user.name }
+  selectedFile.value = null
+  photoPreview.value = null
+  uploadError.value = ''
   showEditDialog.value = true
 }
 
 async function saveEdit() {
   savingEdit.value = true
   try {
-    await client.put(`/users/${selectedUser.value.id}`, { name: editForm.value.name })
+    // Upload photo dulu kalo ada file baru
+    let photoUrl = selectedUser.value.photo
+    if (selectedFile.value) {
+      const formData = new FormData()
+      formData.append('file', selectedFile.value)
+      const { data } = await client.post('/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      photoUrl = data.url
+    }
+    // Simpan nama + foto
+    await client.put(`/users/${selectedUser.value.id}`, {
+      name: editForm.value.name,
+      photo: photoUrl,
+    })
     showEditDialog.value = false
     fetchUsers()
   } catch (e) {
@@ -401,21 +392,6 @@ async function saveEdit() {
   } finally {
     savingEdit.value = false
   }
-}
-
-function openPhotoDialog(user) {
-  selectedUser.value = user
-  selectedFile.value = null
-  photoPreview.value = null
-  uploadError.value = ''
-  showPhotoDialog.value = true
-}
-
-function closePhotoDialog() {
-  showPhotoDialog.value = false
-  selectedFile.value = null
-  photoPreview.value = null
-  uploadError.value = ''
 }
 
 function onFileSelect(e) {
@@ -434,25 +410,6 @@ function onFileSelect(e) {
   const reader = new FileReader()
   reader.onload = (ev) => { photoPreview.value = ev.target.result }
   reader.readAsDataURL(file)
-}
-
-async function uploadPhoto() {
-  if (!selectedFile.value || !selectedUser.value) return
-  savingPhoto.value = true
-  try {
-    const formData = new FormData()
-    formData.append('file', selectedFile.value)
-    const { data } = await client.post('/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
-    await client.put(`/users/${selectedUser.value.id}`, { photo: data.url })
-    closePhotoDialog()
-    fetchUsers()
-  } catch (e) {
-    alert(e.response?.data?.message || 'Gagal upload foto')
-  } finally {
-    savingPhoto.value = false
-  }
 }
 
 function openRoleDialog(user) {

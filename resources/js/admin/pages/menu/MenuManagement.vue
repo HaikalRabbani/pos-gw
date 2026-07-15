@@ -79,7 +79,7 @@
         </Column>
         <Column header="Aksi" :exportable="false" style="width: 140px">
           <template #body="{ data }">
-            <div class="flex gap-1">
+            <div class="flex gap-3">
               <Button icon="pi pi-pencil" text severity="secondary" rounded size="small"
                 v-tooltip.top="'Edit'"
                 @click="openProductDialog(data)" />
