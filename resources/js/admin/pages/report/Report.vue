@@ -162,6 +162,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import client from '../../api/client'
+import { formatRupiah } from '../../utils/format'
 import { useAuthStore } from '../../stores/auth'
 import Chart from 'chart.js/auto'
 import Button from 'primevue/button'
@@ -262,10 +263,7 @@ const summaryCards = computed(() => {
   ]
 })
 
-function formatRupiah(cents) {
-  if (cents === null || cents === undefined) return 'Rp 0'
-  return 'Rp ' + (Math.round(cents)).toLocaleString('id-ID')
-}
+
 
 // Chart data
 const dailySales = ref([])
@@ -331,7 +329,7 @@ function buildSalesChart(data) {
         },
         tooltip: {
           callbacks: {
-            label: (ctx) => ctx.dataset.label + ': Rp ' + (ctx.raw * 1000).toLocaleString('id-ID'),
+            label: (ctx) => ctx.dataset.label + ': ' + formatRupiah(ctx.raw * 1000),
           },
         },
       },
@@ -394,7 +392,7 @@ function buildCompositionChart(data) {
             label: (ctx) => {
               const total = ctx.dataset.data.reduce((a, b) => a + b, 0)
               const pct = total > 0 ? ((ctx.raw / total) * 100).toFixed(1) : 0
-              return ctx.label + ': Rp ' + ctx.raw.toLocaleString('id-ID') + ' (' + pct + '%)'
+              return ctx.label + ': ' + formatRupiah(ctx.raw) + ' (' + pct + '%)'
             },
           },
         },

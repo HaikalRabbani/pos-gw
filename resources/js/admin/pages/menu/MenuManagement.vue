@@ -83,7 +83,7 @@
         </Column>
         <Column field="price" header="Harga" sortable>
           <template #body="{ data }">
-            <span class="font-medium">Rp {{ (data.price / 100).toLocaleString('id-ID') }}</span>
+            <span class="font-medium">{{ formatRupiah(data.price) }}</span>
           </template>
         </Column>
         <Column header="Deskripsi">
@@ -238,6 +238,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { usePermission } from '../../utils/usePermission'
+import { formatRupiah } from '../../utils/format'
 import client from '../../api/client'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'

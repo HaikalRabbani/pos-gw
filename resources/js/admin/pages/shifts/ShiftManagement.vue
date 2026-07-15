@@ -160,6 +160,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { formatRupiah } from '../../utils/format'
 import client from '../../api/client'
 import Button from 'primevue/button'
 import DataTable from 'primevue/datatable'
@@ -175,10 +176,7 @@ const totalShifts = ref(0)
 const completedShifts = ref(0)
 const totalCashDiff = ref(0)
 
-function formatRupiah(cents) {
-  if (cents === null || cents === undefined) return 'Rp 0'
-  return 'Rp ' + (Math.round(cents)).toLocaleString('id-ID')
-}
+
 
 function formatDate(dateStr) {
   if (!dateStr) return '-'

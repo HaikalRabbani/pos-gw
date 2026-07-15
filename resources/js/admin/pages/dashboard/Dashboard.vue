@@ -114,7 +114,7 @@
           </div>
           <div class="flex items-center gap-4">
             <span class="text-xs text-slate-500">{{ order.customer_name || '-' }}</span>
-            <span class="text-xs font-medium text-slate-700">{{ formatPrice(order.grand_total) }}</span>
+            <span class="text-xs font-medium text-slate-700">{{ formatRupiah(order.grand_total) }}</span>
             <span class="text-xs text-slate-400">{{ formatTime(order.created_at) }}</span>
           </div>
         </div>
@@ -125,6 +125,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { formatRupiah } from '../../utils/format'
 import { useAuthStore } from '../../stores/auth'
 import client from '../../api/client'
 import Tag from 'primevue/tag'
@@ -157,7 +158,7 @@ const statCards = computed(() => {
   return [
     {
       label: 'Penjualan Hari Ini',
-      value: formatPrice(s.gross_sales),
+      value: formatRupiah(s.gross_sales),
       icon: 'pi pi-dollar',
       iconClass: 'text-emerald-600',
       bgClass: 'bg-emerald-100',
@@ -190,7 +191,7 @@ const statCards = computed(() => {
     },
     {
       label: 'Laba Kotor',
-      value: formatPrice(s.gross_profit),
+      value: formatRupiah(s.gross_profit),
       icon: 'pi pi-chart-line',
       iconClass: 'text-amber-600',
       bgClass: 'bg-amber-100',
@@ -219,18 +220,15 @@ const systemInfo = computed(() => {
     { label: 'Outlet', value: String(s.outlets), class: 'text-slate-900', border: true },
     { label: 'Total Produk', value: String(s.products), class: 'text-slate-900', border: true },
     { label: 'Pesanan Hari Ini', value: String(s.total_transactions), class: 'text-slate-900', border: true },
-    { label: 'Penjualan', value: formatPrice(s.gross_sales), class: 'text-teal-600 font-bold', border: true },
-    { label: 'Laba', value: formatPrice(s.gross_profit), class: s.gross_profit >= 0 ? 'text-emerald-600 font-bold' : 'text-red-600 font-bold', border: true },
+    { label: 'Penjualan', value: formatRupiah(s.gross_sales), class: 'text-teal-600 font-bold', border: true },
+    { label: 'Laba', value: formatRupiah(s.gross_profit), class: s.gross_profit >= 0 ? 'text-emerald-600 font-bold' : 'text-red-600 font-bold', border: true },
     { label: 'Versi Aplikasi', value: '1.0.0', class: 'text-slate-900', border: true },
     { label: 'Status', value: 'Online', type: 'status', dotClass: 'bg-emerald-500 animate-pulse', class: 'text-emerald-600', border: false },
   ]
 })
 
 // ── Helpers ──
-function formatPrice(cents) {
-  if (!cents && cents !== 0) return 'Rp 0'
-  return 'Rp ' + Math.round(cents).toLocaleString('id-ID')
-}
+
 
 function statusLabel(s) {
   const map = { draft: 'Draft', confirmed: 'Baru', preparing: 'Dimasak', done: 'Selesai', cancelled: 'Batal', voided: 'Void' }

@@ -34,9 +34,9 @@
             <i class="pi pi-credit-card text-2xl text-white/60"></i>
           </div>
           <p class="text-sm text-teal-100 mb-1">Saldo QRIS Tersedia</p>
-          <p class="text-4xl font-bold mb-3">{{ formatPrice(balance?.balance || 0) }}</p>
+          <p class="text-4xl font-bold mb-3">{{ formatRupiah(balance?.balance || 0) }}</p>
           <div class="flex gap-6 text-sm text-teal-100">
-            <span>Total ditarik: <strong class="text-white">{{ formatPrice(balance?.total_withdrawn || 0) }}</strong></span>
+            <span>Total ditarik: <strong class="text-white">{{ formatRupiah(balance?.total_withdrawn || 0) }}</strong></span>
           </div>
         </div>
 
@@ -52,7 +52,7 @@
                 <label class="block text-sm font-medium text-slate-700 mb-1">Jumlah (Rp)</label>
                 <InputNumber v-model="withdrawForm.amount" class="w-full" :min="10000" :max="balance?.balance || 0"
                   :minFractionDigits="0" placeholder="100000" />
-                <p class="text-xs text-slate-400 mt-1">Minimal Rp 10.000 | Saldo: {{ formatPrice(balance?.balance || 0) }}</p>
+                <p class="text-xs text-slate-400 mt-1">Minimal Rp 10.000 | Saldo: {{ formatRupiah(balance?.balance || 0) }}</p>
               </div>
               <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1">Bank</label>
@@ -101,7 +101,7 @@
               <template #body="{ data }">
                 <span :class="data.amount > 0 ? 'text-teal-600' : 'text-red-500'"
                   class="font-semibold">
-                  {{ data.amount > 0 ? '+' : '' }}{{ formatPrice(data.amount) }}
+                  {{ data.amount > 0 ? '+' : '' }}{{ formatRupiah(data.amount) }}
                 </span>
               </template>
             </Column>
@@ -133,7 +133,7 @@
             </template>
             <Column header="Jumlah">
               <template #body="{ data }">
-                <span class="font-semibold text-slate-900">{{ formatPrice(data.amount) }}</span>
+                <span class="font-semibold text-slate-900">{{ formatRupiah(data.amount) }}</span>
               </template>
             </Column>
             <Column header="Rekening Tujuan">
@@ -171,6 +171,7 @@ import Select from 'primevue/select'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
+import { formatRupiah } from '../../utils/format'
 import { useAuthStore } from '../../stores/auth'
 
 const auth = useAuthStore()
@@ -204,9 +205,7 @@ const bankOptions = [
   { label: 'Bank Lain', value: 'OTHER' },
 ]
 
-function formatPrice(cents) {
-  return 'Rp ' + Math.abs(cents / 100).toLocaleString('id-ID')
-}
+
 
 function formatDate(date) {
   if (!date) return ''

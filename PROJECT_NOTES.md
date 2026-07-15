@@ -187,9 +187,27 @@ Seeder sekarang minimalis — hanya **2 data** per entitas untuk testing:
 ### Seeder
 17. ✅ **TransactionSeeder** — hanya 2 data per entitas
 
-## Pending / Next
-- [ ] Sistem refund dengan order log
+## Progress Sesi Ini (15 Juli 2026)
+
+### Fitur Baru
+1. ✅ **Manajemen Meja (Frontend)** — TableManagement.vue dengan QR code gambar per meja (bukan token teks)
+2. ✅ **Split Bill & Merge Bill** — Backend (OrderService) + frontend (dialog split per item, merge multi-order)
+3. ✅ **Sample Order Button** — Generate dummy draft/confirmed orders langsung dari halaman Orders buat testing
+4. ✅ **Stations Feature** — Migration `stations` + `station_id` di products + CRUD controller + print-groups API (`GET /orders/{id}/print-groups`) untuk routing thermal printer per station
+5. ✅ **RBAC (Role-Based Access Control)** — Backend middleware rules (void=cashier, split/merge=cashier, refund=manager, shifts=cashier, users=admin, stations=manager) + Frontend action gating (`usePermission.js` composable)
+
+### Perbaikan & Refactor
+6. ✅ **PosCashier.vue & KitchenDisplay.vue dihapus** — POS pindah ke Flutter, KDS belum ada rencana. File dikosongkan, route & sidebar dibersihkan
+7. ✅ **Kategori & Station Modal Inline** — Manajemen kategori & station jadi modal dialog di halaman Menu, bukan halaman terpisah. StationManagement.vue dikosongkan
+8. ✅ **Column header # → No.** — Semua 10 DataTable columns di 9 file diganti
+9. ✅ **Format Rupiah Diseragamkan** — Shared helper `utils/format.js` (formatRupiah ÷ 100 + Rp prefix), 5 local functions dihapus, 3 bug fix (Shift/Report/Dashboard tadinya gak ÷ 100), 9 template `Rp ` ganda di Orders.vue diperbaiki, chart tooltip labels Report.vue diperbaiki
+
+### Pending / Next
+- [ ] Sistem refund (frontend flow) — dialog detail refund + pilih item
 - [ ] Export laporan Excel/PDF
 - [ ] Manajemen metode pembayaran
 - [ ] POS Mobile (Flutter/RN — proyek terpisah)
 - [ ] Dark mode toggle
+- [ ] Table reservation system
+- [ ] Promo engine UI testing
+- [ ] Attendance / absensi karyawan

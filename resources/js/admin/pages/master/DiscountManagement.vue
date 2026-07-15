@@ -111,7 +111,7 @@
                 Beli {{ data.buy_x }} Gratis {{ data.buy_y }}
               </template>
               <template v-else>
-                {{ data.type === 'percent' ? data.value + '%' : 'Rp ' + (data.value / 100).toLocaleString('id-ID') }}
+                {{ data.type === 'percent' ? data.value + '%' : formatRupiah(data.value) }}
               </template>
             </span>
           </template>
@@ -273,6 +273,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { usePermission } from '../../utils/usePermission'
+import { formatRupiah } from '../../utils/format'
 import client from '../../api/client'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'

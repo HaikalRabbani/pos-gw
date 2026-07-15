@@ -70,7 +70,7 @@
         </Column>
         <Column field="grand_total" header="Total" sortable style="width: 130px">
           <template #body="{ data }">
-            <span class="font-semibold text-slate-900">Rp {{ formatRupiah(data.grand_total) }}</span>
+            <span class="font-semibold text-slate-900">{{ formatRupiah(data.grand_total) }}</span>
           </template>
         </Column>
         <Column field="payment_status" header="Pembayaran" sortable style="width: 120px">
@@ -121,9 +121,9 @@
           <template v-for="payment in selectedOrder.payments" :key="payment.id">
             <div class="bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-sm min-w-[130px]">
               <p class="text-xs text-slate-400 capitalize mb-0.5">{{ payment.method }}</p>
-              <p class="font-semibold text-slate-900">Rp {{ formatRupiah(payment.amount) }}</p>
+              <p class="font-semibold text-slate-900">{{ formatRupiah(payment.amount) }}</p>
               <p v-if="payment.refunded_amount > 0" class="text-[10px] text-orange-500 mt-0.5">
-                refund Rp {{ formatRupiah(payment.refunded_amount) }}
+                refund {{ formatRupiah(payment.refunded_amount) }}
               </p>
             </div>
           </template>
@@ -156,8 +156,8 @@
               <p v-if="item.notes" class="text-xs text-slate-500 italic mt-0.5">{{ item.notes }}</p>
               <div class="flex items-center gap-1.5 mt-1 text-xs text-slate-500">
                 <span>x{{ item.qty }}</span>
-                <span>@ Rp {{ formatRupiah(item.unit_price) }}</span>
-                <span class="font-medium text-slate-700">= Rp {{ formatRupiah(item.total_price) }}</span>
+                <span>@ {{ formatRupiah(item.unit_price) }}</span>
+                <span class="font-medium text-slate-700">= {{ formatRupiah(item.total_price) }}</span>
                 <span v-if="item.refunded_qty > 0" class="ml-auto text-orange-500">Refund {{ item.refunded_qty }}x</span>
               </div>
             </div>
@@ -168,7 +168,7 @@
         <div v-if="refundMode" class="space-y-3 pt-2 border-t border-slate-200">
           <div class="flex items-center justify-between">
             <h3 class="text-sm font-semibold text-slate-800">Refund Item</h3>
-            <span class="text-xs text-slate-400">Total dibayar: Rp {{ formatRupiah(totalPaid) }}</span>
+            <span class="text-xs text-slate-400">Total dibayar: {{ formatRupiah(totalPaid) }}</span>
           </div>
           <div class="space-y-2">
             <div v-for="item in refundableItems" :key="item.id"
@@ -177,7 +177,7 @@
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium text-slate-800 truncate">{{ item.product_name }}</p>
                 <p class="text-xs text-slate-400">
-                  Pesan {{ item.qty }}x @ Rp {{ formatRupiah(item.unit_price) }}
+                  Pesan {{ item.qty }}x @ {{ formatRupiah(item.unit_price) }}
                   <span v-if="item.refunded_qty > 0" class="text-orange-500">
                     — sudah refund {{ item.refunded_qty }}
                   </span>
@@ -206,7 +206,7 @@
           <div v-if="totalRefundAmount > 0" class="bg-teal-50 border border-teal-200 rounded-xl p-3">
             <div class="flex items-center justify-between mb-3">
               <span class="text-sm font-semibold text-teal-800">Total Refund</span>
-              <span class="text-lg font-bold text-teal-700">Rp {{ formatRupiah(totalRefundAmount) }}</span>
+              <span class="text-lg font-bold text-teal-700">{{ formatRupiah(totalRefundAmount) }}</span>
             </div>
             <div class="space-y-1">
               <label class="text-xs font-medium text-teal-700">Alasan Refund</label>
@@ -274,7 +274,7 @@
 
             <!-- Group total -->
             <div class="flex justify-end text-sm font-semibold text-slate-700">
-              <span>Total: <span class="text-teal-600">Rp {{ formatRupiah(computeGroupTotal(gi)) }}</span></span>
+              <span>Total: <span class="text-teal-600">{{ formatRupiah(computeGroupTotal(gi)) }}</span></span>
             </div>
           </div>
 
@@ -363,6 +363,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { usePermission } from '../../utils/usePermission'
+import { formatRupiah } from '../../utils/format'
 import client from '../../api/client'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -709,10 +710,7 @@ function paymentSeverity(order) {
   if (order.payment_status === 'paid') return 'success'
   return 'warning'
 }
-function formatRupiah(val) {
-  if (!val && val !== 0) return '0'
-  return Math.round(val / 100).toLocaleString('id-ID')
-}
+
 function formatDate(dateStr) {
   if (!dateStr) return '—'
   return new Date(dateStr).toLocaleDateString('id-ID', {
