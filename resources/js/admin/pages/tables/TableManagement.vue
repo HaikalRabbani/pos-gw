@@ -94,7 +94,7 @@
         <Button v-if="perm.can('manageTables')" label="Tambah Meja" icon="pi pi-plus" size="small" @click="openAddDialog" :disabled="!selectedOutletId" />
       </div>
       <DataTable :value="tables" stripedRows size="small" class="text-sm">
-        <Column header="#" style="width: 50px">
+        <Column header="No." style="width: 50px">
           <template #body="{ index }">
             <span class="text-slate-400 text-xs font-mono">{{ index + 1 }}</span>
           </template>

@@ -85,7 +85,7 @@
         paginatorTemplate="CurrentPageReport PrevPageLink NextPageLink"
         currentPageReportTemplate="Halaman {currentPage} dari {totalPages}"
         class="text-sm">
-        <Column header="#" style="width: 50px">
+        <Column header="No." style="width: 50px">
           <template #body="{ index }">
             <span class="text-slate-400 text-xs font-mono">{{ index + 1 }}</span>
           </template>

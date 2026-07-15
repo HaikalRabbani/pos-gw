@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\ProductController;
 use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\ShiftController;
+use App\Http\Controllers\Api\V1\StationController;
 use App\Http\Controllers\Api\V1\TableController;
 use App\Http\Controllers\Api\V1\TaxController;
 use App\Http\Controllers\Api\V1\UserController;
@@ -79,6 +80,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/v1/discounts/{discount}', [DiscountController::class, 'update']);
         Route::delete('/v1/discounts/{discount}', [DiscountController::class, 'destroy']);
 
+        // Stations
+        Route::get('/v1/stations', [StationController::class, 'index']);
+        Route::post('/v1/stations', [StationController::class, 'store']);
+        Route::put('/v1/stations/{station}', [StationController::class, 'update']);
+        Route::delete('/v1/stations/{station}', [StationController::class, 'destroy']);
+
         // Tables
         Route::get('/v1/tables', [TableController::class, 'index']);
         Route::post('/v1/tables', [TableController::class, 'store']);
@@ -103,6 +110,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Merge Bill
         Route::post('/v1/orders/merge', [OrderController::class, 'merge']);
+
+        // Print groups by station (for Flutter thermal printer routing)
+        Route::get('/v1/orders/{order}/print-groups', [OrderController::class, 'printGroups']);
 
         // Midtrans
         Route::post('/v1/orders/{order}/pay/midtrans', [PaymentController::class, 'snapToken']);

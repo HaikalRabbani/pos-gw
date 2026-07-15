@@ -63,6 +63,8 @@ export function usePermission() {
         return isAtLeast('manager')
       case 'manageTables':
         return isAtLeast('manager')
+      case 'manageStations':
+        return isAtLeast('manager')
 
       // ── Users & Outlets ──
       case 'manageUsers':

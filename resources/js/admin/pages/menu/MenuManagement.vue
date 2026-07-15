@@ -39,6 +39,15 @@
           </span>
           <Select v-model="selectedCategory" :options="categories" optionLabel="name" optionValue="id"
             placeholder="Semua kategori" class="w-48" :showClear="true" />
+
+          <!-- Inline Kategori & Station Management -->
+          <template v-if="perm.can('manageCategories')">
+            <Button label="Kategori" icon="pi pi-tags" severity="secondary" text size="small"
+              v-tooltip.top="'Kelola kategori'" @click="openCategoryModal" />
+            <Button label="Station" icon="pi pi-print" severity="secondary" text size="small"
+              v-tooltip.top="'Kelola station produksi'" @click="openStationModal" />
+          </template>
+
           <Button v-if="perm.can('manageProducts')" label="Tambah Produk" icon="pi pi-plus" size="small" class="shrink-0"
             @click="openProductDialog()" />
         </div>
@@ -47,7 +56,7 @@
         paginatorTemplate="CurrentPageReport PrevPageLink NextPageLink"
         currentPageReportTemplate="Halaman {currentPage} dari {totalPages}"
         class="text-sm">
-        <Column header="#" style="width: 50px">
+        <Column header="No." style="width: 50px">
           <template #body="{ index }">
             <span class="text-slate-400 text-xs font-mono">{{ index + 1 }}</span>
           </template>
@@ -65,6 +74,11 @@
         <Column header="Kategori">
           <template #body="{ data }">
             <Tag :value="data.category?.name || '-'" severity="info" rounded />
+          </template>
+        </Column>
+        <Column header="Station">
+          <template #body="{ data }">
+            <Tag :value="data.station?.name || '-'" severity="warn" rounded />
           </template>
         </Column>
         <Column field="price" header="Harga" sortable>
@@ -119,6 +133,11 @@
               placeholder="Pilih kategori" class="w-full" :showClear="true" />
           </div>
           <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Station <i class="pi pi-print text-xs text-orange-400 ml-1"></i></label>
+            <Select v-model="productForm.station_id" :options="stations" optionLabel="name" optionValue="id"
+              placeholder="Pilih station" class="w-full" :showClear="true" />
+          </div>
+          <div>
             <label class="block text-sm font-medium text-slate-700 mb-1">Harga (Rp) <span class="text-red-400">*</span></label>
             <InputNumber v-model="productForm.price" class="w-full" :min="0" :minFractionDigits="0"
               placeholder="35000" required />
@@ -141,18 +160,75 @@
       </form>
     </Dialog>
 
-    <!-- Delete Confirmation -->
-    <Dialog v-model:visible="showDeleteDialog" header="Hapus Produk" modal class="w-sm">
+    <!-- Kategori Modal (inline) -->
+    <Dialog v-model:visible="showCategoryModal" header="Manajemen Kategori" modal class="w-md">
+      <div class="space-y-4">
+        <form @submit.prevent="addCategory" class="flex gap-2">
+          <InputText v-model="newCategoryName" placeholder="Nama kategori baru..." class="flex-1" required />
+          <Button type="submit" label="Tambah" :loading="savingCategory" :disabled="!newCategoryName.trim()" />
+        </form>
+        <div class="border-t border-slate-200 pt-3">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Daftar Kategori</p>
+          <div v-if="categories.length === 0" class="text-sm text-slate-400 text-center py-4">Belum ada kategori.</div>
+          <ul v-else class="divide-y divide-slate-100">
+            <li v-for="cat in categories" :key="cat.id"
+              class="flex items-center justify-between py-2.5">
+              <div class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-teal-400"></div>
+                <span class="text-sm text-slate-800">{{ cat.name }}</span>
+              </div>
+              <Button icon="pi pi-trash" text rounded severity="danger" size="small"
+                v-tooltip.top="'Hapus kategori'"
+                @click="confirmDeleteCategory(cat)" />
+            </li>
+          </ul>
+        </div>
+      </div>
+    </Dialog>
+
+    <!-- Station Modal (inline) -->
+    <Dialog v-model:visible="showStationModal" header="Manajemen Station" modal class="w-md">
+      <div class="space-y-4">
+        <form @submit.prevent="addStation" class="flex gap-2">
+          <InputText v-model="newStationName" placeholder="Nama station baru... (contoh: Dapur, Bar, Grill)" class="flex-1" required />
+          <Button type="submit" label="Tambah" :loading="savingStation" :disabled="!newStationName.trim()" />
+        </form>
+        <div class="border-t border-slate-200 pt-3">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Daftar Station</p>
+          <p class="text-[11px] text-slate-400 mb-3">Station digunakan untuk routing cetak struk ke thermal printer masing-masing area produksi.</p>
+          <div v-if="stations.length === 0" class="text-sm text-slate-400 text-center py-4">Belum ada station.</div>
+          <ul v-else class="divide-y divide-slate-100">
+            <li v-for="st in stations" :key="st.id"
+              class="flex items-center justify-between py-2.5">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-orange-100 flex items-center justify-center text-xs font-bold text-orange-700">
+                  <i class="pi pi-print text-[10px]"></i>
+                </div>
+                <span class="text-sm text-slate-800">{{ st.name }}</span>
+              </div>
+              <Button icon="pi pi-trash" text rounded severity="danger" size="small"
+                v-tooltip.top="'Hapus station'"
+                @click="confirmDeleteStation(st)" />
+            </li>
+          </ul>
+        </div>
+      </div>
+    </Dialog>
+
+    <!-- Delete Confirmation (general) -->
+    <Dialog v-model:visible="showDeleteDialog" :header="'Hapus ' + deleteTarget?.type" modal class="w-sm">
       <div class="space-y-3">
         <div class="flex items-center gap-3 p-3 rounded-xl bg-red-50 border border-red-100">
           <i class="pi pi-exclamation-triangle text-red-500 text-xl"></i>
           <p class="text-sm text-red-700">
-            Yakin ingin menghapus <strong>{{ deletingProduct?.name }}</strong>?
+            Yakin ingin menghapus <strong>{{ deleteTarget?.name }}</strong>?
           </p>
         </div>
+        <p v-if="deleteTarget?.type === 'Kategori'" class="text-xs text-slate-500">Produk dengan kategori ini tidak akan terhapus, hanya kategori-nya yang hilang.</p>
+        <p v-else-if="deleteTarget?.type === 'Station'" class="text-xs text-slate-500">Produk dengan station ini akan otomatis kehilangan station-nya.</p>
         <div class="flex justify-end gap-2 pt-2">
           <Button label="Batal" severity="secondary" @click="showDeleteDialog = false" />
-          <Button label="Hapus" severity="danger" :loading="deleting" @click="deleteProduct" />
+          <Button label="Hapus" severity="danger" :loading="deleting" @click="executeDelete" />
         </div>
       </div>
     </Dialog>
@@ -179,17 +255,24 @@ const perm = usePermission()
 const loading = ref(true)
 const products = ref([])
 const categories = ref([])
+const stations = ref([])
 const search = ref('')
 const selectedCategory = ref(null)
 const rowsPerPage = ref(10)
 const showProductDialog = ref(false)
 const showDeleteDialog = ref(false)
+const showCategoryModal = ref(false)
+const showStationModal = ref(false)
 const editingProduct = ref(false)
 const savingProduct = ref(false)
+const savingCategory = ref(false)
+const savingStation = ref(false)
 const deleting = ref(false)
-const deletingProduct = ref(null)
+const newCategoryName = ref('')
+const newStationName = ref('')
+const deleteTarget = ref(null)
 
-const productForm = ref({ name: '', category_id: null, price: 0, cost: 0, description: '' })
+const productForm = ref({ name: '', category_id: null, station_id: null, price: 0, cost: 0, description: '' })
 
 const activeCount = computed(() => products.value.filter((p) => p.is_active).length)
 const inactiveCount = computed(() => products.value.filter((p) => !p.is_active).length)
@@ -212,12 +295,14 @@ async function fetchData() {
     const { data: outletRes } = await client.get('/outlets')
     const outletId = outletRes.data[0]?.id
     if (!outletId) return
-    const [prodRes, catRes] = await Promise.all([
+    const [prodRes, catRes, staRes] = await Promise.all([
       client.get('/products', { params: { outlet_id: outletId } }),
       client.get('/categories', { params: { outlet_id: outletId } }),
+      client.get('/stations', { params: { outlet_id: outletId } }),
     ])
     products.value = prodRes.data.data
     categories.value = catRes.data.data
+    stations.value = staRes.data.data
   } catch (_) {
   } finally {
     loading.value = false
@@ -231,13 +316,14 @@ function openProductDialog(product) {
       id: product.id,
       name: product.name,
       category_id: product.category_id,
+      station_id: product.station_id,
       price: product.price,
       cost: product.cost || 0,
       description: product.description || '',
     }
   } else {
     editingProduct.value = false
-    productForm.value = { name: '', category_id: null, price: 0, cost: 0, description: '' }
+    productForm.value = { name: '', category_id: null, station_id: null, price: 0, cost: 0, description: '' }
   }
   showProductDialog.value = true
 }
@@ -250,6 +336,7 @@ async function saveProduct() {
     const payload = {
       name: productForm.value.name,
       category_id: productForm.value.category_id || null,
+      station_id: productForm.value.station_id || null,
       price: productForm.value.price,
       cost: productForm.value.cost || 0,
       description: productForm.value.description || null,
@@ -276,21 +363,104 @@ async function toggleActive(product) {
 }
 
 function confirmDelete(product) {
-  deletingProduct.value = product
+  deleteTarget.value = { id: product.id, name: product.name, type: 'Produk' }
   showDeleteDialog.value = true
 }
 
-async function deleteProduct() {
+async function executeDelete() {
   deleting.value = true
   try {
-    await client.delete(`/products/${deletingProduct.value.id}`)
+    const target = deleteTarget.value
+    if (target.type === 'Produk') {
+      await client.delete(`/products/${target.id}`)
+    } else if (target.type === 'Kategori') {
+      await client.delete(`/categories/${target.id}`)
+      await fetchCategories()
+    } else if (target.type === 'Station') {
+      await client.delete(`/stations/${target.id}`)
+      await fetchStations()
+    }
     showDeleteDialog.value = false
-    fetchData()
+    await fetchData()
   } catch (e) {
-    alert(e.response?.data?.message || 'Gagal menghapus produk')
+    alert(e.response?.data?.message || 'Gagal menghapus')
   } finally {
     deleting.value = false
   }
+}
+
+// ── Inline Kategori CRUD ──
+function openCategoryModal() {
+  newCategoryName.value = ''
+  showCategoryModal.value = true
+}
+
+async function fetchCategories() {
+  try {
+    const { data: outletRes } = await client.get('/outlets')
+    const outletId = outletRes.data[0]?.id
+    if (!outletId) return
+    const { data } = await client.get('/categories', { params: { outlet_id: outletId } })
+    categories.value = data.data
+  } catch (_) {}
+}
+
+async function addCategory() {
+  if (!newCategoryName.value.trim()) return
+  savingCategory.value = true
+  try {
+    const { data: outletRes } = await client.get('/outlets')
+    const outletId = outletRes.data[0]?.id
+    await client.post('/categories', { outlet_id: outletId, name: newCategoryName.value })
+    newCategoryName.value = ''
+    await fetchCategories()
+  } catch (e) {
+    alert(e.response?.data?.message || 'Gagal tambah kategori')
+  } finally {
+    savingCategory.value = false
+  }
+}
+
+function confirmDeleteCategory(cat) {
+  deleteTarget.value = { id: cat.id, name: cat.name, type: 'Kategori' }
+  showDeleteDialog.value = true
+}
+
+// ── Inline Station CRUD ──
+function openStationModal() {
+  newStationName.value = ''
+  showStationModal.value = true
+}
+
+async function fetchStations() {
+  try {
+    const { data: outletRes } = await client.get('/outlets')
+    const outletId = outletRes.data[0]?.id
+    if (!outletId) return
+    const { data } = await client.get('/stations', { params: { outlet_id: outletId } })
+    stations.value = data.data
+  } catch (_) {}
+}
+
+async function addStation() {
+  if (!newStationName.value.trim()) return
+  savingStation.value = true
+  try {
+    const { data: outletRes } = await client.get('/outlets')
+    const outletId = outletRes.data[0]?.id
+    await client.post('/stations', { outlet_id: outletId, name: newStationName.value })
+    newStationName.value = ''
+    await fetchStations()
+  } catch (e) {
+    alert(e.response?.data?.message || 'Gagal tambah station')
+  } finally {
+    savingStation.value = false
+  }
+}
+
+function confirmDeleteStation(st) {
+  deleteTarget.value = { id: st.id, name: st.name, type: 'Station' }
+  showDeleteDialog.value = true
 }
 
 onMounted(fetchData)

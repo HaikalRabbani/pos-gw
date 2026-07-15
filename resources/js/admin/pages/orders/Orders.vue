@@ -52,7 +52,7 @@
             <p class="text-slate-400 text-xs mt-1">Pesanan baru akan muncul di sini</p>
           </div>
         </template>
-        <Column header="#" style="width: 50px">
+        <Column header="No." style="width: 50px">
           <template #body="{ index }">
             <span class="text-slate-400 text-xs font-mono">{{ index + 1 }}</span>
           </template>

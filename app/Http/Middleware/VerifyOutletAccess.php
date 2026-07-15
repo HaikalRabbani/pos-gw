@@ -66,6 +66,11 @@ class VerifyOutletAccess
         ['method' => 'PUT',    'pattern' => 'v1/tables',           'min_role' => 'manager'],
         ['method' => 'DELETE', 'pattern' => 'v1/tables',           'min_role' => 'manager'],
 
+        // Stations write — manager ke atas
+        ['method' => 'POST',   'pattern' => 'v1/stations',         'min_role' => 'manager'],
+        ['method' => 'PUT',    'pattern' => 'v1/stations',         'min_role' => 'manager'],
+        ['method' => 'DELETE', 'pattern' => 'v1/stations',         'min_role' => 'manager'],
+
         // Shifts — cashier boleh lihat & start sendiri, tapi end shift sendiri
         ['method' => 'GET',    'pattern' => 'v1/shifts',           'min_role' => 'cashier'],
         ['method' => 'POST',   'pattern' => 'v1/shifts',           'min_role' => 'cashier'],

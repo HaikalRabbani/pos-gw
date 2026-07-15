@@ -185,4 +185,44 @@ class OrderController extends Controller
             'message' => 'Berhasil merge ' . count($orders) . ' pesanan.',
         ]);
     }
+
+    /**
+     * Get order items grouped by station.
+     * Used by Flutter app to route prints to different thermal printers
+     * per station (e.g. Dapur, Bar, Grill).
+     */
+    public function printGroups(Order $order)
+    {
+        $order->load('items.product.station');
+
+        $groups = $order->items
+            ->groupBy(fn($item) => $item->product?->station_id ?? 0)
+            ->map(function ($items, $stationId) {
+                $station = $items->first()->product?->station;
+                return [
+                    'station_id'   => $stationId,
+                    'station_name' => $station?->name ?? 'Tanpa Station',
+                    'items'        => $items->map(fn($i) => [
+                        'product_name' => $i->product_name,
+                        'variant_name' => $i->variant_name,
+                        'qty'          => $i->qty,
+                        'unit_price'   => $i->unit_price,
+                        'total_price'  => $i->total_price,
+                        'notes'        => $i->notes,
+                    ]),
+                    'total_items'  => $items->sum('qty'),
+                ];
+            })->values();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'order_id'      => $order->id,
+                'table_name'    => $order->table?->name,
+                'customer_name' => $order->customer_name,
+                'created_at'    => $order->created_at,
+                'groups'        => $groups,
+            ],
+        ]);
+    }
 }

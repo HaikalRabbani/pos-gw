@@ -80,7 +80,7 @@
             <h2 class="font-semibold text-slate-900">Riwayat Transaksi</h2>
           </div>
           <DataTable :value="transactions" size="small" stripedRows class="text-sm">
-            <Column header="#">
+            <Column header="No.">
               <template #body="{ index }">
                 <span class="text-slate-400 text-xs font-mono">{{ index + 1 }}</span>
               </template>
@@ -120,7 +120,7 @@
             <h2 class="font-semibold text-slate-900">Riwayat Penarikan</h2>
           </div>
           <DataTable :value="withdrawals" size="small" stripedRows class="text-sm">
-            <Column header="#">
+            <Column header="No.">
               <template #body="{ index }">
                 <span class="text-slate-400 text-xs font-mono">{{ index + 1 }}</span>
               </template>
