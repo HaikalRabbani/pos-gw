@@ -206,8 +206,19 @@ Seeder sekarang minimalis — hanya **2 data** per entitas untuk testing:
 15. ✅ **UserManagement sembunyikan akun sendiri** — User yg login difilter dari daftar (edit via Profile Settings)
 16. ✅ **Smart Auto Outlet Mode** — Kalo cuma 1 outlet, selector `outlet` di toolbar otomatis ilang (Tax, Discount, Tables, Withdraw). Kalo tiba-tiba nambah outlet >1, selector muncul lagi otomatis
 17. ✅ **Migration Konsolidasi (35→6 file)** — Semua migration digabung jadi 6 file tematik (user/auth, cache/jobs, pos_core, order_tables, finance, placeholder). Semua kolom & FK di-CREATE langsung, gak ada ALTER tambahan di file terpisah. FK `tenants` dipindah ke file #1 biar gak error FK reference
+18. ✅ **Shift Page Revamp — 3 Tabs** — ShiftManagement.vue di-refactor pake PrimeVue 4 Tabs: (1) Master Shift — CRUD jenis shift (Pagi/Siang/Malam) dengan jam kerja, (2) Penjadwalan — assign karyawan ke shift per tanggal, (3) Laporan — riwayat shift + rekonsiliasi kas
+19. ✅ **Orders Detail Dialog — 5 Tabs** — Dialog detail pesanan di-refactor dari `v-if` mode toggling jadi tabs: Info, Items, Refund, Split, Log. State refund & split di-pre-initialize pas buka dialog
+20. ✅ **Sidebar Restruktur** — Ringkasan→Dashboard, Shift dipisah dari Transaksi ke grup "Shift & Jadwal" sendiri, filter permission pake `g.title` (bukan index)
+21. ✅ **Backend Shift Types & Schedules** — Migration `shift_types` + `shift_schedules` tabel, Model, Controller CRUD, Routes
 
 ### Pending / Next
+- [ ] Export laporan Excel/PDF
+- [ ] Manajemen metode pembayaran (Flutter/QR)
+- [ ] POS Mobile (Flutter/RN — proyek terpisah)
+- [ ] Dark mode toggle
+- [ ] Table reservation system
+- [ ] Promo engine UI testing
+- [ ] Attendance / absensi karyawan
 - [ ] Sistem refund (frontend flow) — dialog detail refund + pilih item
 - [ ] Export laporan Excel/PDF
 - [ ] Manajemen metode pembayaran

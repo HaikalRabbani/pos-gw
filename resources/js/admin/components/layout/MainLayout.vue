@@ -225,7 +225,7 @@ function toggleCollapsed() {
 
 const menuGroups = [
   {
-    title: 'Ringkasan',
+    title: 'Dashboard',
     items: [
       { path: '/dashboard', label: 'Dashboard', icon: 'pi pi-chart-pie' },
     ],
@@ -234,6 +234,11 @@ const menuGroups = [
     title: 'Transaksi',
     items: [
       { path: '/orders', label: 'Pesanan', icon: 'pi pi-receipt' },
+    ],
+  },
+  {
+    title: 'Shift & Jadwal',
+    items: [
       { path: '/shifts', label: 'Shift', icon: 'pi pi-clock' },
     ],
   },
@@ -301,7 +306,7 @@ watch(() => route.path, () => {
  */
 const visibleGroups = computed(() => {
   if (auth.isSuper) return menuGroups
-  if (auth.isManager) return menuGroups.filter((_, i) => i !== 3) // hide Pengaturan
+  if (auth.isManager) return menuGroups.filter(g => g.title !== 'Pengaturan') // hide Pengaturan
   return []
 })
 
@@ -316,7 +321,7 @@ const pageTitles = {
   '/tables': 'Manajemen Meja',
   '/users': 'Manajemen Pengguna',
   '/outlets': 'Manajemen Outlet',
-  '/shifts': 'Manajemen Shift',
+  '/shifts': 'Shift & Jadwal',
   '/report': 'Laporan',
   '/withdraw': 'Penarikan Saldo',
   '/profile': 'Pengaturan Profil',

@@ -10,6 +10,8 @@ use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\ProductController;
 use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\ShiftController;
+use App\Http\Controllers\Api\V1\ShiftScheduleController;
+use App\Http\Controllers\Api\V1\ShiftTypeController;
 use App\Http\Controllers\Api\V1\StationController;
 use App\Http\Controllers\Api\V1\TableController;
 use App\Http\Controllers\Api\V1\TaxController;
@@ -118,7 +120,20 @@ Route::middleware('auth:sanctum')->group(function () {
         // Midtrans
         Route::post('/v1/orders/{order}/pay/midtrans', [PaymentController::class, 'snapToken']);
 
-        // Shifts
+        // Shift Types (master data)
+        Route::get('/v1/shift-types', [ShiftTypeController::class, 'index']);
+        Route::post('/v1/shift-types', [ShiftTypeController::class, 'store']);
+        Route::put('/v1/shift-types/{shiftType}', [ShiftTypeController::class, 'update']);
+        Route::delete('/v1/shift-types/{shiftType}', [ShiftTypeController::class, 'destroy']);
+
+        // Shift Schedules (scheduling)
+        Route::get('/v1/shift-schedules', [ShiftScheduleController::class, 'index']);
+        Route::post('/v1/shift-schedules', [ShiftScheduleController::class, 'store']);
+        Route::put('/v1/shift-schedules/{shiftSchedule}', [ShiftScheduleController::class, 'update']);
+        Route::delete('/v1/shift-schedules/{shiftSchedule}', [ShiftScheduleController::class, 'destroy']);
+        Route::post('/v1/shift-schedules/generate', [ShiftScheduleController::class, 'generate']);
+
+        // Shifts (actual cashier shifts)
         Route::get('/v1/shifts', [ShiftController::class, 'index']);
         Route::post('/v1/shifts/start', [ShiftController::class, 'start']);
         Route::post('/v1/shifts/{shift}/end', [ShiftController::class, 'end']);
