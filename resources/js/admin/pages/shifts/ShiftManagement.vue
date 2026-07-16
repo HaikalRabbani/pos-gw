@@ -9,9 +9,8 @@
     <!-- Tabs -->
     <Tabs v-model:value="activeTab">
       <TabList>
-        <Tab value="0"><i class="pi pi-cog mr-1.5"></i>Master Shift</Tab>
-        <Tab value="1"><i class="pi pi-calendar mr-1.5"></i>Penjadwalan</Tab>
-
+        <Tab value="0"><Settings class="w-4 h-4 mr-1.5" stroke-width="1.5" />Master Shift</Tab>
+        <Tab value="1"><Calendar class="w-4 h-4 mr-1.5" stroke-width="1.5" />Penjadwalan</Tab>
       </TabList>
 
       <TabPanels>
@@ -20,8 +19,12 @@
           <div class="space-y-4">
             <div class="flex items-center justify-between">
               <p class="text-sm text-slate-600">Atur jenis shift, jam kerja, dan urutan</p>
-              <Button v-if="perm.can('manageShifts')" label="Tambah Shift" icon="pi pi-plus" size="small"
-                @click="openShiftTypeDialog()" />
+              <Button v-if="perm.can('manageShifts')" label="Tambah Shift" size="small"
+                @click="openShiftTypeDialog()">
+                <template #icon>
+                  <Plus class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
             </div>
 
             <div v-if="shiftTypesLoading" class="animate-pulse space-y-2">
@@ -33,7 +36,7 @@
               <template #empty>
                 <div class="flex flex-col items-center justify-center py-12 text-center">
                   <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mb-3">
-                    <i class="pi pi-clock text-2xl text-slate-300"></i>
+                    <Clock class="w-6 h-6 text-slate-300" stroke-width="1.5" />
                   </div>
                   <p class="text-slate-500 font-medium">Belum ada jenis shift</p>
                   <p class="text-slate-400 text-xs mt-1">Tambah shift pagi, siang, atau malam</p>
@@ -78,15 +81,26 @@
               <Column header="Aksi" style="width: 100px">
                 <template #body="{ data }">
                   <div class="flex gap-2">
-                    <Button icon="pi pi-pencil" text rounded size="small" v-tooltip.top="'Edit'"
-                      @click="openShiftTypeDialog(data)" />
-                    <Button :icon="data.is_active ? 'pi pi-ban' : 'pi pi-check-circle'"
-                      text rounded size="small"
+                    <Button text rounded size="small" v-tooltip.top="'Edit'"
+                      @click="openShiftTypeDialog(data)">
+                      <template #icon>
+                        <Pencil class="w-4 h-4" stroke-width="1.5" />
+                      </template>
+                    </Button>
+                    <Button text rounded size="small"
                       :class="data.is_active ? 'text-amber-600' : 'text-teal-600'"
                       v-tooltip.top="data.is_active ? 'Nonaktifkan' : 'Aktifkan'"
-                      @click="toggleShiftTypeActive(data)" />
-                    <Button icon="pi pi-trash" text rounded severity="danger" size="small"
-                      v-tooltip.top="'Hapus'" @click="confirmDeleteShiftType(data)" />
+                      @click="toggleShiftTypeActive(data)">
+                      <template #icon>
+                        <component :is="data.is_active ? Ban : CheckCircle" class="w-4 h-4" stroke-width="1.5" />
+                      </template>
+                    </Button>
+                    <Button text rounded severity="danger" size="small"
+                      v-tooltip.top="'Hapus'" @click="confirmDeleteShiftType(data)">
+                      <template #icon>
+                        <Trash2 class="w-4 h-4" stroke-width="1.5" />
+                      </template>
+                    </Button>
                   </div>
                 </template>
               </Column>
@@ -100,21 +114,41 @@
             <!-- Month Navigation -->
             <div class="flex flex-wrap items-center justify-between gap-3">
               <div class="flex items-center gap-2">
-                <Button icon="pi pi-chevron-left" text rounded severity="secondary" size="small"
-                  @click="changeMonth(-1)" />
+                <Button text rounded severity="secondary" size="small"
+                  @click="changeMonth(-1)">
+                  <template #icon>
+                    <ChevronLeft class="w-4 h-4" stroke-width="1.5" />
+                  </template>
+                </Button>
                 <span class="text-lg font-bold text-slate-800 min-w-[170px] text-center tabular-nums">
                   {{ monthNames[calMonth - 1] }} {{ calYear }}
                 </span>
-                <Button icon="pi pi-chevron-right" text rounded severity="secondary" size="small"
-                  @click="changeMonth(1)" />
-                <Button icon="pi pi-refresh" text rounded severity="secondary" size="small"
-                  v-tooltip.top="'Hari ini'" @click="goToToday" />
+                <Button text rounded severity="secondary" size="small"
+                  @click="changeMonth(1)">
+                  <template #icon>
+                    <ChevronRight class="w-4 h-4" stroke-width="1.5" />
+                  </template>
+                </Button>
+                <Button text rounded severity="secondary" size="small"
+                  v-tooltip.top="'Hari ini'" @click="goToToday">
+                  <template #icon>
+                    <RefreshCw class="w-4 h-4" stroke-width="1.5" />
+                  </template>
+                </Button>
               </div>
               <div class="flex items-center gap-2">
-                <Button label="Generate" icon="pi pi-magic" severity="contrast" size="small"
-                  v-tooltip.top="'Generate jadwal otomatis'" @click="generateDialog = true" />
-                <Button label="Tambah" icon="pi pi-plus" size="small"
-                  @click="openScheduleDialog()" />
+                <Button label="Generate" severity="contrast" size="small"
+                  v-tooltip.top="'Generate jadwal otomatis'" @click="generateDialog = true">
+                  <template #icon>
+                    <Wand2 class="w-4 h-4" stroke-width="1.5" />
+                  </template>
+                </Button>
+                <Button label="Tambah" size="small"
+                  @click="openScheduleDialog()">
+                  <template #icon>
+                    <Plus class="w-4 h-4" stroke-width="1.5" />
+                  </template>
+                </Button>
               </div>
             </div>
 
@@ -231,7 +265,7 @@
     <Dialog v-model:visible="generateDialog" header="Generate Jadwal Otomatis" modal class="w-md">
       <div class="space-y-4">
         <div class="flex items-center gap-3 p-3 rounded-xl bg-violet-50 border border-violet-100">
-          <i class="pi pi-magic text-violet-500 text-xl"></i>
+          <Wand2 class="w-5 h-5 text-violet-500 shrink-0" stroke-width="1.5" />
           <p class="text-sm text-violet-700">
             Generate jadwal shift untuk <strong>{{ monthNames[genMonth - 1] }} {{ genYear }}</strong>.
             Karyawan akan diacak merata ke setiap shift setiap hari.
@@ -268,9 +302,13 @@
 
         <div class="flex justify-end gap-2 pt-2 border-t border-slate-200">
           <Button label="Batal" severity="secondary" @click="generateDialog = false" />
-          <Button label="Generate Sekarang" icon="pi pi-magic" severity="contrast"
+          <Button label="Generate Sekarang" severity="contrast"
             :loading="genLoading" :disabled="genUserIds.length === 0 || genShiftTypeIds.length === 0"
-            @click="processGenerate" />
+            @click="processGenerate">
+            <template #icon>
+              <Wand2 class="w-4 h-4" stroke-width="1.5" />
+            </template>
+          </Button>
         </div>
       </div>
     </Dialog>
@@ -279,7 +317,7 @@
     <Dialog v-model:visible="dayDialog" :header="'Jadwal — ' + dayDialogDate" modal class="w-md">
       <div class="space-y-3">
         <div v-if="daySchedules.length === 0" class="text-center py-8 text-slate-400">
-          <i class="pi pi-calendar text-3xl text-slate-200 mb-2 block"></i>
+          <Calendar class="w-8 h-8 text-slate-200 mb-2 mx-auto" stroke-width="1.5" />
           <p class="text-sm">Tidak ada jadwal di tanggal ini</p>
         </div>
         <div v-for="s in daySchedules" :key="s.id"
@@ -295,12 +333,20 @@
             </p>
           </div>
           <Tag :value="statusLabel(s.status)" :severity="s.status === 'confirmed' ? 'success' : s.status === 'absent' ? 'danger' : 'info'" rounded />
-          <Button icon="pi pi-trash" text rounded severity="danger" size="small"
-            v-tooltip.top="'Hapus'" @click="deleteSchedule(s)" />
+          <Button text rounded severity="danger" size="small"
+            v-tooltip.top="'Hapus'" @click="deleteSchedule(s)">
+            <template #icon>
+              <Trash2 class="w-4 h-4" stroke-width="1.5" />
+            </template>
+          </Button>
         </div>
         <div class="flex justify-end gap-2 pt-2 border-t border-slate-200">
-          <Button label="Tambah Jadwal" icon="pi pi-plus" size="small"
-            @click="dayDialog = false; openScheduleDialog(dayDialogDate)" />
+          <Button label="Tambah Jadwal" size="small"
+            @click="dayDialog = false; openScheduleDialog(dayDialogDate)">
+            <template #icon>
+              <Plus class="w-4 h-4" stroke-width="1.5" />
+            </template>
+          </Button>
         </div>
       </div>
     </Dialog>
@@ -309,7 +355,7 @@
     <Dialog v-model:visible="deleteDialog" header="Konfirmasi Hapus" modal class="w-sm">
       <div class="space-y-3">
         <div class="flex items-center gap-3 p-3 rounded-xl bg-red-50 border border-red-100">
-          <i class="pi pi-exclamation-triangle text-red-500 text-xl"></i>
+          <AlertTriangle class="w-5 h-5 text-red-500 shrink-0" stroke-width="1.5" />
           <p class="text-sm text-red-700">
             Yakin ingin menghapus <strong>{{ deletingItem?.name || 'jadwal ini' }}</strong>?
           </p>
@@ -343,6 +389,10 @@ import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
 import Select from 'primevue/select'
 import Checkbox from 'primevue/checkbox'
+import {
+  Settings, Calendar, Clock, Plus, Pencil, Ban, CheckCircle, Trash2,
+  ChevronLeft, ChevronRight, RefreshCw, Wand2, AlertTriangle
+} from 'lucide-vue-next'
 
 const perm = usePermission()
 const toast = useToastStore()
@@ -392,13 +442,12 @@ const daySchedules = ref([])
 // Calendar days computed
 const calendarDays = computed(() => {
   const firstDay = new Date(calYear.value, calMonth.value - 1, 1)
-  const startDayOfWeek = firstDay.getDay() // 0=Sun
+  const startDayOfWeek = firstDay.getDay()
   const daysInMonth = new Date(calYear.value, calMonth.value, 0).getDate()
   const daysInPrevMonth = new Date(calYear.value, calMonth.value - 1, 0).getDate()
   const today = new Date()
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
 
-  // Build schedule lookup: { '2026-07-15': [{ shift_type_id, shift_name, user_name }, ...] }
   const scheduleByDate = {}
   for (const s of schedules.value) {
     if (!scheduleByDate[s.date]) scheduleByDate[s.date] = []
@@ -416,21 +465,18 @@ const calendarDays = computed(() => {
   for (let i = 0; i < totalCells; i++) {
     let day, isCurrentMonth, dateStr
     if (i < startDayOfWeek) {
-      // Previous month
       day = daysInPrevMonth - startDayOfWeek + i + 1
       isCurrentMonth = false
       const m = calMonth.value === 1 ? 12 : calMonth.value - 1
       const y = calMonth.value === 1 ? calYear.value - 1 : calYear.value
       dateStr = `${y}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     } else if (i >= startDayOfWeek + daysInMonth) {
-      // Next month
       day = i - startDayOfWeek - daysInMonth + 1
       isCurrentMonth = false
       const m = calMonth.value === 12 ? 1 : calMonth.value + 1
       const y = calMonth.value === 12 ? calYear.value + 1 : calYear.value
       dateStr = `${y}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     } else {
-      // Current month
       day = i - startDayOfWeek + 1
       isCurrentMonth = true
       dateStr = `${calYear.value}-${String(calMonth.value).padStart(2, '0')}-${String(day).padStart(2, '0')}`
@@ -554,7 +600,6 @@ async function fetchSchedules() {
   if (!selectedOutletId.value) return
   schedulesLoading.value = true
   try {
-    // Fetch entire month
     const startDate = `${calYear.value}-${String(calMonth.value).padStart(2, '0')}-01`
     const lastDay = new Date(calYear.value, calMonth.value, 0).getDate()
     const endDate = `${calYear.value}-${String(calMonth.value).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
@@ -619,7 +664,6 @@ function statusLabel(s) {
 function openDayDetail(cell) {
   dayDialogDate.value = cell.dateStr
   daySchedules.value = cell.shifts.map(s => {
-    // Find full schedule data
     const full = schedules.value.find(sch => sch.id === s.schedule_id)
     return full || s
   })
@@ -670,6 +714,5 @@ onMounted(async () => {
     fetchSchedules()
   }
   fetchUsers()
-}
-)
+})
 </script>

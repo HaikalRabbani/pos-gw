@@ -7,15 +7,23 @@
         <p class="text-sm text-slate-500 mt-1">Rekap shift karyawan dan total kas</p>
       </div>
       <div class="flex items-center gap-2">
-        <Button label="Export Excel" icon="pi pi-file-excel" severity="success" outlined @click="exportExcel" />
-        <Button label="Export PDF" icon="pi pi-file-pdf" severity="danger" outlined @click="exportPdf" />
+        <Button label="Export Excel" severity="success" outlined @click="exportExcel">
+          <template #icon>
+            <FileSpreadsheet class="w-4 h-4" stroke-width="1.5" />
+          </template>
+        </Button>
+        <Button label="Export PDF" severity="danger" outlined @click="exportPdf">
+          <template #icon>
+            <FileText class="w-4 h-4" stroke-width="1.5" />
+          </template>
+        </Button>
       </div>
     </div>
 
     <!-- Filter -->
     <div class="bg-white rounded-2xl border border-slate-200 p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
       <div class="flex items-center gap-2">
-        <i class="pi pi-calendar text-slate-400"></i>
+        <Calendar class="w-4 h-4 text-slate-400" stroke-width="1.5" />
         <span class="text-sm font-medium text-slate-700">Periode:</span>
       </div>
       <DatePicker v-model="dateRange" selectionMode="range" :manualInput="false" dateFormat="dd/mm/yy"
@@ -42,7 +50,7 @@
           class="bg-white rounded-2xl border border-slate-200 p-4">
           <div class="flex items-center gap-2 mb-2">
             <div class="w-9 h-9 rounded-xl flex items-center justify-center" :class="card.bgClass">
-              <i :class="[card.icon, card.iconClass]"></i>
+              <component :is="card.icon" class="w-4 h-4" :class="card.iconClass" stroke-width="1.5" />
             </div>
             <span class="text-[10px] font-semibold uppercase tracking-wider" :class="card.labelClass">{{ card.label }}</span>
           </div>
@@ -68,7 +76,7 @@
             <template #empty>
               <div class="flex flex-col items-center justify-center py-16 text-center">
                 <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
-                  <i class="pi pi-clock text-2xl text-slate-300"></i>
+                  <Clock class="w-6 h-6 text-slate-300" stroke-width="1.5" />
                 </div>
                 <p class="text-slate-500 font-medium">Belum ada data shift</p>
                 <p class="text-slate-400 text-xs mt-1">Data akan muncul setelah ada shift yang dimulai</p>
@@ -131,7 +139,7 @@
             <template #empty>
               <div class="flex flex-col items-center justify-center py-16 text-center">
                 <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
-                  <i class="pi pi-users text-2xl text-slate-300"></i>
+                  <Users class="w-6 h-6 text-slate-300" stroke-width="1.5" />
                 </div>
                 <p class="text-slate-500 font-medium">Belum ada data shift</p>
                 <p class="text-slate-400 text-xs mt-1">Data akan muncul setelah ada shift yang dimulai</p>
@@ -195,6 +203,10 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Button from 'primevue/button'
+import {
+  FileSpreadsheet, FileText, Calendar, Clock, Users,
+  RefreshCw, Calculator, DollarSign, TrendingUp
+} from 'lucide-vue-next'
 
 const auth = useAuthStore()
 const toast = useToastStore()
@@ -229,7 +241,7 @@ const summaryCards = computed(() => {
     {
       label: 'Total Shift',
       value: String(total),
-      icon: 'pi pi-sync',
+      icon: RefreshCw,
       iconClass: 'text-blue-600',
       bgClass: 'bg-blue-100',
       labelClass: 'text-blue-600',
@@ -238,7 +250,7 @@ const summaryCards = computed(() => {
     {
       label: 'Kas Diharapkan',
       value: formatRupiah(totalCashExpected),
-      icon: 'pi pi-calculator',
+      icon: Calculator,
       iconClass: 'text-teal-600',
       bgClass: 'bg-teal-100',
       labelClass: 'text-teal-600',
@@ -247,7 +259,7 @@ const summaryCards = computed(() => {
     {
       label: 'Kas Aktual',
       value: formatRupiah(totalCashActual),
-      icon: 'pi pi-money-bill',
+      icon: DollarSign,
       iconClass: 'text-emerald-600',
       bgClass: 'bg-emerald-100',
       labelClass: 'text-emerald-600',
@@ -256,7 +268,7 @@ const summaryCards = computed(() => {
     {
       label: 'Selisih Kas',
       value: formatRupiah(totalDiff),
-      icon: 'pi pi-chart-line',
+      icon: TrendingUp,
       iconClass: totalDiff >= 0 ? 'text-violet-600' : 'text-red-600',
       bgClass: totalDiff >= 0 ? 'bg-violet-100' : 'bg-red-100',
       labelClass: totalDiff >= 0 ? 'text-violet-600' : 'text-red-600',

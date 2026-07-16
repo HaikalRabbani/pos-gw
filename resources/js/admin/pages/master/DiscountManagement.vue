@@ -10,7 +10,7 @@
 
     <!-- Outlet Selector (when no outlet selected) -->
     <div v-if="!selectedOutletId" class="bg-white rounded-2xl border border-slate-200 p-12 flex flex-col items-center justify-center text-center">
-      <i class="pi pi-building text-4xl text-slate-200 mb-3"></i>
+      <Building2 class="w-10 h-10 text-slate-200 mb-3" stroke-width="1.5" />
       <p class="text-slate-600 font-semibold">Pilih outlet terlebih dahulu</p>
       <p class="text-slate-400 text-sm mt-1">Pilih outlet untuk melihat daftar diskon yang tersedia.</p>
     </div>
@@ -28,7 +28,11 @@
       <div class="p-3 border-b border-slate-100 flex flex-wrap items-center justify-end gap-2">
         <Select v-if="outlets.length > 1" v-model="selectedOutletId" :options="outlets" optionLabel="name" optionValue="id"
           placeholder="Pilih outlet" class="w-44" @change="fetchDiscounts" />
-        <Button v-if="perm.can('manageDiscounts')" label="Tambah Diskon" icon="pi pi-plus" size="small" @click="openAddDialog" :disabled="!selectedOutletId" />
+        <Button v-if="perm.can('manageDiscounts')" label="Tambah Diskon" size="small" @click="openAddDialog" :disabled="!selectedOutletId">
+          <template #icon>
+            <Plus class="w-4 h-4" stroke-width="1.5" />
+          </template>
+        </Button>
       </div>
       <div class="overflow-x-auto">
       <DataTable :value="discounts" stripedRows size="small" class="text-sm">
@@ -40,7 +44,7 @@
         <template #empty>
           <div class="flex flex-col items-center justify-center py-16 text-center">
             <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
-              <i class="pi pi-percentage text-2xl text-slate-300"></i>
+              <Percent class="w-6 h-6 text-slate-300" stroke-width="1.5" />
             </div>
             <p class="text-slate-500 font-medium">Belum ada diskon</p>
             <p class="text-slate-400 text-xs mt-1">Tambahkan diskon untuk outlet ini</p>
@@ -95,15 +99,26 @@
         <Column header="Aksi" style="width: 120px">
           <template #body="{ data }">
             <div class="flex gap-3">
-              <Button v-if="perm.can('manageDiscounts')" icon="pi pi-pencil" text rounded size="small"
-                v-tooltip.top="'Edit'" @click="openEditDialog(data)" />
-              <Button v-if="perm.can('manageDiscounts')" :icon="data.is_active ? 'pi pi-ban' : 'pi pi-check-circle'"
-                text rounded size="small"
+              <Button v-if="perm.can('manageDiscounts')" text rounded size="small"
+                v-tooltip.top="'Edit'" @click="openEditDialog(data)">
+                <template #icon>
+                  <Pencil class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
+              <Button v-if="perm.can('manageDiscounts')" text rounded size="small"
                 :class="data.is_active ? 'text-amber-600' : 'text-teal-600'"
                 v-tooltip.top="data.is_active ? 'Nonaktifkan' : 'Aktifkan'"
-                @click="toggleActive(data)" />
-              <Button v-if="perm.can('manageDiscounts')" icon="pi pi-trash" text rounded severity="danger" size="small"
-                v-tooltip.top="'Hapus'" @click="confirmDelete(data)" />
+                @click="toggleActive(data)">
+                <template #icon>
+                  <component :is="data.is_active ? Ban : CheckCircle" class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
+              <Button v-if="perm.can('manageDiscounts')" text rounded severity="danger" size="small"
+                v-tooltip.top="'Hapus'" @click="confirmDelete(data)">
+                <template #icon>
+                  <Trash2 class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
             </div>
           </template>
         </Column>
@@ -119,7 +134,7 @@
         <div>
           <div class="flex items-center gap-2 mb-3">
             <div class="w-6 h-6 rounded-lg bg-teal-100 flex items-center justify-center">
-              <i class="pi pi-tag text-xs text-teal-700"></i>
+              <Tag class="w-3 h-3 text-teal-700" stroke-width="1.5" />
             </div>
             <h3 class="text-sm font-semibold text-slate-800">Informasi Dasar</h3>
           </div>
@@ -137,7 +152,7 @@
         <div>
           <div class="flex items-center gap-2 mb-3">
             <div class="w-6 h-6 rounded-lg bg-orange-100 flex items-center justify-center">
-              <i class="pi pi-percentage text-xs text-orange-700"></i>
+              <Percent class="w-3 h-3 text-orange-700" stroke-width="1.5" />
             </div>
             <h3 class="text-sm font-semibold text-slate-800">Jenis Diskon</h3>
           </div>
@@ -153,7 +168,7 @@
               @click="selectDiscountType(opt.value)">
               <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg transition-colors duration-200"
                 :class="form.discountType === opt.value ? 'bg-teal-200 text-teal-700' : 'bg-slate-100 text-slate-500'">
-                <i :class="opt.icon"></i>
+                <component :is="opt.iconComponent" class="w-5 h-5" stroke-width="1.5" />
               </div>
               <div>
                 <p class="text-sm font-semibold" :class="form.discountType === opt.value ? 'text-teal-800' : 'text-slate-700'">
@@ -163,7 +178,7 @@
               </div>
               <div v-if="form.discountType === opt.value"
                 class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-teal-500 flex items-center justify-center">
-                <i class="pi pi-check text-white text-[8px]"></i>
+                <Check class="w-3 h-3 text-white" stroke-width="1.5" />
               </div>
             </button>
           </div>
@@ -209,7 +224,7 @@
         <div>
           <div class="flex items-center gap-2 mb-3">
             <div class="w-6 h-6 rounded-lg bg-blue-100 flex items-center justify-center">
-              <i class="pi pi-bullseye text-xs text-blue-700"></i>
+              <Crosshair class="w-3 h-3 text-blue-700" stroke-width="1.5" />
             </div>
             <h3 class="text-sm font-semibold text-slate-800">Sasaran Diskon</h3>
           </div>
@@ -223,7 +238,7 @@
                     ? 'border-blue-400 bg-blue-50 text-blue-700 shadow-sm'
                     : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'"
                   @click="form.target_type = t.value; form.target_id = []">
-                  <i :class="t.icon" class="mr-1.5"></i>
+                  <component :is="t.iconComponent" class="w-4 h-4 inline mr-1.5" stroke-width="1.5" />
                   {{ t.label }}
                 </button>
               </div>
@@ -233,14 +248,14 @@
               <MultiSelect v-model="form.target_id" :options="products" optionLabel="name" optionValue="id"
                 placeholder="Cari dan pilih produk..." class="w-full" filter display="chip"
                 :maxSelectedLabels="3" selectedItemsLabel="{0} produk dipilih" />
-              <p class="text-xs text-slate-400 mt-1">Klik produk untuk memilih. Klik <i class="pi pi-times"></i> pada pill untuk menghapus.</p>
+              <p class="text-xs text-slate-400 mt-1">Klik produk untuk memilih. Klik <X class="w-3 h-3 inline" stroke-width="1.5" /> pada pill untuk menghapus.</p>
             </div>
             <div v-else-if="form.target_type === 'category'" class="pt-1">
               <label class="block text-sm font-medium text-slate-700 mb-1">Pilih Kategori <span class="text-red-400">*</span></label>
               <MultiSelect v-model="form.target_id" :options="categories" optionLabel="name" optionValue="id"
                 placeholder="Cari dan pilih kategori..." class="w-full" filter display="chip"
                 :maxSelectedLabels="2" selectedItemsLabel="{0} kategori dipilih" />
-              <p class="text-xs text-slate-400 mt-1">Klik kategori untuk memilih. Klik <i class="pi pi-times"></i> pada pill untuk menghapus.</p>
+              <p class="text-xs text-slate-400 mt-1">Klik kategori untuk memilih. Klik <X class="w-3 h-3 inline" stroke-width="1.5" /> pada pill untuk menghapus.</p>
             </div>
           </div>
         </div>
@@ -249,7 +264,7 @@
         <div>
           <div class="flex items-center gap-2 mb-3">
             <div class="w-6 h-6 rounded-lg bg-violet-100 flex items-center justify-center">
-              <i class="pi pi-sliders-h text-xs text-violet-700"></i>
+              <SlidersHorizontal class="w-3 h-3 text-violet-700" stroke-width="1.5" />
             </div>
             <h3 class="text-sm font-semibold text-slate-800">Ketentuan Tambahan</h3>
           </div>
@@ -273,7 +288,7 @@
         <div>
           <div class="flex items-center gap-2 mb-3">
             <div class="w-6 h-6 rounded-lg bg-amber-100 flex items-center justify-center">
-              <i class="pi pi-calendar text-xs text-amber-700"></i>
+              <Calendar class="w-3 h-3 text-amber-700" stroke-width="1.5" />
             </div>
             <h3 class="text-sm font-semibold text-slate-800">Masa Berlaku</h3>
             <span class="text-[10px] text-slate-400 font-normal">(opsional)</span>
@@ -298,12 +313,12 @@
         <div v-if="form.name || form.value || form.buy_x"
           class="rounded-xl border border-dashed border-slate-300 bg-white p-4">
           <div class="flex items-center gap-2 mb-2">
-            <i class="pi pi-eye text-slate-400 text-xs"></i>
+            <Eye class="w-4 h-4 text-slate-400" stroke-width="1.5" />
             <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Pratinjau</span>
           </div>
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-100 to-teal-200 flex items-center justify-center text-sm">
-              <i class="pi pi-percentage text-teal-700"></i>
+              <Percent class="w-4 h-4 text-teal-700" stroke-width="1.5" />
             </div>
             <div>
               <p class="text-sm font-semibold text-slate-800">{{ form.name || 'Diskon Baru' }}</p>
@@ -324,8 +339,7 @@
 
         <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
           <Button label="Batal" severity="secondary" @click="showDialog = false" />
-          <Button type="submit" :label="editing ? 'Simpan Perubahan' : 'Buat Diskon'" :loading="saving"
-            icon="pi pi-check" />
+          <Button type="submit" :label="editing ? 'Simpan' : 'Tambah'" :loading="saving" />
         </div>
       </form>
     </Dialog>
@@ -334,7 +348,7 @@
     <Dialog v-model:visible="showDeleteDialog" header="Hapus Diskon" modal class="w-sm">
       <div class="space-y-3">
         <div class="flex items-center gap-3 p-3 rounded-xl bg-red-50 border border-red-100">
-          <i class="pi pi-exclamation-triangle text-red-500 text-xl"></i>
+          <AlertTriangle class="w-5 h-5 text-red-500 shrink-0" stroke-width="1.5" />
           <p class="text-sm text-red-700">
             Yakin ingin menghapus diskon <strong>{{ deletingDiscount?.name }}</strong>?
           </p>
@@ -349,30 +363,33 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { usePermission } from '../../utils/usePermission'
-import { formatRupiah } from '../../utils/format'
 import { useToastStore } from '../../stores/toast'
+import { formatRupiah } from '../../utils/format'
 import client from '../../api/client'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
 import Select from 'primevue/select'
 import MultiSelect from 'primevue/multiselect'
-import Calendar from 'primevue/calendar'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
+import Calendar from 'primevue/calendar'
 import Tooltip from 'primevue/tooltip'
+import {
+  Building2, Percent, Plus, Pencil, Trash2, Ban, CheckCircle,
+  AlertTriangle, Tag, Crosshair, SlidersHorizontal, Calendar as CalendarIcon,
+  Eye, Check, ShoppingCart, Package, Tags, X, Gift, DollarSign
+} from 'lucide-vue-next'
 
 const perm = usePermission()
 const toast = useToastStore()
 
 const discounts = ref([])
 const outlets = ref([])
-const products = ref([])
-const categories = ref([])
 const selectedOutletId = ref(null)
 const loading = ref(false)
 const saving = ref(false)
@@ -381,112 +398,86 @@ const showDialog = ref(false)
 const showDeleteDialog = ref(false)
 const editing = ref(false)
 const deletingDiscount = ref(null)
-
-const typeOptions = [
-  {
-    value: 'percent',
-    label: 'Persentase',
-    icon: 'pi pi-percentage',
-    desc: 'Potongan berdasarkan % dari total',
-  },
-  {
-    value: 'nominal',
-    label: 'Nominal',
-    icon: 'pi pi-money-bill',
-    desc: 'Potongan harga tetap dalam Rp',
-  },
-  {
-    value: 'bogo',
-    label: 'Beli Gratis',
-    icon: 'pi pi-gift',
-    desc: 'Beli X Gratis Y (BOGO)',
-  },
-]
-
-const targetTypeOptions = [
-  { label: 'Semua Transaksi', value: 'transaction', icon: 'pi pi-shopping-cart' },
-  { label: 'Produk Tertentu', value: 'product', icon: 'pi pi-box' },
-  { label: 'Kategori Tertentu', value: 'category', icon: 'pi pi-tags' },
-]
+const products = ref([])
+const categories = ref([])
 
 const form = ref({
   name: '',
   discountType: 'percent',
-  type: 'percent',
-  value: 0,
+  value: null,
+  buy_x: null,
+  buy_y: null,
   target_type: 'transaction',
   target_id: [],
   min_purchase: null,
   max_discount: null,
-  buy_x: null,
-  buy_y: null,
   start_date: null,
   end_date: null,
+  id: null,
 })
+
+// ── Type options ──
+const typeOptions = [
+  { value: 'percent', label: 'Persentase', iconComponent: Percent, desc: 'Potongan % dari total' },
+  { value: 'nominal', label: 'Nominal', iconComponent: DollarSign, desc: 'Potongan harga tetap' },
+  { value: 'bogo', label: 'BOGO', iconComponent: Gift, desc: 'Beli X Gratis Y' },
+]
+
+// ── Target type options ──
+const targetTypeOptions = [
+  { value: 'transaction', label: 'Semua Transaksi', iconComponent: ShoppingCart },
+  { value: 'product', label: 'Produk Tertentu', iconComponent: Package },
+  { value: 'category', label: 'Kategori Tertentu', iconComponent: Tags },
+]
 
 const targetPreviewLabel = computed(() => {
-  const t = form.value.target_type
-  const ids = form.value.target_id
-  if (t === 'product' && ids?.length) {
-    const names = ids.map(id => {
-      const found = products.value.find(p => p.id === id)
-      return found?.name
-    }).filter(Boolean)
-    return names.length ? `Produk: ${names.join(', ')}` : `${ids.length} produk`
-  }
-  if (t === 'category' && ids?.length) {
-    const names = ids.map(id => {
-      const found = categories.value.find(c => c.id === id)
-      return found?.name
-    }).filter(Boolean)
-    return names.length ? `Kategori: ${names.join(', ')}` : `${ids.length} kategori`
-  }
-  return 'Semua transaksi'
+  const map = { transaction: 'Semua transaksi', product: 'Produk tertentu', category: 'Kategori tertentu' }
+  return map[form.value.target_type] || ''
 })
 
-function selectDiscountType(val) {
-  form.value.discountType = val
-  form.value.type = val === 'bogo' ? 'percent' : val
-  form.value.value = 0
-  form.value.buy_x = null
-  form.value.buy_y = null
+function selectDiscountType(value) {
+  form.value.discountType = value
+  if (value === 'bogo') {
+    form.value.value = null
+  } else {
+    form.value.buy_x = null
+    form.value.buy_y = null
+  }
 }
 
 function discountTypeLabel(d) {
-  if (d.buy_x && d.buy_y) return `Beli ${d.buy_x} Gratis ${d.buy_y}`
-  return d.type === 'percent' ? 'Persen' : 'Nominal'
+  if (d.buy_x && d.buy_y) return 'BOGO'
+  if (d.type === 'percent') return 'Persen'
+  if (d.type === 'nominal') return 'Nominal'
+  return d.type || '-'
 }
 
 function discountTypeSeverity(d) {
   if (d.buy_x && d.buy_y) return 'contrast'
-  return d.type === 'percent' ? 'info' : 'warn'
+  if (d.type === 'percent') return 'info'
+  if (d.type === 'nominal') return 'warn'
+  return 'info'
 }
 
 function targetLabel(d) {
-  if (d.target_type === 'product' && d.target_products?.length) {
-    const names = d.target_products.map(p => p.name).join(', ')
-    return `Produk: ${names}`
-  }
-  if (d.target_type === 'category' && d.target_categories?.length) {
-    const names = d.target_categories.map(c => c.name).join(', ')
-    return `Kategori: ${names}`
-  }
-  return 'Semua Transaksi'
+  if (!d.target_type || d.target_type === 'transaction') return 'Semua'
+  if (d.target_type === 'product') return (d.target_ids || d.target_id || [])?.length + ' produk'
+  if (d.target_type === 'category') return (d.target_ids || d.target_id || [])?.length + ' kategori'
+  return d.target_type
 }
 
-function targetBadgeClass(type) {
-  const map = {
-    product: 'bg-blue-100 text-blue-700',
-    category: 'bg-violet-100 text-violet-700',
-    transaction: 'bg-slate-100 text-slate-600',
-  }
-  return map[type] || 'bg-slate-100 text-slate-600'
+function targetBadgeClass(t) {
+  if (!t || t === 'transaction') return 'bg-slate-100 text-slate-600'
+  if (t === 'product') return 'bg-blue-50 text-blue-700'
+  if (t === 'category') return 'bg-violet-50 text-violet-700'
+  return 'bg-slate-100 text-slate-600'
 }
 
-function formatDate(date) {
-  if (!date) return ''
-  const d = new Date(date)
-  return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+function formatDate(dateStr) {
+  if (!dateStr) return ''
+  return new Date(dateStr).toLocaleDateString('id-ID', {
+    year: 'numeric', month: 'short', day: 'numeric',
+  })
 }
 
 async function fetchOutlets() {
@@ -500,27 +491,28 @@ async function fetchOutlets() {
   } catch (_) {}
 }
 
-async function fetchMasterData() {
-  if (!selectedOutletId.value) return
-  try {
-    const [prodRes, catRes] = await Promise.all([
-      client.get('/products', { params: { outlet_id: selectedOutletId.value } }),
-      client.get('/categories', { params: { outlet_id: selectedOutletId.value } }),
-    ])
-    products.value = prodRes.data.data
-    categories.value = catRes.data.data
-  } catch (_) {}
-}
-
 async function fetchDiscounts() {
   if (!selectedOutletId.value) return
   loading.value = true
   try {
     const { data } = await client.get('/discounts', { params: { outlet_id: selectedOutletId.value } })
     discounts.value = data.data
-    await fetchMasterData()
   } catch (_) {}
   finally { loading.value = false }
+}
+
+async function fetchProducts() {
+  try {
+    const { data } = await client.get('/products', { params: { outlet_id: selectedOutletId.value } })
+    products.value = data.data
+  } catch (_) {}
+}
+
+async function fetchCategories() {
+  try {
+    const { data } = await client.get('/categories', { params: { outlet_id: selectedOutletId.value } })
+    categories.value = data.data
+  } catch (_) {}
 }
 
 function openAddDialog() {
@@ -528,60 +520,67 @@ function openAddDialog() {
   form.value = {
     name: '',
     discountType: 'percent',
-    type: 'percent',
-    value: 0,
-    target_type: 'transaction',
-    target_id: null,
-    min_purchase: null,
-    max_discount: null,
+    value: null,
     buy_x: null,
     buy_y: null,
+    target_type: 'transaction',
+    target_id: [],
+    min_purchase: null,
+    max_discount: null,
     start_date: null,
     end_date: null,
+    id: null,
   }
   showDialog.value = true
+  fetchProducts()
+  fetchCategories()
 }
 
-function openEditDialog(discount) {
+function openEditDialog(d) {
   editing.value = true
-
-  const isBogo = discount.buy_x && discount.buy_y
   form.value = {
-    id: discount.id,
-    name: discount.name,
-    discountType: isBogo ? 'bogo' : discount.type,
-    type: discount.type,
-    value: discount.value,
-    target_type: discount.target_type || 'transaction',
-    target_id: Array.isArray(discount.target_id) ? discount.target_id : (discount.target_id ? [discount.target_id] : []),
-    min_purchase: discount.min_purchase,
-    max_discount: discount.max_discount,
-    buy_x: discount.buy_x,
-    buy_y: discount.buy_y,
-    start_date: discount.start_date ? new Date(discount.start_date) : null,
-    end_date: discount.end_date ? new Date(discount.end_date) : null,
+    id: d.id,
+    name: d.name,
+    discountType: d.buy_x && d.buy_y ? 'bogo' : (d.type || 'percent'),
+    value: d.value,
+    buy_x: d.buy_x,
+    buy_y: d.buy_y,
+    target_type: d.target_type || 'transaction',
+    target_id: Array.isArray(d.target_ids || d.target_id) ? (d.target_ids || d.target_id) : [],
+    min_purchase: d.min_purchase,
+    max_discount: d.max_discount,
+    start_date: d.start_date ? new Date(d.start_date) : null,
+    end_date: d.end_date ? new Date(d.end_date) : null,
   }
   showDialog.value = true
+  fetchProducts()
+  fetchCategories()
 }
 
 async function saveDiscount() {
   saving.value = true
   try {
-    const isBogo = form.value.discountType === 'bogo'
-
     const payload = {
       outlet_id: selectedOutletId.value,
       name: form.value.name,
-      type: isBogo ? 'percent' : form.value.discountType,
-      value: isBogo ? 0 : form.value.value,
-      target_type: form.value.target_type || 'transaction',
-      target_id: form.value.target_type !== 'transaction' ? (Array.isArray(form.value.target_id) ? form.value.target_id : []) : null,
+      type: form.value.discountType,
+      value: form.value.value,
+      buy_x: form.value.buy_x,
+      buy_y: form.value.buy_y,
+      target_type: form.value.target_type,
+      target_id: form.value.target_id,
       min_purchase: form.value.min_purchase || null,
       max_discount: form.value.max_discount || null,
-      buy_x: isBogo ? form.value.buy_x : null,
-      buy_y: isBogo ? form.value.buy_y : null,
       start_date: form.value.start_date || null,
       end_date: form.value.end_date || null,
+    }
+
+    if (!['percent', 'nominal'].includes(form.value.discountType)) {
+      delete payload.value
+    }
+    if (form.value.discountType !== 'bogo') {
+      delete payload.buy_x
+      delete payload.buy_y
     }
 
     if (editing.value) {
@@ -598,15 +597,15 @@ async function saveDiscount() {
   }
 }
 
-async function toggleActive(discount) {
+async function toggleActive(d) {
   try {
-    await client.put(`/discounts/${discount.id}`, { is_active: !discount.is_active })
+    await client.put(`/discounts/${d.id}`, { is_active: !d.is_active })
     fetchDiscounts()
   } catch (_) {}
 }
 
-function confirmDelete(discount) {
-  deletingDiscount.value = discount
+function confirmDelete(d) {
+  deletingDiscount.value = d
   showDeleteDialog.value = true
 }
 

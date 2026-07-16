@@ -11,17 +11,24 @@
         placeholder="Semua Status" class="w-44" @change="fetchOrders" />
       <Select v-model="filterPayment" :options="paymentOptions" optionLabel="label" optionValue="value"
         placeholder="Semua Pembayaran" class="w-48" @change="fetchOrders" />
-      <Button label="Refresh" icon="pi pi-refresh" severity="secondary" text size="small" @click="fetchOrders" />
-      <Button v-if="perm.isAdmin" label="Sample Order" icon="pi pi-flask" severity="contrast" text size="small"
+      <Button label="Refresh" severity="secondary" text size="small" @click="fetchOrders">
+        <template #icon>
+          <RefreshCw class="w-4 h-4" stroke-width="1.5" />
+        </template>
+      </Button>
+      <Button v-if="perm.isAdmin" label="Sample Order" severity="contrast" text size="small"
         v-tooltip.top="'Buat data dummy untuk testing Split/Merge'"
-        @click="seedTestOrder" :disabled="seeding" :loading="seeding" />
+        @click="seedTestOrder" :disabled="seeding" :loading="seeding">
+        <template #icon>
+          <FlaskConical class="w-4 h-4" stroke-width="1.5" />
+        </template>
+      </Button>
     </div>
 
     <!-- ═══ Merge Zone — muncul ketika >= 2 order dipilih ═══ -->
     <transition name="merge-slide">
       <div v-if="perm.can('mergeBill') && selectedOrderIds.length >= 2"
         class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-700 via-indigo-800 to-indigo-950">
-        <!-- Decorative blob -->
         <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-400/10 rounded-full -translate-y-1/3 translate-x-1/3 blur-3xl"></div>
 
         <div class="relative z-10 p-4 space-y-3">
@@ -29,15 +36,19 @@
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <span class="w-8 h-8 rounded-xl bg-indigo-600/50 flex items-center justify-center">
-                <i class="pi pi-chevron-circle-up text-white"></i>
+                <ArrowUpCircle class="w-4 h-4 text-white" stroke-width="1.5" />
               </span>
               <div>
                 <h3 class="text-sm font-bold text-white">Merge Bill</h3>
                 <p class="text-[10px] text-indigo-200">{{ selectedOrderIds.length }} pesanan dipilih</p>
               </div>
             </div>
-            <Button label="Batal Pilih" icon="pi pi-times" text size="small" class="text-indigo-200 hover:text-white"
-              @click="selectedOrders = []" />
+            <Button label="Batal Pilih" text size="small" class="text-indigo-200 hover:text-white"
+              @click="selectedOrders = []">
+              <template #icon>
+                <X class="w-4 h-4" stroke-width="1.5" />
+              </template>
+            </Button>
           </div>
 
           <!-- Selected Order Cards -->
@@ -52,8 +63,12 @@
                 <p class="text-xs text-white/80 truncate mt-0.5">{{ o.customer_name || 'Tanpa nama' }}</p>
                 <p class="text-[11px] font-bold text-white mt-0.5">{{ formatRupiah(o.grand_total) }}</p>
               </div>
-              <Button icon="pi pi-times-circle" text rounded size="small" class="text-white/40 hover:text-white shrink-0"
-                @click.stop="removeFromMerge(o)" />
+              <Button text rounded size="small" class="text-white/40 hover:text-white shrink-0"
+                @click.stop="removeFromMerge(o)">
+                <template #icon>
+                  <XCircle class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
             </div>
           </div>
 
@@ -78,13 +93,17 @@
           <!-- Customer Name + Action -->
           <div class="flex flex-wrap items-center gap-2">
             <div class="relative flex-1 min-w-[200px]">
-              <i class="pi pi-user absolute left-3 top-1/2 -translate-y-1/2 text-indigo-300 text-xs"></i>
+              <User class="w-3 h-3 absolute left-3 top-1/2 -translate-y-1/2 text-indigo-300" stroke-width="1.5" />
               <InputText v-model="mergeCustomerName" class="w-full pl-8 text-sm bg-white/10 border-white/20 text-white placeholder:text-indigo-300/50"
                 placeholder="Nama pelanggan gabungan (opsional)" />
             </div>
-            <Button label="Merge Sekarang" icon="pi pi-chevron-circle-up" severity="contrast" size="small"
+            <Button label="Merge Sekarang" severity="contrast" size="small"
               :loading="mergeSaving" @click="processMerge"
-              class="bg-white text-indigo-800 hover:bg-indigo-50 border-0" />
+              class="bg-white text-indigo-800 hover:bg-indigo-50 border-0">
+              <template #icon>
+                <ArrowUpCircle class="w-4 h-4" stroke-width="1.5" />
+              </template>
+            </Button>
           </div>
         </div>
       </div>
@@ -114,7 +133,7 @@
         <template #empty>
           <div class="flex flex-col items-center justify-center py-16 text-center">
             <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
-              <i class="pi pi-receipt text-2xl text-slate-300"></i>
+              <Receipt class="w-6 h-6 text-slate-300" stroke-width="1.5" />
             </div>
             <p class="text-slate-500 font-medium">Belum ada pesanan</p>
             <p class="text-slate-400 text-xs mt-1">Pesanan baru akan muncul di sini</p>
@@ -154,8 +173,12 @@
         <Column header="Aksi" style="width: 60px">
           <template #body="{ data }">
             <div @click.stop>
-              <Button icon="pi pi-eye" severity="secondary" text rounded size="small"
-                v-tooltip.top="'Detail Pesanan'" @click="openDetail(data)" />
+              <Button severity="secondary" text rounded size="small"
+                v-tooltip.top="'Detail Pesanan'" @click="openDetail(data)">
+                <template #icon>
+                  <Eye class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
             </div>
           </template>
         </Column>
@@ -169,10 +192,10 @@
       <div v-if="selectedOrder" class="max-h-[70vh] overflow-y-auto pr-1">
         <Tabs v-model:value="orderTab">
           <TabList>
-            <Tab value="0"><i class="pi pi-receipt mr-1.5"></i>Pesanan</Tab>
-            <Tab value="1"><i class="pi pi-undo mr-1.5"></i>Refund</Tab>
-            <Tab value="2"><i class="pi pi-sitemap mr-1.5"></i>Split</Tab>
-            <Tab value="3"><i class="pi pi-history mr-1.5"></i>Log</Tab>
+            <Tab value="0"><Receipt class="w-4 h-4 mr-1.5" stroke-width="1.5" />Pesanan</Tab>
+            <Tab value="1"><Undo2 class="w-4 h-4 mr-1.5" stroke-width="1.5" />Refund</Tab>
+            <Tab value="2"><GitBranch class="w-4 h-4 mr-1.5" stroke-width="1.5" />Split</Tab>
+            <Tab value="3"><History class="w-4 h-4 mr-1.5" stroke-width="1.5" />Log</Tab>
           </TabList>
           <TabPanels>
             <!-- ══ TAB 0: Info + Items (gabung) ══ -->
@@ -212,12 +235,24 @@
 
               <!-- Action Buttons -->
               <div class="flex flex-wrap gap-2 mb-4">
-                <Button v-if="perm.can('voidOrder') && canVoid(selectedOrder)" label="Void" icon="pi pi-ban"
-                  severity="danger" text size="small" :loading="voidLoading" @click="confirmVoid" />
+                <Button v-if="perm.can('voidOrder') && canVoid(selectedOrder)" label="Void"
+                  severity="danger" text size="small" :loading="voidLoading" @click="confirmVoid">
+                  <template #icon>
+                    <Ban class="w-4 h-4" stroke-width="1.5" />
+                  </template>
+                </Button>
                 <Button v-if="perm.can('refundOrder') && canRefund(selectedOrder)" label="Refund"
-                  icon="pi pi-undo" severity="warning" text size="small" @click="orderTab='1'" />
+                  severity="warning" text size="small" @click="orderTab='1'">
+                  <template #icon>
+                    <Undo2 class="w-4 h-4" stroke-width="1.5" />
+                  </template>
+                </Button>
                 <Button v-if="perm.can('splitBill') && canSplit(selectedOrder)" label="Split Bill"
-                  icon="pi pi-sitemap" severity="contrast" text size="small" @click="orderTab='2'" />
+                  severity="contrast" text size="small" @click="orderTab='2'">
+                  <template #icon>
+                    <GitBranch class="w-4 h-4" stroke-width="1.5" />
+                  </template>
+                </Button>
               </div>
 
               <!-- Items -->
@@ -287,15 +322,19 @@
                       placeholder="Alasan refund (wajib diisi)" />
                   </div>
                   <div class="flex justify-end gap-2 mt-3">
-                    <Button label="Proses Refund" icon="pi pi-undo" severity="danger" size="small"
-                      :loading="refundLoading" @click="processRefund" />
+                    <Button label="Proses Refund" severity="danger" size="small"
+                      :loading="refundLoading" @click="processRefund">
+                      <template #icon>
+                        <Undo2 class="w-4 h-4" stroke-width="1.5" />
+                      </template>
+                    </Button>
                   </div>
                 </div>
               </div>
             </TabPanel>
 
-            <!-- ══ TAB 3: Split ══ -->
-            <TabPanel value="3">
+            <!-- ══ TAB 2: Split ══ -->
+            <TabPanel value="2">
               <div class="space-y-4">
                 <div class="flex items-center justify-between">
                   <h3 class="text-sm font-semibold text-slate-800">Split Bill</h3>
@@ -313,8 +352,12 @@
                     <InputText v-model="group.customer_name"
                       :placeholder="'Pelanggan ' + String.fromCharCode(65 + gi)"
                       class="flex-1 text-sm" />
-                    <Button v-if="splitGroups.length > 2" icon="pi pi-trash" text rounded severity="danger"
-                      size="small" @click="removeSplitGroup(gi)" />
+                    <Button v-if="splitGroups.length > 2" text rounded severity="danger"
+                      size="small" @click="removeSplitGroup(gi)">
+                      <template #icon>
+                        <Trash2 class="w-4 h-4" stroke-width="1.5" />
+                      </template>
+                    </Button>
                   </div>
 
                   <div class="space-y-1.5">
@@ -348,28 +391,36 @@
                   </div>
                 </div>
 
-                <Button label="+ Tambah Bagian" icon="pi pi-plus" severity="secondary" text size="small"
-                  @click="addSplitGroup" :disabled="splitGroups.length >= 6" />
+                <Button label="+ Tambah Bagian" severity="secondary" text size="small"
+                  @click="addSplitGroup" :disabled="splitGroups.length >= 6">
+                  <template #icon>
+                    <Plus class="w-4 h-4" stroke-width="1.5" />
+                  </template>
+                </Button>
 
                 <div v-if="!isSplitValid" class="flex items-center gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200">
-                  <i class="pi pi-exclamation-triangle text-amber-500"></i>
+                  <AlertTriangle class="w-5 h-5 text-amber-500 shrink-0" stroke-width="1.5" />
                   <p class="text-xs text-amber-700">Semua item harus terbagi habis ke semua bagian sebelum split.</p>
                 </div>
 
                 <div class="flex justify-end gap-2 pt-2 border-t border-slate-200">
-                  <Button label="Proses Split" icon="pi pi-sitemap" severity="contrast"
+                  <Button label="Proses Split" severity="contrast"
                     :disabled="!isSplitValid || splitSaving"
-                    :loading="splitSaving" @click="processSplit" />
+                    :loading="splitSaving" @click="processSplit">
+                    <template #icon>
+                      <GitBranch class="w-4 h-4" stroke-width="1.5" />
+                    </template>
+                  </Button>
                 </div>
               </div>
             </TabPanel>
 
-            <!-- ══ TAB 4: Log ══ -->
-            <TabPanel value="4">
+            <!-- ══ TAB 3: Log ══ -->
+            <TabPanel value="3">
               <div class="space-y-1.5">
                 <div v-for="log in selectedOrder.logs" :key="log.id"
                   class="flex items-start gap-2 text-xs text-slate-500">
-                  <i class="pi pi-circle-fill text-[6px] mt-1.5 text-slate-300 shrink-0"></i>
+                  <Circle class="w-1.5 h-1.5 mt-1.5 text-slate-300 shrink-0" fill="currentColor" stroke-width="1.5" />
                   <div class="flex-1">
                     <span class="text-slate-700">{{ log.user?.name || 'System' }}</span>
                     <span v-if="log.note?.startsWith('refund:')" class="text-orange-600 ml-1">{{ log.note }}</span>
@@ -396,7 +447,7 @@
     <Dialog v-model:visible="showVoidConfirm" header="Void Pesanan" modal class="w-sm">
       <div class="space-y-3">
         <div class="flex items-center gap-3 p-3 rounded-xl bg-red-50 border border-red-100">
-          <i class="pi pi-exclamation-triangle text-red-500 text-xl"></i>
+          <AlertTriangle class="w-5 h-5 text-red-500 shrink-0" stroke-width="1.5" />
           <p class="text-sm text-red-700">
             Yakin ingin void pesanan <strong>#{{ selectedOrder?.id }}</strong>? Tindakan ini tidak bisa dibatalkan.
           </p>
@@ -432,6 +483,11 @@ import TabList from 'primevue/tablist'
 import Tab from 'primevue/tab'
 import TabPanels from 'primevue/tabpanels'
 import TabPanel from 'primevue/tabpanel'
+import {
+  RefreshCw, FlaskConical, ArrowUpCircle, X, XCircle, User,
+  Receipt, Eye, Undo2, GitBranch, History, Plus, Trash2,
+  AlertTriangle, Circle, Ban
+} from 'lucide-vue-next'
 
 const perm = usePermission()
 const auth = useAuthStore()
@@ -592,7 +648,6 @@ function addSplitGroup() {
 
 function removeSplitGroup(gi) {
   if (splitGroups.value.length <= 2) return
-  // Move items back to first group
   const removed = splitGroups.value[gi]
   for (const itemId of Object.keys(removed.items)) {
     const qty = removed.items[itemId] || 0
@@ -624,7 +679,6 @@ function adjustSplit(itemId, groupIndex, delta) {
   if (!item) return
 
   if (delta > 0) {
-    // Check total assigned across all groups
     let totalAssigned = 0
     for (const group of splitGroups.value) {
       totalAssigned += group.items[itemId] || 0
@@ -798,14 +852,12 @@ async function openDetail(order) {
     const { data } = await client.get(`/orders/${order.id}`)
     selectedOrder.value = data.data
     resetModes()
-    // Pre-initialize refund & split state so tabs work directly
     const qtyMap = {}
     for (const item of selectedOrder.value.items) {
       qtyMap[item.id] = item.refundable_qty
     }
     refundQtys.value = qtyMap
     refundReason.value = ''
-    // Pre-initialize split groups
     splitGroups.value = [
       { customer_name: '', items: {} },
       { customer_name: '', items: {} },
@@ -837,18 +889,15 @@ async function seedTestOrder() {
       return
     }
 
-    // Pilih 3 random produk
     const shuffled = [...products].sort(() => Math.random() - 0.5)
     const selected = shuffled.slice(0, 3)
 
-    // 1. Buat draft order
     const { data: orderRes } = await client.post('/orders', {
       outlet_id: outlet.id,
       customer_name: 'Sample ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
     })
     const order = orderRes.data
 
-    // 2. Add items — pakai nama asli produk dari database
     for (let i = 0; i < selected.length; i++) {
       const p = selected[i]
       const qty = Math.floor(Math.random() * 3) + 1
@@ -861,7 +910,6 @@ async function seedTestOrder() {
       })
     }
 
-    // 3. Confirm order (biar ga cuma draft)
     if (Math.random() > 0.3) {
       await client.put(`/orders/${order.id}/status`, { status: 'confirmed' })
     }
@@ -876,11 +924,6 @@ async function seedTestOrder() {
   }
 }
 
-/**
- * Realtime: dengerin OrderStatusUpdated per outlet yang user ini akses.
- * Order dari self-order/Flutter yang statusnya berubah bakal keupdate
- * di tabel ini tanpa perlu refresh manual, plus toast notifikasi.
- */
 function handleOrderUpdate(payload) {
   const existing = orders.value.find((o) => o.id === payload.id)
   if (existing) {
@@ -888,7 +931,6 @@ function handleOrderUpdate(payload) {
     existing.payment_status = payload.payment_status
     toast.info('Pesanan diperbarui', `Order #${payload.id} — ${statusLabel(payload.status)}`)
   } else {
-    // Order baru (misal dari self-order) belum ada di list — refetch biar muncul
     toast.info('Pesanan baru masuk', `Order #${payload.id}${payload.table_id ? ' dari meja' : ''}`)
     fetchOrders()
   }

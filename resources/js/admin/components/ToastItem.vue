@@ -5,7 +5,7 @@
   >
     <!-- Icon -->
     <div class="shrink-0 mt-0.5">
-      <i :class="iconClass(toast.type)" class="text-base"></i>
+      <component :is="iconComponent(toast.type)" class="w-5 h-5" stroke-width="1.5" />
     </div>
 
     <!-- Content -->
@@ -19,7 +19,7 @@
       @click="$emit('close')"
       class="shrink-0 -mr-1 -mt-1 w-6 h-6 rounded-full flex items-center justify-center hover:bg-black/10 transition-colors duration-150"
     >
-      <i class="pi pi-times text-[10px]"></i>
+      <X class="w-3 h-3" stroke-width="1.5" />
     </button>
 
     <!-- Progress bar (auto-dismiss countdown) -->
@@ -35,6 +35,7 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
+import { CheckCircle, AlertCircle, Info, AlertTriangle, X } from 'lucide-vue-next'
 
 const props = defineProps({
   toast: { type: Object, required: true },
@@ -47,7 +48,6 @@ const progressDuration = ref(props.toast.duration || 4000)
 
 onMounted(async () => {
   await nextTick()
-  // Trigger the progress bar animation from 100% to 0%
   progressWidth.value = '0%'
 })
 
@@ -61,14 +61,14 @@ function toastClass(type) {
   return map[type] || map.info
 }
 
-function iconClass(type) {
+function iconComponent(type) {
   const map = {
-    success: 'pi pi-check-circle text-emerald-500',
-    error: 'pi pi-exclamation-circle text-red-500',
-    info: 'pi pi-info-circle text-sky-500',
-    warning: 'pi pi-exclamation-triangle text-amber-500',
+    success: CheckCircle,
+    error: AlertCircle,
+    info: Info,
+    warning: AlertTriangle,
   }
-  return map[type] || map.info
+  return map[type] || Info
 }
 
 function progressClass(type) {

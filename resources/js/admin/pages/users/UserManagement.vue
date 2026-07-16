@@ -29,8 +29,12 @@
           <Select v-model="filterOutletId" :options="myOutlets"
             optionLabel="name" optionValue="id" placeholder="Semua outlet" class="w-44" showClear
             @change="fetchUsers" />
-          <Button v-if="auth.isSuper" label="Tambah User" icon="pi pi-plus" size="small"
-            @click="showAddDialog = true" />
+          <Button v-if="auth.isSuper" label="Tambah User" size="small"
+            @click="showAddDialog = true">
+            <template #icon>
+              <Plus class="w-4 h-4" stroke-width="1.5" />
+            </template>
+          </Button>
         </div>
       </div>
       <div class="overflow-x-auto">
@@ -46,7 +50,7 @@
         <template #empty>
           <div class="flex flex-col items-center justify-center py-16 text-center">
             <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
-              <i class="pi pi-users text-2xl text-slate-300"></i>
+              <Users class="w-6 h-6 text-slate-300" stroke-width="1.5" />
             </div>
             <p class="text-slate-500 font-medium">Belum ada data user</p>
             <p class="text-slate-400 text-xs mt-1">Tambahkan user baru untuk memulai</p>
@@ -56,7 +60,7 @@
           <template #body="{ data }">
             <img v-if="data.photo" :src="data.photo" class="w-8 h-8 rounded-full object-cover border border-slate-200" />
             <div v-else class="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center">
-              <i class="pi pi-user text-xs text-slate-400"></i>
+              <User class="w-4 h-4 text-slate-400" stroke-width="1.5" />
             </div>
           </template>
         </Column>
@@ -90,18 +94,33 @@
         <Column :header="auth.isSuper ? 'Aksi' : 'Kelola'" :style="{ width: auth.isSuper ? '200px' : '160px' }">
           <template #body="{ data }">
             <div class="flex gap-3">
-              <Button icon="pi pi-pencil" text rounded size="small"
+              <Button text rounded size="small"
                 v-tooltip.top="'Edit'"
-                @click="openEditDialog(data)" />
-              <Button v-if="auth.isSuper" icon="pi pi-user-edit" text rounded size="small"
-                v-tooltip.top="'Atur Role'" @click="openRoleDialog(data)" />
-              <Button icon="pi pi-key" text rounded size="small" class="text-amber-600"
-                v-tooltip.top="'Set PIN'" @click="openPinDialog(data)" />
-              <Button :icon="data.is_active ? 'pi pi-ban' : 'pi pi-check-circle'"
-                text rounded size="small"
+                @click="openEditDialog(data)">
+                <template #icon>
+                  <Pencil class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
+              <Button v-if="auth.isSuper" text rounded size="small"
+                v-tooltip.top="'Atur Role'" @click="openRoleDialog(data)">
+                <template #icon>
+                  <UserPen class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
+              <Button text rounded size="small" class="text-amber-600"
+                v-tooltip.top="'Set PIN'" @click="openPinDialog(data)">
+                <template #icon>
+                  <KeyRound class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
+              <Button text rounded size="small"
                 :class="data.is_active ? 'text-red-500' : 'text-teal-600'"
                 v-tooltip.top="data.is_active ? 'Nonaktifkan' : 'Aktifkan'"
-                @click="toggleActive(data)" />
+                @click="toggleActive(data)">
+                <template #icon>
+                  <component :is="data.is_active ? Ban : CheckCircle" class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
             </div>
           </template>
         </Column>
@@ -119,7 +138,7 @@
               <img v-if="photoPreview || selectedUser.photo" :src="photoPreview || selectedUser.photo"
                 class="w-20 h-20 rounded-full object-cover border-2 border-slate-200" />
               <div v-else class="w-20 h-20 rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center">
-                <i class="pi pi-user text-2xl text-slate-400"></i>
+                <User class="w-6 h-6 text-slate-400" stroke-width="1.5" />
               </div>
             </div>
             <p class="text-sm text-slate-600 font-medium">{{ selectedUser.name }}</p>
@@ -189,7 +208,7 @@
     <Dialog v-model:visible="showRemoveConfirm" header="Hapus Akses" modal class="w-sm">
       <div class="space-y-3">
         <div class="flex items-center gap-3 p-3 rounded-xl bg-red-50 border border-red-100">
-          <i class="pi pi-exclamation-triangle text-red-500 text-xl"></i>
+          <AlertTriangle class="w-5 h-5 text-red-500 shrink-0" stroke-width="1.5" />
           <p class="text-sm text-red-700">
             Yakin ingin menghapus akses <strong>{{ selectedUser?.name }}</strong> dari outlet ini?
           </p>
@@ -234,6 +253,10 @@ import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
 import Tooltip from 'primevue/tooltip'
 import { roleLabel, roleBadgeClass } from '../../utils/roleBadge'
+import {
+  Plus, Users, User, Pencil, UserPen, KeyRound,
+  Ban, CheckCircle, AlertTriangle
+} from 'lucide-vue-next'
 
 const auth = useAuthStore()
 const toast = useToastStore()
@@ -292,7 +315,6 @@ async function fetchUsers() {
       params.outlet_id = filterOutletId.value
     }
     const { data } = await client.get('/users', { params })
-    // Sembunyikan akun yg sedang login dari daftar (edit via Profile Settings)
     users.value = data.data.filter(u => u.id !== auth.user?.id)
   } catch (_) {
   } finally {
@@ -333,7 +355,6 @@ function openEditDialog(user) {
 async function saveEdit() {
   savingEdit.value = true
   try {
-    // Upload photo dulu kalo ada file baru
     let photoUrl = selectedUser.value.photo
     if (selectedFile.value) {
       const formData = new FormData()
@@ -343,7 +364,6 @@ async function saveEdit() {
       })
       photoUrl = data.url
     }
-    // Simpan nama + foto
     await client.put(`/users/${selectedUser.value.id}`, {
       name: editForm.value.name,
       photo: photoUrl,

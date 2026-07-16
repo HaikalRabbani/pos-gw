@@ -6,12 +6,11 @@
         <h1 class="text-2xl font-bold text-slate-900">Manajemen Pajak</h1>
         <p class="text-sm text-slate-500 mt-1">Kelola tarif pajak untuk setiap outlet</p>
       </div>
-
     </div>
 
     <!-- Outlet Selector (when no outlet selected) -->
     <div v-if="!selectedOutletId" class="bg-white rounded-2xl border border-slate-200 p-12 flex flex-col items-center justify-center text-center">
-      <i class="pi pi-building text-4xl text-slate-200 mb-3"></i>
+      <Building2 class="w-10 h-10 text-slate-200 mb-3" stroke-width="1.5" />
       <p class="text-slate-600 font-semibold">Pilih outlet terlebih dahulu</p>
       <p class="text-slate-400 text-sm mt-1">Pilih outlet untuk melihat daftar pajak yang tersedia.</p>
     </div>
@@ -32,7 +31,11 @@
         </span>
         <Select v-if="outlets.length > 1" v-model="selectedOutletId" :options="outlets" optionLabel="name" optionValue="id"
           placeholder="Pilih outlet" class="w-44" @change="fetchTaxes" />
-        <Button v-if="perm.can('manageTaxes')" label="Tambah Pajak" icon="pi pi-plus" size="small" @click="openAddDialog" :disabled="!selectedOutletId" />
+        <Button v-if="perm.can('manageTaxes')" label="Tambah Pajak" size="small" @click="openAddDialog" :disabled="!selectedOutletId">
+          <template #icon>
+            <Plus class="w-4 h-4" stroke-width="1.5" />
+          </template>
+        </Button>
       </div>
       <div class="overflow-x-auto">
       <DataTable :value="filteredTaxes" stripedRows size="small" class="text-sm">
@@ -44,7 +47,7 @@
         <template #empty>
           <div class="flex flex-col items-center justify-center py-16 text-center">
             <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
-              <i class="pi pi-shield text-2xl text-slate-300"></i>
+              <Shield class="w-6 h-6 text-slate-300" stroke-width="1.5" />
             </div>
             <p class="text-slate-500 font-medium">Belum ada pajak</p>
             <p class="text-slate-400 text-xs mt-1">Tambahkan pajak untuk outlet ini</p>
@@ -80,15 +83,26 @@
         <Column header="Aksi" style="width: 120px">
           <template #body="{ data }">
             <div class="flex gap-3">
-              <Button v-if="perm.can('manageTaxes')" icon="pi pi-pencil" text rounded size="small"
-                v-tooltip.top="'Edit'" @click="openEditDialog(data)" />
-              <Button v-if="perm.can('manageTaxes')" :icon="data.is_active ? 'pi pi-ban' : 'pi pi-check-circle'"
-                text rounded size="small"
+              <Button v-if="perm.can('manageTaxes')" text rounded size="small"
+                v-tooltip.top="'Edit'" @click="openEditDialog(data)">
+                <template #icon>
+                  <Pencil class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
+              <Button v-if="perm.can('manageTaxes')" text rounded size="small"
                 :class="data.is_active ? 'text-amber-600' : 'text-teal-600'"
                 v-tooltip.top="data.is_active ? 'Nonaktifkan' : 'Aktifkan'"
-                @click="toggleActive(data)" />
-              <Button v-if="perm.can('manageTaxes')" icon="pi pi-trash" text rounded severity="danger" size="small"
-                v-tooltip.top="'Hapus'" @click="confirmDelete(data)" />
+                @click="toggleActive(data)">
+                <template #icon>
+                  <component :is="data.is_active ? Ban : CheckCircle" class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
+              <Button v-if="perm.can('manageTaxes')" text rounded severity="danger" size="small"
+                v-tooltip.top="'Hapus'" @click="confirmDelete(data)">
+                <template #icon>
+                  <Trash2 class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
             </div>
           </template>
         </Column>
@@ -130,7 +144,7 @@
     <Dialog v-model:visible="showDeleteDialog" header="Hapus Pajak" modal class="w-sm">
       <div class="space-y-3">
         <div class="flex items-center gap-3 p-3 rounded-xl bg-red-50 border border-red-100">
-          <i class="pi pi-exclamation-triangle text-red-500 text-xl"></i>
+          <AlertTriangle class="w-5 h-5 text-red-500 shrink-0" stroke-width="1.5" />
           <p class="text-sm text-red-700">
             Yakin ingin menghapus pajak <strong>{{ deletingTax?.name }}</strong>?
           </p>
@@ -158,6 +172,7 @@ import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
 import Tooltip from 'primevue/tooltip'
+import { Building2, Shield, Plus, Pencil, Trash2, Ban, CheckCircle, AlertTriangle } from 'lucide-vue-next'
 
 const perm = usePermission()
 const toast = useToastStore()

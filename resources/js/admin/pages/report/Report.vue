@@ -7,8 +7,16 @@
         <p class="text-sm text-slate-500 mt-1">Ringkasan penjualan, HPP, dan laba</p>
       </div>
       <div class="flex items-center gap-2">
-        <Button label="Export Excel" icon="pi pi-file-excel" severity="success" outlined @click="exportExcel" />
-        <Button label="Export PDF" icon="pi pi-file-pdf" severity="danger" outlined @click="exportPdf" />
+        <Button label="Export Excel" severity="success" outlined @click="exportExcel">
+          <template #icon>
+            <FileSpreadsheet class="w-4 h-4" stroke-width="1.5" />
+          </template>
+        </Button>
+        <Button label="Export PDF" severity="danger" outlined @click="exportPdf">
+          <template #icon>
+            <FileText class="w-4 h-4" stroke-width="1.5" />
+          </template>
+        </Button>
       </div>
     </div>
 
@@ -32,7 +40,7 @@
       <!-- Period Filter -->
       <div class="bg-white rounded-2xl border border-slate-200 p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
         <div class="flex items-center gap-2">
-          <i class="pi pi-calendar text-slate-400"></i>
+          <Calendar class="w-4 h-4 text-slate-400" stroke-width="1.5" />
           <span class="text-sm font-medium text-slate-700">Periode:</span>
         </div>
         <DatePicker v-model="dateRange" selectionMode="range" :manualInput="false" dateFormat="dd/mm/yy"
@@ -51,7 +59,7 @@
           <div class="flex items-center gap-2 mb-2">
             <div class="w-9 h-9 rounded-xl flex items-center justify-center transition-colors duration-200"
               :class="[card.bgClass, { 'group-hover:scale-110': true }]">
-              <i :class="[card.icon, card.iconClass]"></i>
+              <component :is="card.icon" class="w-4 h-4" :class="card.iconClass" stroke-width="1.5" />
             </div>
             <span class="text-[10px] font-semibold uppercase tracking-wider" :class="card.labelClass">{{ card.label }}</span>
           </div>
@@ -66,7 +74,7 @@
         <div class="bg-white rounded-2xl border border-slate-200 p-5">
           <div class="flex items-center justify-between mb-4">
             <h3 class="font-semibold text-slate-900 flex items-center gap-2">
-              <i class="pi pi-chart-line text-teal-500"></i>
+              <TrendingUp class="w-4 h-4 text-teal-500" stroke-width="1.5" />
               Penjualan Harian
             </h3>
             <div class="flex gap-1 bg-slate-100 rounded-lg p-0.5">
@@ -78,7 +86,7 @@
           <div class="relative" style="height: 280px;">
             <canvas v-show="dailySales.length > 0" ref="salesChartRef" class="w-full h-full"></canvas>
             <div v-if="dailySales.length === 0" class="absolute inset-0 flex flex-col items-center justify-center text-center">
-              <i class="pi pi-chart-bar text-3xl text-slate-200 mb-2"></i>
+              <BarChart3 class="w-8 h-8 text-slate-200 mb-2" stroke-width="1.5" />
               <p class="text-sm text-slate-400">Belum ada data penjualan</p>
             </div>
           </div>
@@ -88,14 +96,14 @@
         <div class="bg-white rounded-2xl border border-slate-200 p-5">
           <div class="flex items-center justify-between mb-4">
             <h3 class="font-semibold text-slate-900 flex items-center gap-2">
-              <i class="pi pi-pie-chart text-violet-500"></i>
+              <PieChart class="w-4 h-4 text-violet-500" stroke-width="1.5" />
               Komposisi Penjualan
             </h3>
           </div>
           <div class="relative" style="height: 280px;">
             <canvas v-show="dailySales.length > 0" ref="compositionChartRef" class="w-full h-full"></canvas>
             <div v-if="dailySales.length === 0" class="absolute inset-0 flex flex-col items-center justify-center text-center">
-              <i class="pi pi-chart-pie text-3xl text-slate-200 mb-2"></i>
+              <PieChart class="w-8 h-8 text-slate-200 mb-2" stroke-width="1.5" />
               <p class="text-sm text-slate-400">Belum ada data keuangan</p>
             </div>
           </div>
@@ -106,7 +114,7 @@
       <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
         <div class="p-5 border-b border-slate-100 flex items-center justify-between">
           <h3 class="font-semibold text-slate-900 flex items-center gap-2">
-            <i class="pi pi-star text-amber-500"></i>
+            <Star class="w-4 h-4 text-amber-500" stroke-width="1.5" />
             Produk Terlaris
           </h3>
         </div>
@@ -119,7 +127,7 @@
           <template #empty>
             <div class="flex flex-col items-center justify-center py-16 text-center">
               <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
-                <i class="pi pi-box text-2xl text-slate-300"></i>
+                <Package class="w-6 h-6 text-slate-300" stroke-width="1.5" />
               </div>
               <p class="text-slate-500 font-medium">Belum ada data penjualan</p>
               <p class="text-slate-400 text-xs mt-1">Data akan muncul setelah ada transaksi</p>
@@ -172,6 +180,11 @@ import DatePicker from 'primevue/datepicker'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
+import {
+  FileSpreadsheet, FileText, Calendar, TrendingUp, BarChart3,
+  PieChart, Star, Package, DollarSign, Percent, Receipt,
+  ShoppingCart, Truck, AlertCircle
+} from 'lucide-vue-next'
 
 const authStore = useAuthStore()
 const toast = useToastStore()
@@ -257,16 +270,14 @@ const summaryData = ref({
 const summaryCards = computed(() => {
   const s = summaryData.value.summary
   return [
-    { label: 'Penjualan Kotor', value: s.gross_sales, icon: 'pi pi-dollar', iconClass: 'text-emerald-600', bgClass: 'bg-emerald-100', labelClass: 'text-emerald-600', subtext: 'Total ' + s.total_transactions + ' transaksi' },
-    { label: 'Diskon', value: s.total_discount, icon: 'pi pi-percentage', iconClass: 'text-red-600', bgClass: 'bg-red-100', labelClass: 'text-red-600', subtext: 'Total potongan' },
-    { label: 'Pajak', value: s.total_tax, icon: 'pi pi-receipt', iconClass: 'text-blue-600', bgClass: 'bg-blue-100', labelClass: 'text-blue-600', subtext: 'Total pajak' },
-    { label: 'Penjualan Bersih', value: s.net_sales, icon: 'pi pi-shopping-cart', iconClass: 'text-teal-600', bgClass: 'bg-teal-100', labelClass: 'text-teal-600', subtext: 'Setelah diskon' },
-    { label: 'HPP (Modal)', value: s.hpp, icon: 'pi pi-truck', iconClass: 'text-amber-600', bgClass: 'bg-amber-100', labelClass: 'text-amber-600', subtext: 'Modal barang terjual' },
-    { label: 'Laba Kotor', value: s.gross_profit, icon: 'pi pi-chart-line', iconClass: 'text-violet-600', bgClass: 'bg-violet-100', labelClass: 'text-violet-600', subtext: 'Margin ' + s.gross_margin + '%' },
+    { label: 'Penjualan Kotor', value: s.gross_sales, icon: DollarSign, iconClass: 'text-emerald-600', bgClass: 'bg-emerald-100', labelClass: 'text-emerald-600', subtext: 'Total ' + s.total_transactions + ' transaksi' },
+    { label: 'Diskon', value: s.total_discount, icon: Percent, iconClass: 'text-red-600', bgClass: 'bg-red-100', labelClass: 'text-red-600', subtext: 'Total potongan' },
+    { label: 'Pajak', value: s.total_tax, icon: Receipt, iconClass: 'text-blue-600', bgClass: 'bg-blue-100', labelClass: 'text-blue-600', subtext: 'Total pajak' },
+    { label: 'Penjualan Bersih', value: s.net_sales, icon: ShoppingCart, iconClass: 'text-teal-600', bgClass: 'bg-teal-100', labelClass: 'text-teal-600', subtext: 'Setelah diskon' },
+    { label: 'HPP (Modal)', value: s.hpp, icon: Truck, iconClass: 'text-amber-600', bgClass: 'bg-amber-100', labelClass: 'text-amber-600', subtext: 'Modal barang terjual' },
+    { label: 'Laba Kotor', value: s.gross_profit, icon: TrendingUp, iconClass: 'text-violet-600', bgClass: 'bg-violet-100', labelClass: 'text-violet-600', subtext: 'Margin ' + s.gross_margin + '%' },
   ]
 })
-
-
 
 // Chart data
 const dailySales = ref([])

@@ -18,10 +18,10 @@
         <p class="text-teal-200/80 text-sm mt-1">Berikut ringkasan performa bisnis Anda hari ini.</p>
       </div>
       <div class="absolute bottom-3 right-4 z-10 flex items-center gap-2 text-xs text-teal-300/60">
-        <i class="pi pi-sync text-[10px]" :class="{ 'animate-spin': loading }"></i>
+        <RefreshCw class="w-3 h-3" :class="{ 'animate-spin': loading }" stroke-width="1.5" />
         <span>{{ lastUpdate }}</span>
         <button @click="fetchData" class="hover:text-teal-200 transition ml-1" :disabled="loading">
-          <i class="pi pi-refresh text-sm"></i>
+          <RefreshCw class="w-4 h-4" stroke-width="1.5" />
         </button>
       </div>
     </div>
@@ -46,12 +46,12 @@
           <span class="text-xs font-semibold uppercase tracking-wider" :class="card.labelClass">{{ card.label }}</span>
           <div class="w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-200"
             :class="[card.bgClass, { 'group-hover:scale-110': true }]">
-            <i :class="[card.icon, card.iconClass]"></i>
+            <component :is="card.icon" class="w-5 h-5" :class="card.iconClass" stroke-width="1.5" />
           </div>
         </div>
         <p class="text-3xl font-bold text-slate-900 tracking-tight">{{ card.value }}</p>
         <div class="flex items-center gap-1 mt-1">
-          <i :class="[card.trendIcon, card.trendClass, 'text-xs']"></i>
+          <component :is="card.trendIcon" class="w-3 h-3" :class="card.trendClass" stroke-width="1.5" />
           <span class="text-xs" :class="card.trendClass">{{ card.trend }}</span>
         </div>
       </div>
@@ -63,11 +63,11 @@
       <!-- Active Shifts -->
       <div class="bg-white rounded-2xl border border-slate-200 p-5">
         <h3 class="font-semibold text-slate-900 mb-3 flex items-center gap-2">
-          <i class="pi pi-clock text-amber-500"></i>
+          <Clock class="w-4 h-4 text-amber-500" stroke-width="1.5" />
           Shift Aktif
         </h3>
         <div v-if="data.active_shifts?.length === 0" class="text-center py-6">
-          <i class="pi pi-hourglass text-2xl text-slate-200 mb-2"></i>
+          <Hourglass class="w-6 h-6 text-slate-200 mx-auto mb-2" stroke-width="1.5" />
           <p class="text-sm text-slate-400">Belum ada shift aktif hari ini</p>
           <router-link to="/shifts" class="mt-2 inline-block text-xs text-teal-600 hover:text-teal-700 font-medium">
             Kelola Shift →
@@ -77,7 +77,7 @@
           <div v-for="shift in data.active_shifts" :key="shift.user_name"
             class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
             <div class="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
-              <i class="pi pi-user text-amber-600 text-sm"></i>
+              <User class="w-4 h-4 text-amber-600" stroke-width="1.5" />
             </div>
             <div class="flex-1 min-w-0">
               <p class="text-sm font-semibold text-slate-900 truncate">{{ shift.user_name }}</p>
@@ -95,7 +95,7 @@
       <div class="bg-white rounded-2xl border border-slate-200 p-5">
         <div class="flex items-center justify-between mb-3">
           <h3 class="font-semibold text-slate-900 flex items-center gap-2">
-            <i class="pi pi-exclamation-triangle text-amber-500"></i>
+            <AlertTriangle class="w-4 h-4 text-amber-500" stroke-width="1.5" />
             Pesanan Tertunda
             <span v-if="data.pending_orders?.length > 0"
               class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">
@@ -105,11 +105,11 @@
           <router-link to="/orders"
             class="text-xs font-medium text-teal-600 hover:text-teal-700 transition flex items-center gap-1">
             Lihat semua
-            <i class="pi pi-arrow-right text-[10px]"></i>
+            <ArrowRight class="w-3 h-3" stroke-width="1.5" />
           </router-link>
         </div>
         <div v-if="data.pending_orders?.length === 0" class="text-center py-6">
-          <i class="pi pi-check-circle text-2xl text-emerald-200 mb-2"></i>
+          <CheckCircle class="w-6 h-6 text-emerald-200 mx-auto mb-2" stroke-width="1.5" />
           <p class="text-sm text-slate-400">Semua pesanan sudah selesai</p>
         </div>
         <div v-else class="space-y-1">
@@ -135,11 +135,11 @@
       <!-- Top Menu Items -->
       <div class="bg-white rounded-2xl border border-slate-200 p-5">
         <h3 class="font-semibold text-slate-900 mb-3 flex items-center gap-2">
-          <i class="pi pi-star text-amber-400"></i>
+          <Star class="w-4 h-4 text-amber-400" stroke-width="1.5" />
           Menu Terlaris Hari Ini
         </h3>
         <div v-if="data.top_products?.length === 0" class="text-center py-6">
-          <i class="pi pi-box text-2xl text-slate-200 mb-2"></i>
+          <Package class="w-6 h-6 text-slate-200 mx-auto mb-2" stroke-width="1.5" />
           <p class="text-sm text-slate-400">Belum ada data penjualan hari ini</p>
         </div>
         <div v-else class="space-y-1.5">
@@ -166,17 +166,17 @@
       <div class="bg-white rounded-2xl border border-slate-200 p-5">
         <div class="flex items-center justify-between mb-3">
           <h3 class="font-semibold text-slate-900 flex items-center gap-2">
-            <i class="pi pi-receipt text-slate-400"></i>
+            <Receipt class="w-4 h-4 text-slate-400" stroke-width="1.5" />
             Pesanan Terbaru
           </h3>
           <router-link to="/orders"
             class="text-xs font-medium text-teal-600 hover:text-teal-700 transition flex items-center gap-1">
             Lihat semua
-            <i class="pi pi-arrow-right text-[10px]"></i>
+            <ArrowRight class="w-3 h-3" stroke-width="1.5" />
           </router-link>
         </div>
         <div v-if="data.recent_orders?.length === 0" class="text-center py-6">
-          <i class="pi pi-inbox text-2xl text-slate-200 mb-2"></i>
+          <Inbox class="w-6 h-6 text-slate-200 mx-auto mb-2" stroke-width="1.5" />
           <p class="text-sm text-slate-400">Belum ada pesanan hari ini</p>
         </div>
         <div v-else class="space-y-1">
@@ -205,6 +205,12 @@ import { useAuthStore } from '../../stores/auth'
 import client from '../../api/client'
 import Tag from 'primevue/tag'
 import Select from 'primevue/select'
+import {
+  RefreshCw, Clock, Hourglass, User, AlertTriangle, CheckCircle,
+  ArrowRight, Star, Package, Receipt, Inbox,
+  DollarSign, BarChart3, TrendingUp, Calendar, Calculator,
+  ArrowUp, ArrowDown
+} from 'lucide-vue-next'
 
 const auth = useAuthStore()
 const initialLoading = ref(true)
@@ -239,45 +245,45 @@ const statCards = computed(() => {
     {
       label: 'Penjualan Hari Ini',
       value: formatRupiah(s.gross_sales),
-      icon: 'pi pi-dollar',
+      icon: DollarSign,
       iconClass: 'text-emerald-600',
       bgClass: 'bg-emerald-100',
       labelClass: 'text-emerald-600',
       trend: s.total_transactions > 0 ? s.total_transactions + ' transaksi' : 'Belum ada transaksi',
-      trendIcon: s.total_transactions > 0 ? 'pi pi-check-circle' : 'pi pi-clock',
+      trendIcon: s.total_transactions > 0 ? CheckCircle : Clock,
       trendClass: s.total_transactions > 0 ? 'text-slate-500' : 'text-slate-400',
     },
     {
       label: 'Pesanan Hari Ini',
       value: String(s.total_transactions || 0),
-      icon: 'pi pi-receipt',
+      icon: Receipt,
       iconClass: 'text-blue-600',
       bgClass: 'bg-blue-100',
       labelClass: 'text-blue-600',
       trend: 'Hari ini',
-      trendIcon: 'pi pi-calendar',
+      trendIcon: Calendar,
       trendClass: 'text-slate-500',
     },
     {
       label: 'Rata-rata Transaksi',
       value: formatRupiah(s.avg_order_value),
-      icon: 'pi pi-chart-bar',
+      icon: BarChart3,
       iconClass: 'text-violet-600',
       bgClass: 'bg-violet-100',
       labelClass: 'text-violet-600',
       trend: 'Per pesanan',
-      trendIcon: 'pi pi-calculator',
+      trendIcon: Calculator,
       trendClass: 'text-slate-500',
     },
     {
       label: 'Laba Kotor',
       value: formatRupiah(s.gross_profit),
-      icon: 'pi pi-chart-line',
+      icon: TrendingUp,
       iconClass: 'text-amber-600',
       bgClass: 'bg-amber-100',
       labelClass: 'text-amber-600',
       trend: 'Margin ' + s.gross_margin + '%',
-      trendIcon: s.gross_margin >= 0 ? 'pi pi-arrow-up' : 'pi pi-arrow-down',
+      trendIcon: s.gross_margin >= 0 ? ArrowUp : ArrowDown,
       trendClass: s.gross_margin >= 0 ? 'text-emerald-500' : 'text-red-500',
     },
   ]

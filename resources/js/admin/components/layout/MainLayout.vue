@@ -15,7 +15,7 @@
       <div :class="[collapsed ? 'px-[14px]' : 'px-5']" class="relative py-4 border-b border-white/10 flex items-center gap-2.5 z-10 shrink-0">
         <div class="flex items-center gap-2.5 overflow-hidden">
           <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center shadow-lg shadow-amber-500/25 shrink-0">
-            <i class="pi pi-shopping-bag text-teal-950 text-lg"></i>
+            <ShoppingBag class="w-5 h-5 text-teal-950" stroke-width="1.5" />
           </div>
           <transition name="slide-text">
             <div v-if="!collapsed" class="flex flex-col">
@@ -49,10 +49,19 @@
             >
               <span class="text-[10px] font-semibold text-teal-300/80 uppercase tracking-[0.08em]">{{ group.title }}</span>
               <span class="flex items-center justify-center w-[18px] h-[18px] rounded-md bg-white/10 shrink-0">
-                <i
-                  class="pi pi-chevron-down text-[9px] text-teal-100 transition-transform duration-200"
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-2.5 h-2.5 text-teal-100 transition-transform duration-200"
                   :class="{ 'rotate-180': expandedGroups[group.title] }"
-                ></i>
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M4 6l4 4 4-4" />
+                </svg>
               </span>
             </button>
 
@@ -68,7 +77,7 @@
                   <div v-if="isActive" class="absolute inset-0 bg-gradient-to-r from-teal-700/80 to-teal-600/40 rounded-xl shadow-inner"></div>
                   <div v-else class="absolute inset-0 bg-white/0 group-hover:bg-white/[0.06] rounded-xl transition-all duration-200"></div>
                   <div v-if="isActive" class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-amber-400 rounded-r-full shadow-sm shadow-amber-400/50"></div>
-                  <i :class="[item.icon, isActive ? 'text-amber-400' : 'text-teal-300/70 group-hover:text-teal-200']" class="relative z-10 w-5 text-center text-base shrink-0 transition-colors duration-200"></i>
+                  <component :is="getIcon(item.icon)" :class="[isActive ? 'text-amber-400' : 'text-teal-300/70 group-hover:text-teal-200']" class="relative z-10 w-5 h-5 shrink-0 transition-colors duration-200" stroke-width="1.5" />
                   <span class="relative z-10 font-medium">{{ item.label }}</span>
                 </router-link>
               </div>
@@ -86,7 +95,7 @@
             >
               <div v-if="isActive" class="absolute inset-0 bg-gradient-to-r from-teal-700/80 to-teal-600/40 rounded-xl shadow-inner"></div>
               <div v-else class="absolute inset-0 bg-white/0 group-hover:bg-white/[0.06] rounded-xl transition-all duration-200"></div>
-              <i :class="[item.icon, isActive ? 'text-amber-400' : 'text-teal-300/70 group-hover:text-teal-200']" class="relative z-10 text-base shrink-0 transition-colors duration-200"></i>
+              <component :is="getIcon(item.icon)" :class="[isActive ? 'text-amber-400' : 'text-teal-300/70 group-hover:text-teal-200']" class="relative z-10 w-5 h-5 shrink-0 transition-colors duration-200" stroke-width="1.5" />
               <div v-if="isActive" class="absolute -right-0.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400/50"></div>
             </router-link>
           </template>
@@ -100,7 +109,7 @@
           :class="[collapsed ? 'justify-center' : 'gap-3']"
           class="w-full flex items-center px-3 py-2.5 rounded-xl text-sm text-teal-400/70 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200"
         >
-          <i class="pi pi-sign-out text-base w-5 text-center shrink-0"></i>
+          <LogOut class="w-5 h-5 shrink-0" stroke-width="1.5" />
           <span v-if="!collapsed">Keluar</span>
         </button>
       </div>
@@ -112,10 +121,19 @@
       :style="{ left: collapsed ? '52px' : '244px', top: '68px' }"
       class="absolute -translate-y-1/2 z-40 w-6 h-6 rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center hover:bg-slate-50 transition-all duration-200 hover:shadow-md hover:scale-110"
     >
-      <i
-        class="pi text-[10px] text-slate-400"
-        :class="collapsed ? 'pi-chevron-right' : 'pi-chevron-left'"
-      ></i>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="w-3 h-3 text-slate-400"
+        viewBox="0 0 16 16"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path v-if="collapsed" d="M6 3l5 5-5 5" />
+        <path v-else d="M10 3l-5 5 5 5" />
+      </svg>
     </button>
 
     <!-- Main Content -->
@@ -159,12 +177,12 @@
                 </div>
                 <router-link to="/profile" @click="profileDropdown = false"
                   class="flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition">
-                  <i class="pi pi-user-edit text-sm"></i>
+                  <UserPen class="w-4 h-4" stroke-width="1.5" />
                   Pengaturan Profil
                 </router-link>
                 <button @click="logout"
                   class="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-red-500 hover:bg-red-50 transition">
-                  <i class="pi pi-sign-out text-sm"></i>
+                  <LogOut class="w-4 h-4" stroke-width="1.5" />
                   Keluar
                 </button>
               </div>
@@ -186,6 +204,21 @@ import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import { roleBadgeClass } from '../../utils/roleBadge'
+import {
+  PieChart, Receipt, BarChart3, History, Menu as MenuIcon,
+  Package, Percent, Shield, Grid3x3, CalendarClock,
+  CreditCard, Users, Building2, ShoppingBag, LogOut, UserPen,
+} from 'lucide-vue-next'
+
+const iconMap = {
+  PieChart, Receipt, BarChart3, History, Menu: MenuIcon,
+  Package, Percent, Shield, Grid3x3, CalendarClock,
+  CreditCard, Users, Building2, ShoppingBag, LogOut, UserPen,
+}
+
+function getIcon(name) {
+  return iconMap[name] || MenuIcon
+}
 
 const router = useRouter()
 const route = useRoute()
@@ -227,49 +260,49 @@ const menuGroups = [
   {
     title: 'Dashboard',
     items: [
-      { path: '/dashboard', label: 'Dashboard', icon: 'pi pi-chart-pie' },
+      { path: '/dashboard', label: 'Dashboard', icon: 'PieChart' },
     ],
   },
   {
     title: 'Transaksi',
     items: [
-      { path: '/orders', label: 'Pesanan', icon: 'pi pi-receipt' },
+      { path: '/orders', label: 'Pesanan', icon: 'Receipt' },
     ],
   },
   {
     title: 'Laporan',
     items: [
-      { path: '/report/financial', label: 'Keuangan', icon: 'pi pi-chart-bar' },
-      { path: '/report/shift', label: 'Shift', icon: 'pi pi-history' },
+      { path: '/report/financial', label: 'Keuangan', icon: 'BarChart3' },
+      { path: '/report/shift', label: 'Shift', icon: 'History' },
     ],
   },
   {
     title: 'Master Data',
     items: [
-      { path: '/menu', label: 'Menu', icon: 'pi pi-list' },
-      { path: '/discounts', label: 'Diskon', icon: 'pi pi-percentage' },
-      { path: '/taxes', label: 'Pajak', icon: 'pi pi-shield' },
-      { path: '/ingredients', label: 'Bahan & Add-on', icon: 'pi pi-list' },
-      { path: '/tables', label: 'Meja', icon: 'pi pi-table' },
+      { path: '/menu', label: 'Menu', icon: 'Menu' },
+      { path: '/ingredients', label: 'Bahan & Add-on', icon: 'Package' },
+      { path: '/discounts', label: 'Diskon', icon: 'Percent' },
+      { path: '/taxes', label: 'Pajak', icon: 'Shield' },
+      { path: '/tables', label: 'Meja', icon: 'Grid3x3' },
     ],
   },
   {
     title: 'Shift & Jadwal',
     items: [
-      { path: '/shifts', label: 'Atur Shift', icon: 'pi pi-calendar-clock' },
+      { path: '/shifts', label: 'Atur Shift', icon: 'CalendarClock' },
     ],
   },
   {
     title: 'Keuangan',
     items: [
-      { path: '/withdraw', label: 'Penarikan', icon: 'pi pi-credit-card' },
+      { path: '/withdraw', label: 'Penarikan', icon: 'CreditCard' },
     ],
   },
   {
     title: 'Pengaturan',
     items: [
-      { path: '/users', label: 'Pengguna', icon: 'pi pi-users' },
-      { path: '/outlets', label: 'Outlet', icon: 'pi pi-building' },
+      { path: '/users', label: 'Pengguna', icon: 'Users' },
+      { path: '/outlets', label: 'Outlet', icon: 'Building2' },
     ],
   },
 ]

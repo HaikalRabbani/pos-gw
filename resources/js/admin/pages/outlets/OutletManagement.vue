@@ -13,7 +13,7 @@
       <div class="bg-white rounded-2xl border border-slate-200 p-5">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-            <i class="pi pi-building text-blue-600 text-lg"></i>
+            <Building2 class="w-5 h-5 text-blue-600" stroke-width="1.5" />
           </div>
           <div>
             <p class="text-xs font-semibold uppercase tracking-wider text-blue-600">Total Outlet</p>
@@ -24,7 +24,7 @@
       <div class="bg-white rounded-2xl border border-slate-200 p-5">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-            <i class="pi pi-check-circle text-emerald-600 text-lg"></i>
+            <CheckCircle class="w-5 h-5 text-emerald-600" stroke-width="1.5" />
           </div>
           <div>
             <p class="text-xs font-semibold uppercase tracking-wider text-emerald-600">Aktif</p>
@@ -35,7 +35,7 @@
       <div class="bg-white rounded-2xl border border-slate-200 p-5">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
-            <i class="pi pi-ban text-slate-400 text-lg"></i>
+            <Ban class="w-5 h-5 text-slate-400" stroke-width="1.5" />
           </div>
           <div>
             <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Non-Aktif</p>
@@ -60,7 +60,11 @@
         <span class="flex-1 min-w-[200px]">
           <InputText v-model="search" placeholder="Cari outlet..." class="w-full" />
         </span>
-        <Button v-if="perm.can('manageOutlets')" label="Tambah Outlet" icon="pi pi-plus" size="small" @click="openAddDialog" />
+        <Button v-if="perm.can('manageOutlets')" label="Tambah Outlet" size="small" @click="openAddDialog">
+          <template #icon>
+            <Plus class="w-4 h-4" stroke-width="1.5" />
+          </template>
+        </Button>
       </div>
       <div class="overflow-x-auto">
       <DataTable :value="filteredOutlets" stripedRows size="small" class="text-sm">
@@ -72,7 +76,7 @@
         <template #empty>
           <div class="flex flex-col items-center justify-center py-16 text-center">
             <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
-              <i class="pi pi-building text-2xl text-slate-300"></i>
+              <Building2 class="w-6 h-6 text-slate-300" stroke-width="1.5" />
             </div>
             <p class="text-slate-500 font-medium">Belum ada outlet</p>
             <p class="text-slate-400 text-xs mt-1">Tambahkan outlet pertama Anda</p>
@@ -105,15 +109,26 @@
         <Column header="Aksi" style="width: 160px">
           <template #body="{ data }">
             <div class="flex gap-3">
-              <Button v-if="perm.can('manageOutlets')" icon="pi pi-pencil" text rounded size="small"
-                v-tooltip.top="'Edit'" @click="openEditDialog(data)" />
-              <Button v-if="perm.can('manageOutlets')" :icon="data.is_active ? 'pi pi-ban' : 'pi pi-check-circle'"
-                text rounded size="small"
+              <Button v-if="perm.can('manageOutlets')" text rounded size="small"
+                v-tooltip.top="'Edit'" @click="openEditDialog(data)">
+                <template #icon>
+                  <Pencil class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
+              <Button v-if="perm.can('manageOutlets')" text rounded size="small"
                 :class="data.is_active ? 'text-amber-600' : 'text-teal-600'"
                 v-tooltip.top="data.is_active ? 'Nonaktifkan' : 'Aktifkan'"
-                @click="toggleActive(data)" />
-              <Button v-if="perm.can('manageOutlets')" icon="pi pi-trash" text rounded severity="danger" size="small"
-                v-tooltip.top="'Hapus'" @click="confirmDelete(data)" />
+                @click="toggleActive(data)">
+                <template #icon>
+                  <component :is="data.is_active ? Ban : CheckCircle" class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
+              <Button v-if="perm.can('manageOutlets')" text rounded severity="danger" size="small"
+                v-tooltip.top="'Hapus'" @click="confirmDelete(data)">
+                <template #icon>
+                  <Trash2 class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
             </div>
           </template>
         </Column>
@@ -128,7 +143,7 @@
         <div>
           <div class="flex items-center gap-2 mb-3">
             <div class="w-6 h-6 rounded-lg bg-teal-100 flex items-center justify-center">
-              <i class="pi pi-building text-xs text-teal-700"></i>
+              <Building2 class="w-3 h-3 text-teal-700" stroke-width="1.5" />
             </div>
             <h3 class="text-sm font-semibold text-slate-800">Informasi Outlet</h3>
           </div>
@@ -152,13 +167,13 @@
         <div v-if="editing">
           <div class="flex items-center gap-2 mb-3">
             <div class="w-6 h-6 rounded-lg bg-emerald-100 flex items-center justify-center">
-              <i class="pi pi-box text-xs text-emerald-700"></i>
+              <Package class="w-3 h-3 text-emerald-700" stroke-width="1.5" />
             </div>
             <h3 class="text-sm font-semibold text-slate-800">Manajemen Stok</h3>
           </div>
           <div class="bg-slate-50 rounded-xl p-4 space-y-3">
             <div class="flex items-center gap-3 p-3 rounded-xl bg-emerald-50 border border-emerald-100">
-              <i class="pi pi-info-circle text-emerald-400 text-lg shrink-0"></i>
+              <Info class="w-5 h-5 text-emerald-400 shrink-0" stroke-width="1.5" />
               <p class="text-xs text-emerald-700">
                 <strong>Per Produk:</strong> stok diatur langsung di tiap menu. Cocok untuk usaha simpel.<br>
                 <strong>Per Bahan (BOM):</strong> stok diatur per ingredient, otomatis berkurang pas order. Cocok untuk restoran dengan resep kompleks.
@@ -176,14 +191,14 @@
         <div v-if="editing">
           <div class="flex items-center gap-2 mb-3">
             <div class="w-6 h-6 rounded-lg bg-blue-100 flex items-center justify-center">
-              <i class="pi pi-credit-card text-xs text-blue-700"></i>
+              <CreditCard class="w-3 h-3 text-blue-700" stroke-width="1.5" />
             </div>
             <h3 class="text-sm font-semibold text-slate-800">Akun Midtrans</h3>
             <span class="text-[10px] text-slate-400 font-normal">(opsional — default pake Xendit)</span>
           </div>
           <div class="bg-slate-50 rounded-xl p-4">
             <div class="flex items-center gap-3 p-3 rounded-xl bg-blue-50 border border-blue-100 mb-3">
-              <i class="pi pi-info-circle text-blue-400 text-lg shrink-0"></i>
+              <Info class="w-5 h-5 text-blue-400 shrink-0" stroke-width="1.5" />
               <p class="text-xs text-blue-700">Default pembayaran via <strong>Xendit</strong>. Isi Midtrans key hanya jika outlet punya akun Midtrans sendiri.</p>
             </div>
             <div>
@@ -198,7 +213,7 @@
                 <button type="button"
                   class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                   @click="showMidtransKey = !showMidtransKey">
-                  <i :class="showMidtransKey ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
+                  <component :is="showMidtransKey ? EyeOff : Eye" class="w-4 h-4" stroke-width="1.5" />
                 </button>
               </div>
             </div>
@@ -216,7 +231,7 @@
     <Dialog v-model:visible="showDeleteDialog" header="Hapus Outlet" modal class="w-sm">
       <div class="space-y-3">
         <div class="flex items-center gap-3 p-3 rounded-xl bg-red-50 border border-red-100">
-          <i class="pi pi-exclamation-triangle text-red-500 text-xl"></i>
+          <AlertTriangle class="w-5 h-5 text-red-500 shrink-0" stroke-width="1.5" />
           <p class="text-sm text-red-700">
             Yakin ingin menghapus <strong>{{ deletingOutlet?.name }}</strong>? Tindakan ini tidak bisa dibatalkan.
           </p>
@@ -238,7 +253,6 @@ import { useToastStore } from '../../stores/toast'
 import client from '../../api/client'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
-
 import Textarea from 'primevue/textarea'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -246,6 +260,10 @@ import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
 import Select from 'primevue/select'
 import Tooltip from 'primevue/tooltip'
+import {
+  Building2, CheckCircle, Ban, Plus, Pencil, Trash2,
+  Package, CreditCard, Info, AlertTriangle, Eye, EyeOff
+} from 'lucide-vue-next'
 
 const perm = usePermission()
 const toast = useToastStore()

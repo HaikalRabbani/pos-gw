@@ -12,6 +12,10 @@
 | Unit testing (OrderService, ShiftService, ReportService) | ✅ |
 | Audit Karyawan di Laporan Shift | ✅ |
 | Struktur Self-Order (folder, entry Vite, route, halaman kosong) | ✅ |
+| Migrasi icon PrimeIcons → Lucide (17+ file Vue) | ✅ |
+| Font Poppins (ganti dari Plus Jakarta Sans / Inter / DM Sans) | ✅ |
+| Sidebar SVG chevron tipis (stroke-width 1.5) | ✅ |
+| Urutan sidebar: Bahan & Add-on setelah Menu | ✅ |
 
 ---
 

@@ -31,7 +31,8 @@
           :class="alert.type === 'success'
             ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
             : 'bg-red-50 border-red-200 text-red-800'">
-          <i :class="alert.type === 'success' ? 'pi pi-check-circle text-emerald-500' : 'pi pi-exclamation-circle text-red-500'"></i>
+          <CheckCircle v-if="alert.type === 'success'" class="w-5 h-5 text-emerald-500 shrink-0" stroke-width="1.5" />
+          <AlertCircle v-else class="w-5 h-5 text-red-500 shrink-0" stroke-width="1.5" />
           <span>{{ alert.message }}</span>
         </div>
       </transition>
@@ -106,8 +107,11 @@
           </div>
 
           <div class="flex justify-end gap-2 pt-4 border-t border-slate-100">
-            <Button type="submit" label="Simpan Perubahan" icon="pi pi-check"
-              :loading="saving" />
+            <Button type="submit" label="Simpan Perubahan" :loading="saving">
+              <template #icon>
+                <Check class="w-4 h-4" stroke-width="1.5" />
+              </template>
+            </Button>
           </div>
         </form>
       </div>
@@ -123,6 +127,7 @@ import client from '../../api/client'
 import InputText from 'primevue/inputtext'
 import InputMask from 'primevue/inputmask'
 import Button from 'primevue/button'
+import { Check, CheckCircle, AlertCircle } from 'lucide-vue-next'
 
 const auth = useAuthStore()
 const loading = ref(false)

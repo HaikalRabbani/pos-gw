@@ -10,87 +10,94 @@
 
     <!-- Outlet Selector -->
     <div v-if="!selectedOutletId" class="bg-white rounded-2xl border border-slate-200 p-12 flex flex-col items-center justify-center text-center">
-      <i class="pi pi-building text-4xl text-slate-200 mb-3"></i>
+      <Building2 class="w-10 h-10 text-slate-200 mb-3" stroke-width="1.5" />
       <p class="text-slate-600 font-semibold">Pilih outlet terlebih dahulu</p>
       <p class="text-slate-400 text-sm mt-1">Pilih outlet untuk melihat saldo dan riwayat penarikan.</p>
-    </div>    <template v-else>
-        <!-- Outlet Selector -->
-        <div class="flex items-center justify-between gap-3">
-          <Select v-if="outlets.length > 1" v-model="selectedOutletId" :options="outlets" optionLabel="name" optionValue="id"
-            class="w-56" @change="fetchData" />
+    </div>
+    <template v-else>
+      <!-- Outlet Selector -->
+      <div class="flex items-center justify-between gap-3">
+        <Select v-if="outlets.length > 1" v-model="selectedOutletId" :options="outlets" optionLabel="name" optionValue="id"
+          class="w-56" @change="fetchData" />
+      </div>
+
+      <!-- Loading -->
+      <div v-if="loading" class="animate-pulse space-y-4">
+        <div class="h-32 bg-slate-200 rounded-2xl"></div>
+        <div class="h-64 bg-slate-100 rounded-2xl"></div>
+      </div>
+
+      <template v-else>
+        <!-- Balance Card (sembunyikan kalo own key) -->
+        <div v-if="outletPaymentMode !== 'own_key'" class="bg-gradient-to-br from-teal-500 to-teal-700 rounded-2xl p-6 text-white shadow-lg">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <span class="text-sm text-teal-100">{{ currentOutletName }}</span>
+            </div>
+            <CreditCard class="w-6 h-6 text-white/60" stroke-width="1.5" />
+          </div>
+          <p class="text-sm text-teal-100 mb-1">Saldo QRIS Tersedia</p>
+          <p class="text-4xl font-bold mb-3">{{ formatRupiah(balance?.balance || 0) }}</p>
+          <div class="flex gap-6 text-sm text-teal-100">
+            <span>Total ditarik: <strong class="text-white">{{ formatRupiah(balance?.total_withdrawn || 0) }}</strong></span>
+          </div>
         </div>
 
-        <!-- Loading -->
-        <div v-if="loading" class="animate-pulse space-y-4">
-          <div class="h-32 bg-slate-200 rounded-2xl"></div>
-          <div class="h-64 bg-slate-100 rounded-2xl"></div>
+        <!-- Own Key Mode Info -->
+        <div v-if="outletPaymentMode === 'own_key'" class="bg-white rounded-2xl border border-emerald-200 overflow-hidden shadow-sm">
+          <div class="p-6 flex flex-col items-center text-center">
+            <div class="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center mb-4">
+              <CheckCircle class="w-6 h-6 text-emerald-600" stroke-width="1.5" />
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-1">Akun Pembayaran Sendiri</h3>
+            <p class="text-sm text-slate-500 max-w-md">
+              Outlet ini punya akun pembayaran sendiri (diatur di Pengaturan Outlet).
+              Pembayaran pelanggan masuk <strong>langsung ke akun tersebut</strong> —
+              <strong class="text-emerald-600">tidak perlu ditarik</strong>.
+            </p>
+            <p class="text-xs text-slate-400 mt-3">
+              Riwayat transaksi di bawah untuk referensi saja.
+            </p>
+          </div>
         </div>
 
-        <template v-else>
-          <!-- Balance Card (sembunyikan kalo own key) -->
-          <div v-if="outletPaymentMode !== 'own_key'" class="bg-gradient-to-br from-teal-500 to-teal-700 rounded-2xl p-6 text-white shadow-lg">
-            <div class="flex items-center justify-between mb-2">
-              <div class="flex items-center gap-2">
-                <span class="text-sm text-teal-100">{{ currentOutletName }}</span>
-              </div>
-              <i class="pi pi-credit-card text-2xl text-white/60"></i>
-            </div>
-            <p class="text-sm text-teal-100 mb-1">Saldo QRIS Tersedia</p>
-            <p class="text-4xl font-bold mb-3">{{ formatRupiah(balance?.balance || 0) }}</p>
-            <div class="flex gap-6 text-sm text-teal-100">
-              <span>Total ditarik: <strong class="text-white">{{ formatRupiah(balance?.total_withdrawn || 0) }}</strong></span>
-            </div>
-          </div>          <!-- Own Key Mode Info -->
-          <div v-if="outletPaymentMode === 'own_key'" class="bg-white rounded-2xl border border-emerald-200 overflow-hidden shadow-sm">
-            <div class="p-6 flex flex-col items-center text-center">
-              <div class="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center mb-4">
-                <i class="pi pi-check-circle text-2xl text-emerald-600"></i>
-              </div>
-              <h3 class="text-lg font-bold text-slate-900 mb-1">Akun Pembayaran Sendiri</h3>
-              <p class="text-sm text-slate-500 max-w-md">
-                Outlet ini punya akun pembayaran sendiri (diatur di Pengaturan Outlet).
-                Pembayaran pelanggan masuk <strong>langsung ke akun tersebut</strong> —
-                <strong class="text-emerald-600">tidak perlu ditarik</strong>.
-              </p>
-              <p class="text-xs text-slate-400 mt-3">
-                Riwayat transaksi di bawah untuk referensi saja.
-              </p>
-            </div>
+        <!-- Withdraw Form (platform key only) -->
+        <div v-if="outletPaymentMode !== 'own_key'" class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+          <div class="p-4 border-b border-slate-100">
+            <h2 class="font-semibold text-slate-900">Tarik Saldo</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Pembayaran pelanggan masuk ke saldo ini. Tarik ke rekening bank kapan saja.</p>
           </div>
-
-          <!-- Withdraw Form (platform key only) -->
-          <div v-if="outletPaymentMode !== 'own_key'" class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-            <div class="p-4 border-b border-slate-100">
-              <h2 class="font-semibold text-slate-900">Tarik Saldo</h2>
-              <p class="text-xs text-slate-500 mt-0.5">Pembayaran pelanggan masuk ke saldo ini. Tarik ke rekening bank kapan saja.</p>
+          <form @submit.prevent="submitWithdraw" class="p-4 space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Jumlah (Rp)</label>
+                <InputNumber v-model="withdrawForm.amount" class="w-full" :min="10000" :max="balance?.balance || 0"
+                  :minFractionDigits="0" />
+                <p class="text-xs text-slate-400 mt-1">Minimal Rp 10.000 | Saldo: {{ formatRupiah(balance?.balance || 0) }}</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Bank</label>
+                <Select v-model="withdrawForm.bank_name" :options="bankOptions" optionLabel="label" optionValue="value" class="w-full" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">No. Rekening</label>
+                <InputText v-model="withdrawForm.bank_account" class="w-full" required />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Atas Nama</label>
+                <InputText v-model="withdrawForm.account_holder" class="w-full" required />
+              </div>
             </div>
-            <form @submit.prevent="submitWithdraw" class="p-4 space-y-4">
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-medium text-slate-700 mb-1">Jumlah (Rp)</label>
-                  <InputNumber v-model="withdrawForm.amount" class="w-full" :min="10000" :max="balance?.balance || 0"
-                    :minFractionDigits="0" />
-                  <p class="text-xs text-slate-400 mt-1">Minimal Rp 10.000 | Saldo: {{ formatRupiah(balance?.balance || 0) }}</p>
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-slate-700 mb-1">Bank</label>
-                  <Select v-model="withdrawForm.bank_name" :options="bankOptions" optionLabel="label" optionValue="value" class="w-full" />
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-slate-700 mb-1">No. Rekening</label>
-                  <InputText v-model="withdrawForm.bank_account" class="w-full" required />
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-slate-700 mb-1">Atas Nama</label>
-                  <InputText v-model="withdrawForm.account_holder" class="w-full" required />
-                </div>
-              </div>
-              <div class="flex justify-end">
-                <Button type="submit" label="Tarik Saldo" icon="pi pi-send" :loading="saving"
-                  :disabled="!withdrawForm.amount || !withdrawForm.bank_account || !withdrawForm.account_holder" />
-              </div>
-            </form>
-          </div>
+            <div class="flex justify-end">
+              <Button type="submit" label="Tarik Saldo" :loading="saving"
+                :disabled="!withdrawForm.amount || !withdrawForm.bank_account || !withdrawForm.account_holder">
+                <template #icon>
+                  <Send class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
+            </div>
+          </form>
+        </div>
 
         <!-- Transaction History -->
         <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
@@ -105,7 +112,7 @@
             </Column>
             <template #empty>
               <div class="flex flex-col items-center justify-center py-12 text-center">
-                <i class="pi pi-history text-3xl text-slate-200 mb-2"></i>
+                <History class="w-8 h-8 text-slate-200 mb-2" stroke-width="1.5" />
                 <p class="text-slate-500 text-sm">Belum ada transaksi</p>
               </div>
             </template>
@@ -145,7 +152,7 @@
             </Column>
             <template #empty>
               <div class="flex flex-col items-center justify-center py-12 text-center">
-                <i class="pi pi-inbox text-3xl text-slate-200 mb-2"></i>
+                <Inbox class="w-8 h-8 text-slate-200 mb-2" stroke-width="1.5" />
                 <p class="text-slate-500 text-sm">Belum ada penarikan</p>
               </div>
             </template>
@@ -197,6 +204,7 @@ import Tag from 'primevue/tag'
 import { formatRupiah } from '../../utils/format'
 import { useToastStore } from '../../stores/toast'
 import { useAuthStore } from '../../stores/auth'
+import { Building2, CreditCard, CheckCircle, History, Inbox, Send } from 'lucide-vue-next'
 
 const auth = useAuthStore()
 
@@ -291,7 +299,6 @@ onMounted(async () => {
   try {
     const { data } = await client.get('/outlets')
     outlets.value = data.data
-    // Build outlet map for quick lookup
     data.data.forEach(o => { outletMap.value[o.id] = o })
     if (data.data.length > 0) {
       selectedOutletId.value = data.data[0].id

@@ -11,7 +11,7 @@
     <!-- QR Base URL Config -->
     <div class="bg-white rounded-2xl border border-slate-200 p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
       <div class="flex items-center gap-2 shrink-0">
-        <i class="pi pi-link text-slate-400"></i>
+        <Link2 class="w-4 h-4 text-slate-400" stroke-width="1.5" />
         <span class="text-sm font-medium text-slate-700">URL Order:</span>
       </div>
       <div class="flex items-center gap-2 w-full sm:w-auto flex-1">
@@ -19,13 +19,17 @@
           class="flex-1 font-mono text-sm" @blur="saveQrBaseUrl" @keyup.enter="saveQrBaseUrl" />
         <span class="text-xs text-slate-400 shrink-0">/table/{token}</span>
       </div>
-      <Button icon="pi pi-external-link" text rounded size="small"
-        v-tooltip.top="'Test buka URL'" @click="testOrderUrl" />
+      <Button text rounded size="small"
+        v-tooltip.top="'Test buka URL'" @click="testOrderUrl">
+        <template #icon>
+          <ExternalLink class="w-4 h-4" stroke-width="1.5" />
+        </template>
+      </Button>
     </div>
 
     <!-- Outlet Selector (when no outlet selected) -->
     <div v-if="!selectedOutletId" class="bg-white rounded-2xl border border-slate-200 p-12 flex flex-col items-center justify-center text-center">
-      <i class="pi pi-building text-4xl text-slate-200 mb-3"></i>
+      <Building2 class="w-10 h-10 text-slate-200 mb-3" stroke-width="1.5" />
       <p class="text-slate-600 font-semibold">Pilih outlet terlebih dahulu</p>
       <p class="text-slate-400 text-sm mt-1">Pilih outlet untuk melihat daftar meja yang tersedia.</p>
     </div>
@@ -46,7 +50,11 @@
         </span>
         <Select v-if="outlets.length > 1" v-model="selectedOutletId" :options="outlets" optionLabel="name" optionValue="id"
           placeholder="Pilih outlet" class="w-44" @change="fetchTables" />
-        <Button v-if="perm.can('manageTables')" label="Tambah Meja" icon="pi pi-plus" size="small" @click="openAddDialog" :disabled="!selectedOutletId" />
+        <Button v-if="perm.can('manageTables')" label="Tambah Meja" size="small" @click="openAddDialog" :disabled="!selectedOutletId">
+          <template #icon>
+            <Plus class="w-4 h-4" stroke-width="1.5" />
+          </template>
+        </Button>
       </div>
       <div class="overflow-x-auto">
       <DataTable :value="filteredTables" stripedRows size="small" class="text-sm">
@@ -58,7 +66,7 @@
         <template #empty>
           <div class="flex flex-col items-center justify-center py-16 text-center">
             <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
-              <i class="pi pi-table text-2xl text-slate-300"></i>
+              <Grid3x3 class="w-6 h-6 text-slate-300" stroke-width="1.5" />
             </div>
             <p class="text-slate-500 font-medium">Belum ada meja</p>
             <p class="text-slate-400 text-xs mt-1">Tambahkan meja untuk outlet ini</p>
@@ -68,7 +76,7 @@
           <template #body="{ data }">
             <div class="flex items-center gap-2">
               <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-100 to-teal-200 flex items-center justify-center text-sm font-bold text-teal-700">
-                <i class="pi pi-table text-xs"></i>
+                <Grid3x3 class="w-4 h-4" stroke-width="1.5" />
               </div>
               <span class="font-medium text-slate-900">{{ data.name }}</span>
             </div>
@@ -83,17 +91,29 @@
                 @click="openQrPreview(data)"
                 loading="lazy" />
               <div class="flex items-center gap-1">
-                <Button icon="pi pi-download" text rounded size="small" class="!w-7 !h-7"
-                  v-tooltip.top="'Download QR'" @click="downloadQr(data)" />
-                <Button icon="pi pi-print" text rounded size="small" class="!w-7 !h-7"
-                  v-tooltip.top="'Cetak QR'" @click="printQr(data)" />
-                <Button icon="pi pi-refresh" text rounded size="small" class="!w-7 !h-7 text-amber-600"
-                  v-tooltip.top="'Regenerate QR'" @click="regenerateQr(data)" />
+                <Button text rounded size="small" class="!w-7 !h-7"
+                  v-tooltip.top="'Download QR'" @click="downloadQr(data)">
+                  <template #icon>
+                    <Download class="w-3 h-3" stroke-width="1.5" />
+                  </template>
+                </Button>
+                <Button text rounded size="small" class="!w-7 !h-7"
+                  v-tooltip.top="'Cetak QR'" @click="printQr(data)">
+                  <template #icon>
+                    <Printer class="w-3 h-3" stroke-width="1.5" />
+                  </template>
+                </Button>
+                <Button text rounded size="small" class="!w-7 !h-7 text-amber-600"
+                  v-tooltip.top="'Regenerate QR'" @click="regenerateQr(data)">
+                  <template #icon>
+                    <RefreshCw class="w-3 h-3" stroke-width="1.5" />
+                  </template>
+                </Button>
               </div>
             </div>
             <div v-else class="flex flex-col items-center gap-1 py-2">
               <div class="w-16 h-16 rounded-xl bg-slate-50 border border-dashed border-slate-200 flex items-center justify-center">
-                <i class="pi pi-qrcode text-slate-300 text-xl"></i>
+                <QrCode class="w-5 h-5 text-slate-300" stroke-width="1.5" />
               </div>
               <span class="text-[10px] text-slate-400">Regenerate untuk buat QR</span>
             </div>
@@ -108,15 +128,26 @@
         <Column header="Aksi" style="width: 140px">
           <template #body="{ data }">
             <div class="flex gap-2">
-              <Button v-if="perm.can('manageTables')" icon="pi pi-pencil" text rounded size="small"
-                v-tooltip.top="'Edit Nama Meja'" @click="openEditDialog(data)" />
-              <Button v-if="perm.can('manageTables')" :icon="data.is_active ? 'pi pi-ban' : 'pi pi-check-circle'"
-                text rounded size="small"
+              <Button v-if="perm.can('manageTables')" text rounded size="small"
+                v-tooltip.top="'Edit Nama Meja'" @click="openEditDialog(data)">
+                <template #icon>
+                  <Pencil class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
+              <Button v-if="perm.can('manageTables')" text rounded size="small"
                 :class="data.is_active ? 'text-amber-600' : 'text-teal-600'"
                 v-tooltip.top="data.is_active ? 'Nonaktifkan' : 'Aktifkan'"
-                @click="toggleActive(data)" />
-              <Button v-if="perm.can('manageTables')" icon="pi pi-trash" text rounded severity="danger" size="small"
-                v-tooltip.top="'Hapus Meja'" @click="confirmDelete(data)" />
+                @click="toggleActive(data)">
+                <template #icon>
+                  <component :is="data.is_active ? Ban : CheckCircle" class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
+              <Button v-if="perm.can('manageTables')" text rounded severity="danger" size="small"
+                v-tooltip.top="'Hapus Meja'" @click="confirmDelete(data)">
+                <template #icon>
+                  <Trash2 class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
             </div>
           </template>
         </Column>
@@ -130,10 +161,11 @@
         <div>
           <label class="block text-sm font-medium text-slate-700 mb-1">Nama Meja <span class="text-red-400">*</span></label>
           <InputText v-model="form.name" class="w-full" placeholder="Contoh: Meja 1, VIP Room, Outdoor A" required />
-        </div>          <div v-if="editing" class="flex items-center gap-3 p-3 rounded-xl bg-blue-50 border border-blue-200">
-              <i class="pi pi-info-circle text-blue-400 text-lg"></i>
-              <p class="text-xs text-blue-700">Untuk menonaktifkan/mengaktifkan meja, gunakan tombol toggle di tabel.</p>
-            </div>
+        </div>
+        <div v-if="editing" class="flex items-center gap-3 p-3 rounded-xl bg-blue-50 border border-blue-200">
+          <Info class="w-5 h-5 text-blue-400 shrink-0" stroke-width="1.5" />
+          <p class="text-xs text-blue-700">Untuk menonaktifkan/mengaktifkan meja, gunakan tombol toggle di tabel.</p>
+        </div>
         <div class="flex justify-end gap-2 pt-2">
           <Button label="Batal" severity="secondary" @click="showDialog = false" />
           <Button type="submit" :label="editing ? 'Simpan' : 'Tambah'" :loading="saving" />
@@ -145,7 +177,7 @@
     <Dialog v-model:visible="showDeleteDialog" header="Hapus Meja" modal class="w-sm">
       <div class="space-y-3">
         <div class="flex items-center gap-3 p-3 rounded-xl bg-red-50 border border-red-100">
-          <i class="pi pi-exclamation-triangle text-red-500 text-xl"></i>
+          <AlertTriangle class="w-5 h-5 text-red-500 shrink-0" stroke-width="1.5" />
           <p class="text-sm text-red-700">
             Yakin ingin menghapus <strong>{{ deletingTable?.name }}</strong>?
           </p>
@@ -179,17 +211,29 @@
 
         <!-- Actions -->
         <div class="flex gap-2 w-full">
-          <Button label="Download PNG" icon="pi pi-download" class="flex-1" severity="secondary"
-            @click="downloadQr(qrPreviewTable)" />
-          <Button label="Cetak" icon="pi pi-print" class="flex-1" severity="secondary"
-            @click="printQr(qrPreviewTable)" />
-          <Button label="Salin URL" icon="pi pi-copy" class="flex-1"
-            @click="copyQrUrl(qrPreviewTable.qr_token)" />
+          <Button label="Download PNG" class="flex-1" severity="secondary"
+            @click="downloadQr(qrPreviewTable)">
+            <template #icon>
+              <Download class="w-4 h-4" stroke-width="1.5" />
+            </template>
+          </Button>
+          <Button label="Cetak" class="flex-1" severity="secondary"
+            @click="printQr(qrPreviewTable)">
+            <template #icon>
+              <Printer class="w-4 h-4" stroke-width="1.5" />
+            </template>
+          </Button>
+          <Button label="Salin URL" class="flex-1"
+            @click="copyQrUrl(qrPreviewTable.qr_token)">
+            <template #icon>
+              <Copy class="w-4 h-4" stroke-width="1.5" />
+            </template>
+          </Button>
         </div>
 
         <!-- Print Description -->
         <div class="flex items-center gap-2 text-xs text-slate-500 bg-blue-50 rounded-xl px-4 py-2.5 w-full border border-blue-100">
-          <i class="pi pi-info-circle text-blue-400"></i>
+          <Info class="w-4 h-4 text-blue-400 shrink-0" stroke-width="1.5" />
           <span>Cetak QR, laminating, dan tempel di meja agar pelanggan bisa scan untuk pesan sendiri.</span>
         </div>
       </div>
@@ -210,6 +254,11 @@ import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
 import Tooltip from 'primevue/tooltip'
+import {
+  Link2, ExternalLink, Building2, Grid3x3, Plus, QrCode,
+  Download, Printer, RefreshCw, Pencil, Ban, CheckCircle,
+  Trash2, AlertTriangle, Info, Copy
+} from 'lucide-vue-next'
 
 const perm = usePermission()
 const toast = useToastStore()
@@ -326,9 +375,6 @@ function openQrPreview(table) {
   showQrDialog.value = true
 }
 
-/**
- * Download QR sebagai PNG
- */
 async function downloadQr(table) {
   const imgUrl = qrCodeUrl(table.qr_token, 400)
   try {
@@ -343,14 +389,10 @@ async function downloadQr(table) {
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
   } catch (_) {
-    // Fallback: buka di tab baru
     window.open(imgUrl, '_blank')
   }
 }
 
-/**
- * Cetak QR — buka gambar di tab baru lalu print
- */
 async function printQr(table) {
   const imgUrl = qrCodeUrl(table.qr_token, 500)
   try {

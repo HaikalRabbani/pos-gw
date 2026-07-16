@@ -42,14 +42,26 @@
 
           <!-- Inline Kategori & Station Management -->
           <template v-if="perm.can('manageCategories')">
-            <Button label="Kategori" icon="pi pi-tags" severity="secondary" text size="small"
-              v-tooltip.top="'Kelola kategori'" @click="openCategoryModal" />
-            <Button label="Station" icon="pi pi-print" severity="secondary" text size="small"
-              v-tooltip.top="'Kelola station produksi'" @click="openStationModal" />
+            <Button label="Kategori" severity="secondary" text size="small"
+              v-tooltip.top="'Kelola kategori'" @click="openCategoryModal">
+              <template #icon>
+                <Tags class="w-4 h-4" stroke-width="1.5" />
+              </template>
+            </Button>
+            <Button label="Station" severity="secondary" text size="small"
+              v-tooltip.top="'Kelola station produksi'" @click="openStationModal">
+              <template #icon>
+                <Printer class="w-4 h-4" stroke-width="1.5" />
+              </template>
+            </Button>
           </template>
 
-          <Button v-if="perm.can('manageProducts')" label="Tambah Produk" icon="pi pi-plus" size="small" class="shrink-0"
-            @click="openProductDialog()" />
+          <Button v-if="perm.can('manageProducts')" label="Tambah Produk" size="small" class="shrink-0"
+            @click="openProductDialog()">
+            <template #icon>
+              <Plus class="w-4 h-4" stroke-width="1.5" />
+            </template>
+          </Button>
         </div>
       </div>
       <DataTable :value="filteredProducts" paginator :rows="rowsPerPage" stripedRows size="small"
@@ -64,7 +76,7 @@
         <template #empty>
           <div class="flex flex-col items-center justify-center py-16 text-center">
             <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
-              <i class="pi pi-box text-2xl text-slate-300"></i>
+              <Package class="w-6 h-6 text-slate-300" stroke-width="1.5" />
             </div>
             <p class="text-slate-500 font-medium">Belum ada produk</p>
             <p class="text-slate-400 text-xs mt-1">Tambahkan produk untuk mulai menjual</p>
@@ -74,7 +86,7 @@
           <template #body="{ data }">
             <img v-if="data.image" :src="data.image" class="w-9 h-9 rounded-lg object-cover border border-slate-200" />
             <div v-else class="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center">
-              <i class="pi pi-image text-slate-300 text-sm"></i>
+              <Image class="w-4 h-4 text-slate-300" stroke-width="1.5" />
             </div>
           </template>
         </Column>
@@ -103,18 +115,34 @@
         <Column header="Aksi" :exportable="false" style="width: 180px">
           <template #body="{ data }">
             <div class="flex gap-1.5">
-              <Button icon="pi pi-eye" text rounded severity="secondary" size="small"
+              <Button text rounded severity="secondary" size="small"
                 v-tooltip.top="'Lihat detail'"
-                @click="openDetail(data)" />
-              <Button v-if="perm.can('manageProducts')" icon="pi pi-pencil" text rounded severity="secondary" size="small"
+                @click="openDetail(data)">
+                <template #icon>
+                  <Eye class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
+              <Button v-if="perm.can('manageProducts')" text rounded severity="secondary" size="small"
                 v-tooltip.top="'Edit'"
-                @click="openProductDialog(data)" />
-                      <Button v-if="perm.can('manageProducts')" icon="pi pi-palette" text rounded severity="info" size="small"
+                @click="openProductDialog(data)">
+                <template #icon>
+                  <Pencil class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
+              <Button v-if="perm.can('manageProducts')" text rounded severity="info" size="small"
                 v-tooltip.top="'Atur Bahan & Add-on'"
-                @click="openProductIngredients(data)" />
-              <Button v-if="perm.can('manageProducts')" icon="pi pi-trash" text severity="danger" rounded size="small"
+                @click="openProductIngredients(data)">
+                <template #icon>
+                  <Palette class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
+              <Button v-if="perm.can('manageProducts')" text severity="danger" rounded size="small"
                 v-tooltip.top="'Hapus'"
-                @click="confirmDelete(data)" />
+                @click="confirmDelete(data)">
+                <template #icon>
+                  <Trash2 class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
             </div>
           </template>
         </Column>
@@ -130,12 +158,16 @@
           <div class="flex items-center gap-4">
             <div class="relative w-20 h-20 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden bg-slate-50">
               <img v-if="productForm.image" :src="productForm.image" class="w-full h-full object-cover" />
-              <i v-else class="pi pi-image text-slate-300 text-2xl"></i>
+              <Image v-else class="w-6 h-6 text-slate-300" stroke-width="1.5" />
             </div>
             <div class="flex-1">
               <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="uploadImage" />
-              <Button type="button" label="Pilih Foto" icon="pi pi-upload" severity="secondary" size="small"
-                @click="fileInput?.click()" :loading="uploading" />
+              <Button type="button" label="Pilih Foto" severity="secondary" size="small"
+                @click="fileInput?.click()" :loading="uploading">
+                <template #icon>
+                  <Upload class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
               <p class="text-xs text-slate-400 mt-1">Maks 2MB. Format: JPG, PNG.</p>
             </div>
           </div>
@@ -152,7 +184,9 @@
               placeholder="Pilih kategori" class="w-full" :showClear="true" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Station <i class="pi pi-print text-xs text-orange-400 ml-1"></i></label>
+            <label class="block text-sm font-medium text-slate-700 mb-1">
+              Station <Printer class="w-3 h-3 text-orange-400 inline ml-1" stroke-width="1.5" />
+            </label>
             <Select v-model="productForm.station_id" :options="stations" optionLabel="name" optionValue="id"
               placeholder="Pilih station" class="w-full" :showClear="true" />
           </div>
@@ -197,7 +231,7 @@
           <div class="w-24 h-24 rounded-xl border border-slate-200 overflow-hidden shrink-0 bg-slate-50">
             <img v-if="viewingProduct.image" :src="viewingProduct.image" class="w-full h-full object-cover" />
             <div v-else class="w-full h-full flex items-center justify-center">
-              <i class="pi pi-image text-slate-300 text-3xl"></i>
+              <Image class="w-8 h-8 text-slate-300" stroke-width="1.5" />
             </div>
           </div>
           <div class="flex-1 min-w-0">
@@ -264,9 +298,13 @@
                 <div class="w-2 h-2 rounded-full bg-teal-400"></div>
                 <span class="text-sm text-slate-800">{{ cat.name }}</span>
               </div>
-              <Button icon="pi pi-trash" text rounded severity="danger" size="small"
+              <Button text rounded severity="danger" size="small"
                 v-tooltip.top="'Hapus kategori'"
-                @click="confirmDeleteCategory(cat)" />
+                @click="confirmDeleteCategory(cat)">
+                <template #icon>
+                  <Trash2 class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
             </li>
           </ul>
         </div>
@@ -280,7 +318,7 @@
 
         <!-- Loading -->
         <div v-if="loadingIngredients" class="flex items-center justify-center py-8">
-          <i class="pi pi-spin pi-spinner text-2xl text-slate-400"></i>
+          <LoaderCircle class="w-6 h-6 text-slate-400 animate-spin" stroke-width="1.5" />
         </div>
 
         <div v-else-if="availableIngredients.length === 0" class="text-sm text-slate-400 text-center py-4">
@@ -335,13 +373,17 @@
               class="flex items-center justify-between py-2.5">
               <div class="flex items-center gap-2">
                 <div class="w-7 h-7 rounded-lg bg-orange-100 flex items-center justify-center text-xs font-bold text-orange-700">
-                  <i class="pi pi-print text-[10px]"></i>
+                  <Printer class="w-3 h-3" stroke-width="1.5" />
                 </div>
                 <span class="text-sm text-slate-800">{{ st.name }}</span>
               </div>
-              <Button icon="pi pi-trash" text rounded severity="danger" size="small"
+              <Button text rounded severity="danger" size="small"
                 v-tooltip.top="'Hapus station'"
-                @click="confirmDeleteStation(st)" />
+                @click="confirmDeleteStation(st)">
+                <template #icon>
+                  <Trash2 class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
             </li>
           </ul>
         </div>
@@ -352,14 +394,14 @@
     <Dialog v-model:visible="showDeleteDialog" :header="'Hapus ' + deleteTarget?.type" modal class="w-sm">
       <div class="space-y-3">
         <div class="flex items-center gap-3 p-3 rounded-xl bg-red-50 border border-red-100">
-          <i class="pi pi-exclamation-triangle text-red-500 text-xl"></i>
+          <AlertTriangle class="w-5 h-5 text-red-500 shrink-0" stroke-width="1.5" />
           <p class="text-sm text-red-700">
             Yakin ingin menghapus <strong>{{ deleteTarget?.name }}</strong>?
           </p>
         </div>
         <p v-if="deleteTarget?.type === 'Kategori'" class="text-xs text-slate-500">Produk dengan kategori ini tidak akan terhapus, hanya kategori-nya yang hilang.</p>
         <p v-else-if="deleteTarget?.type === 'Station'" class="text-xs text-slate-500">Produk dengan station ini akan otomatis kehilangan station-nya.</p>
-            <div class="flex justify-end gap-2 pt-2">
+        <div class="flex justify-end gap-2 pt-2">
           <Button label="Batal" severity="secondary" @click="showDeleteDialog = false" />
           <Button label="Hapus" severity="danger" :loading="deleting" @click="executeDelete" />
         </div>
@@ -385,6 +427,10 @@ import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
 import Checkbox from 'primevue/checkbox'
 import Tooltip from 'primevue/tooltip'
+import {
+  Package, Image, Tags, Printer, Plus, Eye, Pencil, Palette,
+  Trash2, AlertTriangle, Upload, LoaderCircle
+} from 'lucide-vue-next'
 
 const perm = usePermission()
 const toast = useToastStore()
@@ -416,9 +462,7 @@ const editingIngredientProduct = ref(null)
 const fileInput = ref(null)
 
 // Ingredients state
-// Stock mode
 const outletStockMode = ref('product')
-
 const availableIngredients = ref([])
 const loadingIngredients = ref(false)
 const savingProductIngredients = ref(false)
@@ -637,7 +681,6 @@ async function openProductIngredients(product) {
   showProductIngredientsDialog.value = true
   loadingIngredients.value = true
 
-  // Reset maps
   productIngredientMap.value = {}
   productIngredientPrices.value = {}
   productIngredientRemovable.value = {}
@@ -655,7 +698,6 @@ async function openProductIngredients(product) {
 
     availableIngredients.value = ingRes.data.data
 
-    // Populate maps from assigned ingredients
     if (prodIngRes.data.success) {
       const assigned = prodIngRes.data.data.assigned
       assigned.forEach((i) => {
@@ -675,7 +717,6 @@ async function openProductIngredients(product) {
 function toggleProductIngredient(ing) {
   const checked = productIngredientMap.value[ing.id]
   if (checked) {
-    // Initialize defaults when adding
     if (productIngredientPrices.value[ing.id] === undefined) {
       productIngredientPrices.value[ing.id] = 0
     }

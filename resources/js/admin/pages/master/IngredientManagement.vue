@@ -39,8 +39,12 @@
         <span class="flex-1">
           <InputText v-model="search" placeholder="Cari bahan..." class="w-full" />
         </span>
-        <Button v-if="perm.can('manageCategories')" label="Tambah Bahan" icon="pi pi-plus" size="small"
-          @click="openAddDialog" />
+        <Button v-if="perm.can('manageCategories')" label="Tambah Bahan" size="small"
+          @click="openAddDialog">
+          <template #icon>
+            <Plus class="w-4 h-4" stroke-width="1.5" />
+          </template>
+        </Button>
       </div>
       <DataTable :value="filteredIngredients" paginator :rows="rowsPerPage" stripedRows size="small"
         paginatorTemplate="CurrentPageReport PrevPageLink NextPageLink"
@@ -54,7 +58,7 @@
         <template #empty>
           <div class="flex flex-col items-center justify-center py-16 text-center">
             <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
-              <i class="pi pi-list text-2xl text-slate-300"></i>
+              <List class="w-6 h-6 text-slate-300" stroke-width="1.5" />
             </div>
             <p class="text-slate-500 font-medium">Belum ada bahan</p>
             <p class="text-slate-400 text-xs mt-1">Tambahkan bahan/add-on untuk kustomisasi produk</p>
@@ -64,7 +68,7 @@
           <template #body="{ data }">
             <div class="flex items-center gap-2">
               <div class="w-7 h-7 rounded-lg bg-violet-100 flex items-center justify-center text-xs font-bold text-violet-700">
-                <i class="pi pi-list text-[10px]"></i>
+                <List class="w-3 h-3" stroke-width="1.5" />
               </div>
               <span class="font-medium text-slate-800">{{ data.name }}</span>
             </div>
@@ -92,15 +96,27 @@
         <Column header="Aksi" style="width: 120px">
           <template #body="{ data }">
             <div class="flex gap-1.5">
-              <Button icon="pi pi-pencil" text rounded severity="secondary" size="small"
+              <Button text rounded severity="secondary" size="small"
                 v-tooltip.top="'Edit'"
-                @click="openEditDialog(data)" />
-              <Button icon="pi pi-check-circle" text rounded severity="secondary" size="small"
+                @click="openEditDialog(data)">
+                <template #icon>
+                  <Pencil class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
+              <Button text rounded severity="secondary" size="small"
                 v-tooltip.top="data.is_active ? 'Nonaktifkan' : 'Aktifkan'"
-                @click="toggleActive(data)" />
-              <Button icon="pi pi-trash" text severity="danger" rounded size="small"
+                @click="toggleActive(data)">
+                <template #icon>
+                  <component :is="data.is_active ? Ban : CheckCircle" class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
+              <Button text severity="danger" rounded size="small"
                 v-tooltip.top="'Hapus'"
-                @click="confirmDelete(data)" />
+                @click="confirmDelete(data)">
+                <template #icon>
+                  <Trash2 class="w-4 h-4" stroke-width="1.5" />
+                </template>
+              </Button>
             </div>
           </template>
         </Column>
@@ -134,7 +150,7 @@
     <Dialog v-model:visible="showDeleteDialog" header="Hapus Bahan" modal class="w-sm">
       <div class="space-y-3">
         <div class="flex items-center gap-3 p-3 rounded-xl bg-red-50 border border-red-100">
-          <i class="pi pi-exclamation-triangle text-red-500 text-xl"></i>
+          <AlertTriangle class="w-5 h-5 text-red-500 shrink-0" stroke-width="1.5" />
           <p class="text-sm text-red-700">
             Yakin ingin menghapus <strong>{{ deletingIngredient?.name }}</strong>?
           </p>
@@ -163,6 +179,7 @@ import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
 import Tooltip from 'primevue/tooltip'
+import { List, Plus, Pencil, Ban, CheckCircle, Trash2, AlertTriangle } from 'lucide-vue-next'
 
 const perm = usePermission()
 const toast = useToastStore()
