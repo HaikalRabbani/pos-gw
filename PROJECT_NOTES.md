@@ -1,17 +1,44 @@
-### Pending / Next
-- [x] Export laporan Excel/PDF
-- [x] Inventory / Bahan & Add-on — ingredients + product_ingredients pivot (backend + halaman khusus di Master Data)
-- [x] Stok ganda — Mode Per-Produk / Per-Bahan (BOM) + auto-deduct pas bayar
-- [ ] POS Mobile (Flutter) — integrasi API
-- [ ] Web Self-Order via QR — pelanggan scan QR meja → pesan sendiri
-- [ ] Manajemen metode pembayaran (Flutter/QR)
-- [x] Optimasi N+1 di Discount model accessors
-- [x] Testing — unit test OrderService, ShiftService, ReportService
-- [x] Export laporan Excel/PDF (Shift)
-- [x] Absensi karyawan — sudah tercakup di shift (start_at/end_at per user). Tinggal nambah view Audit Shift di ShiftReport.vue
+# Project Notes — POS System
 
-### 🏗️ Saran Fitur Besar (masih relevan)
-| Fitur | Deskripsi | Status |
-|---|---|---|
-| Inventory BOM (lanjutan) | Stok bahan baku otomatis terpotong + stok opname | ✅ Backend + halaman Bahan siap. Butuh stok opname & alert stok minim |
-| Customer & membership | Tabel customers, histori transaksi, tier diskon | ⬜ |
+## ✅ Admin Panel — Feature Complete
+
+### Sesi 16 Juli
+| Fitur | Status |
+|---|---|
+| Export laporan Excel/PDF (Keuangan + Shift) | ✅ |
+| Bahan & Add-on (halaman Master Data) | ✅ |
+| Stok ganda (Per-Produk / Per-Bahan BOM + auto-deduct) | ✅ |
+| Optimasi N+1 di Discount model accessors | ✅ |
+| Unit testing (OrderService, ShiftService, ReportService) | ✅ |
+| Audit Karyawan di Laporan Shift | ✅ |
+
+---
+
+## 🗺️ Roadmap Selanjutnya
+
+### 🥇 Prioritas 1: Web Self-Order via QR
+Halaman publik terpisah untuk customer scan QR meja → pesan sendiri.
+- [ ] Frontend React/Vue sederhana (terpisah dari Admin Panel)
+- [ ] Integrasi API yang sudah ada (products, customize, orders)
+- [ ] Bahan bisa dimatiin + add-on (via endpoint `/products/{id}/customize`)
+
+### 🥇 Prioritas 2: POS Mobile (Flutter)
+Aplikasi Flutter untuk kasir di tablet/HP.
+- [ ] Integrasi API yang sudah ada
+- [ ] Pilih outlet, produk, checkout
+- [ ] Thermal printer + QR payment
+
+### 🥈 Prioritas 3 (Improvement)
+- [ ] Stok opname — adjustment manual + log riwayat perubahan stok
+- [ ] Alert stok minim (notifikasi pas stok di bawah min_stock)
+- [ ] Customer & membership (histori transaksi, tier diskon)
+
+---
+
+## 🧪 Testing
+Unit tests ada di:
+- `tests/Unit/OrderServiceTest.php` — split, merge, refund, diskon, pajak
+- `tests/Unit/ShiftServiceTest.php` — start/end shift, cash reconciliation
+- `tests/Unit/ReportServiceTest.php` — summary, daily sales, top products
+
+Jalankan: `php artisan test --testsuite=Unit`
