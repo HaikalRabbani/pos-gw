@@ -14,7 +14,9 @@ const routes = [
       { path: 'menu', name: 'Menu', component: () => import('../pages/menu/MenuManagement.vue') },
       { path: 'orders', name: 'Orders', component: () => import('../pages/orders/Orders.vue') },
       { path: 'shifts', name: 'Shifts', component: () => import('../pages/shifts/ShiftManagement.vue') },
-      { path: 'report', name: 'Report', component: () => import('../pages/report/Report.vue') },
+      { path: 'report', redirect: '/report/financial' },
+      { path: 'report/financial', name: 'ReportFinancial', component: () => import('../pages/report/Report.vue') },
+      { path: 'report/shift', name: 'ReportShift', component: () => import('../pages/report/ShiftReport.vue') },
       { path: 'users', name: 'Users', component: () => import('../pages/users/UserManagement.vue') },
       { path: 'outlets', name: 'Outlets', component: () => import('../pages/outlets/OutletManagement.vue') },
       { path: 'discounts', name: 'Discounts', component: () => import('../pages/master/DiscountManagement.vue') },
@@ -31,7 +33,7 @@ const router = createRouter({ history: createWebHistory(), routes })
 router.beforeEach(async (to, _, next) => {
   const auth = useAuthStore()
 
-  // Cek session kalo user blm terisi
+  // Cek session hanya kalo user blm terisi (sekali doang)
   if (!auth.user) {
     const hasSession = await auth.checkSession()
     if (!hasSession && to.meta.requiresAuth) {

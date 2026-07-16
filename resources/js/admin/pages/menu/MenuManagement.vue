@@ -70,6 +70,14 @@
             <p class="text-slate-400 text-xs mt-1">Tambahkan produk untuk mulai menjual</p>
           </div>
         </template>
+        <Column header="Foto" style="width: 60px">
+          <template #body="{ data }">
+            <img v-if="data.image" :src="data.image" class="w-9 h-9 rounded-lg object-cover border border-slate-200" />
+            <div v-else class="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center">
+              <i class="pi pi-image text-slate-300 text-sm"></i>
+            </div>
+          </template>
+        </Column>
         <Column field="name" header="Nama Produk" sortable />
         <Column header="Kategori">
           <template #body="{ data }">
@@ -86,24 +94,13 @@
             <span class="font-medium">{{ formatRupiah(data.price) }}</span>
           </template>
         </Column>
-        <Column header="Deskripsi">
+        <Column header="Aksi" :exportable="false" style="width: 180px">
           <template #body="{ data }">
-            <span v-if="data.description" class="text-xs text-slate-500 line-clamp-2 max-w-xs">
-              {{ data.description }}
-            </span>
-            <span v-else class="text-xs text-slate-300 italic">—</span>
-          </template>
-        </Column>
-        <Column header="Status" sortable>
-          <template #body="{ data }">
-            <Tag :value="data.is_active ? 'Aktif' : 'Non-Aktif'"
-              :severity="data.is_active ? 'success' : 'danger'" rounded />
-          </template>
-        </Column>
-        <Column header="Aksi" :exportable="false" style="width: 140px">
-          <template #body="{ data }">
-            <div class="flex gap-3">
-              <Button v-if="perm.can('manageProducts')" icon="pi pi-pencil" text severity="secondary" rounded size="small"
+            <div class="flex gap-1.5">
+              <Button icon="pi pi-eye" text rounded severity="secondary" size="small"
+                v-tooltip.top="'Lihat detail'"
+                @click="openDetail(data)" />
+              <Button v-if="perm.can('manageProducts')" icon="pi pi-pencil" text rounded severity="secondary" size="small"
                 v-tooltip.top="'Edit'"
                 @click="openProductDialog(data)" />
               <Button v-if="perm.can('manageProducts')" icon="pi pi-power-off" text rounded size="small"
@@ -122,6 +119,23 @@
     <!-- Product Add/Edit Dialog -->
     <Dialog v-model:visible="showProductDialog" :header="editingProduct ? 'Edit Produk' : 'Tambah Produk'" modal class="w-lg">
       <form @submit.prevent="saveProduct" class="space-y-4">
+        <!-- Image Upload -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2">Foto Produk</label>
+          <div class="flex items-center gap-4">
+            <div class="relative w-20 h-20 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden bg-slate-50">
+              <img v-if="productForm.image" :src="productForm.image" class="w-full h-full object-cover" />
+              <i v-else class="pi pi-image text-slate-300 text-2xl"></i>
+            </div>
+            <div class="flex-1">
+              <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="uploadImage" />
+              <Button type="button" label="Pilih Foto" icon="pi pi-upload" severity="secondary" size="small"
+                @click="fileInput?.click()" :loading="uploading" />
+              <p class="text-xs text-slate-400 mt-1">Maks 2MB. Format: JPG, PNG.</p>
+            </div>
+          </div>
+        </div>
+
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium text-slate-700 mb-1">Nama <span class="text-red-400">*</span></label>
@@ -147,6 +161,11 @@
             <InputNumber v-model="productForm.cost" class="w-full" :min="0" :minFractionDigits="0"
               placeholder="0" />
           </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Status</label>
+            <Select v-model="productForm.is_active" :options="statusOptions" optionLabel="label" optionValue="value"
+              placeholder="Aktif" class="w-full" />
+          </div>
         </div>
         <div>
           <label class="block text-sm font-medium text-slate-700 mb-1">Deskripsi</label>
@@ -158,6 +177,64 @@
           <Button type="submit" :label="editingProduct ? 'Simpan' : 'Tambah'" :loading="savingProduct" />
         </div>
       </form>
+    </Dialog>
+
+    <!-- Product Detail Dialog -->
+    <Dialog v-model:visible="showDetailDialog" :header="viewingProduct?.name" modal class="w-lg">
+      <div v-if="viewingProduct" class="space-y-5">
+        <!-- Image + Basic Info -->
+        <div class="flex items-start gap-5">
+          <div class="w-24 h-24 rounded-xl border border-slate-200 overflow-hidden shrink-0 bg-slate-50">
+            <img v-if="viewingProduct.image" :src="viewingProduct.image" class="w-full h-full object-cover" />
+            <div v-else class="w-full h-full flex items-center justify-center">
+              <i class="pi pi-image text-slate-300 text-3xl"></i>
+            </div>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h3 class="text-lg font-bold text-slate-900">{{ viewingProduct.name }}</h3>
+            <p class="text-xs text-slate-400 mt-0.5">
+              {{ viewingProduct.category?.name || 'Tanpa kategori' }}
+              <span class="mx-1">•</span>
+              {{ viewingProduct.station?.name || 'Tanpa station' }}
+            </p>
+            <div class="flex items-center gap-3 mt-2">
+              <span class="text-2xl font-bold text-teal-600">{{ formatRupiah(viewingProduct.price) }}</span>
+              <Tag :value="viewingProduct.is_active ? 'Aktif' : 'Non-Aktif'"
+                :severity="viewingProduct.is_active ? 'success' : 'danger'" rounded />
+            </div>
+          </div>
+        </div>
+
+        <!-- Detail Grid -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Harga Modal</p>
+            <p class="text-sm font-bold text-slate-800 mt-0.5">{{ formatRupiah(viewingProduct.cost || 0) }}</p>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Laba per Item</p>
+            <p class="text-sm font-bold" :class="profitClass(viewingProduct)">
+              {{ formatRupiah((viewingProduct.price || 0) - (viewingProduct.cost || 0)) }}
+              <span class="text-xs font-normal text-slate-400 ml-1">
+                ({{ profitPercent(viewingProduct) }}%)
+              </span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div v-if="viewingProduct.description">
+          <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-1">Deskripsi</p>
+          <p class="text-sm text-slate-700 leading-relaxed">{{ viewingProduct.description }}</p>
+        </div>
+
+        <!-- Timestamps -->
+        <div class="flex items-center gap-4 text-[10px] text-slate-400 border-t border-slate-100 pt-3">
+          <span>ID Produk: #{{ viewingProduct.id }}</span>
+          <span>Dibuat: {{ formatDate(viewingProduct.created_at) }}</span>
+          <span v-if="viewingProduct.updated_at !== viewingProduct.created_at">Diupdate: {{ formatDate(viewingProduct.updated_at) }}</span>
+        </div>
+      </div>
     </Dialog>
 
     <!-- Kategori Modal (inline) -->
@@ -263,6 +340,7 @@ const search = ref('')
 const selectedCategory = ref(null)
 const rowsPerPage = ref(10)
 const showProductDialog = ref(false)
+const showDetailDialog = ref(false)
 const showDeleteDialog = ref(false)
 const showCategoryModal = ref(false)
 const showStationModal = ref(false)
@@ -271,11 +349,19 @@ const savingProduct = ref(false)
 const savingCategory = ref(false)
 const savingStation = ref(false)
 const deleting = ref(false)
+const uploading = ref(false)
 const newCategoryName = ref('')
 const newStationName = ref('')
 const deleteTarget = ref(null)
+const viewingProduct = ref(null)
+const fileInput = ref(null)
 
-const productForm = ref({ name: '', category_id: null, station_id: null, price: 0, cost: 0, description: '' })
+const statusOptions = [
+  { label: 'Aktif', value: true },
+  { label: 'Non-Aktif', value: false },
+]
+
+const productForm = ref({ name: '', category_id: null, station_id: null, price: 0, cost: 0, description: '', is_active: true, image: null })
 
 const activeCount = computed(() => products.value.filter((p) => p.is_active).length)
 const inactiveCount = computed(() => products.value.filter((p) => !p.is_active).length)
@@ -323,10 +409,12 @@ function openProductDialog(product) {
       price: product.price,
       cost: product.cost || 0,
       description: product.description || '',
+      is_active: product.is_active ?? true,
+      image: product.image || null,
     }
   } else {
     editingProduct.value = false
-    productForm.value = { name: '', category_id: null, station_id: null, price: 0, cost: 0, description: '' }
+    productForm.value = { name: '', category_id: null, station_id: null, price: 0, cost: 0, description: '', is_active: true, image: null }
   }
   showProductDialog.value = true
 }
@@ -343,6 +431,8 @@ async function saveProduct() {
       price: productForm.value.price,
       cost: productForm.value.cost || 0,
       description: productForm.value.description || null,
+      is_active: productForm.value.is_active,
+      image: productForm.value.image || null,
     }
     if (editingProduct.value && productForm.value.id) {
       await client.put(`/products/${productForm.value.id}`, { ...payload, outlet_id: outletId })
@@ -464,6 +554,49 @@ async function addStation() {
 function confirmDeleteStation(st) {
   deleteTarget.value = { id: st.id, name: st.name, type: 'Station' }
   showDeleteDialog.value = true
+}
+
+function openDetail(product) {
+  viewingProduct.value = product
+  showDetailDialog.value = true
+}
+
+async function uploadImage(e) {
+  const file = e.target.files[0]
+  if (!file) return
+  uploading.value = true
+  try {
+    const formData = new FormData()
+    formData.append('file', file)
+    const { data } = await client.post('/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    if (data.success && data.url) {
+      productForm.value.image = data.url
+    }
+  } catch (_) {
+    toast.error('Gagal Upload', 'Gagal mengupload foto')
+  } finally {
+    uploading.value = false
+    e.target.value = ''
+  }
+}
+
+function profitClass(product) {
+  const profit = (product.price || 0) - (product.cost || 0)
+  return profit >= 0 ? 'text-emerald-600' : 'text-red-600'
+}
+
+function profitPercent(product) {
+  const cost = product.cost || 0
+  if (cost === 0) return '—'
+  return Math.round((((product.price || 0) - cost) / cost) * 100)
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '-'
+  const d = new Date(dateStr)
+  return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 onMounted(fetchData)

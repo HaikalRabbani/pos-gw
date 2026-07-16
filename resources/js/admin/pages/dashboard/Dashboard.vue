@@ -5,7 +5,7 @@
       <div class="absolute top-0 right-0 w-64 h-64 bg-amber-400/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
       <div class="absolute bottom-0 left-0 w-48 h-48 bg-teal-600/20 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl"></div>
       <div class="relative z-10">
-        <h1 class="text-2xl font-bold text-white">Selamat datang kembali, {{ auth.user?.name?.split(' ')[0] || 'Admin' }}! 👋</h1>
+        <h1 class="text-2xl font-bold text-white">Selamat datang kembali, {{ auth.user?.name?.split(' ')[0] || 'Admin' }}!</h1>
         <p class="text-teal-200/80 text-sm mt-1">Berikut ringkasan performa bisnis Anda hari ini.</p>
       </div>
       <div class="absolute bottom-3 right-4 z-10 flex items-center gap-2 text-xs text-teal-300/60">
@@ -17,9 +17,8 @@
       </div>
     </div>
 
-    <!-- Stats Grid -->
+    <!-- Stats Grid: 4 Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <!-- Loading Skeleton (first load only) -->
       <template v-if="initialLoading">
         <div v-for="i in 4" :key="i"
           class="bg-white rounded-2xl border border-slate-200 p-5 animate-pulse">
@@ -32,7 +31,6 @@
         </div>
       </template>
 
-      <!-- Stat Cards -->
       <div v-for="card in statCards" :key="card.label"
         class="group relative bg-white rounded-2xl border border-slate-200 p-5 hover:shadow-lg hover:border-slate-300 transition-all duration-200 hover:-translate-y-0.5">
         <div class="flex items-center justify-between mb-3">
@@ -50,72 +48,140 @@
       </div>
     </div>
 
-    <!-- Quick Actions + Info -->
+    <!-- Middle Row: Active Shifts + Pending Orders -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <!-- Quick Action Shortcuts -->
+
+      <!-- Active Shifts -->
       <div class="bg-white rounded-2xl border border-slate-200 p-5">
         <h3 class="font-semibold text-slate-900 mb-3 flex items-center gap-2">
-          <i class="pi pi-bolt text-amber-500"></i>
-          Aksi Cepat
+          <i class="pi pi-clock text-amber-500"></i>
+          Shift Aktif
         </h3>
-        <div class="grid grid-cols-3 gap-3">
-          <router-link v-for="action in quickActions" :key="action.to" :to="action.to"
-            class="flex flex-col items-center gap-2 p-4 rounded-xl transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
-            :class="action.bgClass">
-            <i :class="[action.icon, 'text-2xl', action.iconClass]"></i>
-            <span class="text-xs font-semibold" :class="action.textClass">{{ action.label }}</span>
+        <div v-if="data.active_shifts?.length === 0" class="text-center py-6">
+          <i class="pi pi-hourglass text-2xl text-slate-200 mb-2"></i>
+          <p class="text-sm text-slate-400">Belum ada shift aktif hari ini</p>
+          <router-link to="/shifts" class="mt-2 inline-block text-xs text-teal-600 hover:text-teal-700 font-medium">
+            Kelola Shift →
           </router-link>
+        </div>
+        <div v-else class="space-y-2">
+          <div v-for="shift in data.active_shifts" :key="shift.user_name"
+            class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+            <div class="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+              <i class="pi pi-user text-amber-600 text-sm"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-slate-900 truncate">{{ shift.user_name }}</p>
+              <p class="text-xs text-slate-400">{{ shift.outlet_name }} • mulai {{ shift.start_at }}</p>
+            </div>
+            <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              Aktif
+            </span>
+          </div>
         </div>
       </div>
 
-      <!-- Info Card -->
+      <!-- Pending Orders -->
       <div class="bg-white rounded-2xl border border-slate-200 p-5">
-        <h3 class="font-semibold text-slate-900 mb-3 flex items-center gap-2">
-          <i class="pi pi-info-circle text-blue-500"></i>
-          Informasi Sistem
-        </h3>
-        <div class="space-y-3">
-          <div v-for="info in systemInfo" :key="info.label"
-            class="flex items-center justify-between py-2" :class="info.border ? 'border-b border-slate-100' : ''">
-            <span class="text-sm text-slate-500">{{ info.label }}</span>
-            <span v-if="info.type === 'status'" class="inline-flex items-center gap-1.5 text-sm font-semibold" :class="info.class">
-              <span class="w-2 h-2 rounded-full" :class="info.dotClass"></span>
-              {{ info.value }}
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-semibold text-slate-900 flex items-center gap-2">
+            <i class="pi pi-exclamation-triangle text-amber-500"></i>
+            Pesanan Tertunda
+            <span v-if="data.pending_orders?.length > 0"
+              class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">
+              {{ data.pending_orders.length }}
             </span>
-            <span v-else class="text-sm font-semibold" :class="info.class">{{ info.value }}</span>
+          </h3>
+          <router-link to="/orders"
+            class="text-xs font-medium text-teal-600 hover:text-teal-700 transition flex items-center gap-1">
+            Lihat semua
+            <i class="pi pi-arrow-right text-[10px]"></i>
+          </router-link>
+        </div>
+        <div v-if="data.pending_orders?.length === 0" class="text-center py-6">
+          <i class="pi pi-check-circle text-2xl text-emerald-200 mb-2"></i>
+          <p class="text-sm text-slate-400">Semua pesanan sudah selesai</p>
+        </div>
+        <div v-else class="space-y-1">
+          <div v-for="order in data.pending_orders" :key="order.id"
+            class="flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-slate-50 transition cursor-pointer">
+            <div class="flex items-center gap-3">
+              <span class="text-sm font-semibold text-slate-900 w-14">#{{ order.id }}</span>
+              <Tag :value="pendingStatusLabel(order.status)" :severity="pendingStatusSeverity(order.status)" rounded />
+            </div>
+            <div class="flex items-center gap-4">
+              <span class="text-xs text-slate-500">{{ order.customer_name || '-' }}</span>
+              <span class="text-xs font-medium text-slate-700">{{ formatRupiah(order.grand_total) }}</span>
+              <span class="text-xs text-slate-400">{{ order.created_at }}</span>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Recent Orders -->
-    <div class="bg-white rounded-2xl border border-slate-200 p-5">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="font-semibold text-slate-900 flex items-center gap-2">
-          <i class="pi pi-clock text-slate-400"></i>
-          Pesanan Terbaru
+    <!-- Bottom Row: Top Menu Items + Recent Orders -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+      <!-- Top Menu Items -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-5">
+        <h3 class="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+          <i class="pi pi-star text-amber-400"></i>
+          Menu Terlaris Hari Ini
         </h3>
-        <router-link to="/orders"
-          class="text-xs font-medium text-teal-600 hover:text-teal-700 transition flex items-center gap-1">
-          Lihat semua
-          <i class="pi pi-arrow-right text-[10px]"></i>
-        </router-link>
-      </div>
-      <div v-if="recentOrders.length === 0" class="text-center py-6">
-        <i class="pi pi-inbox text-2xl text-slate-200 mb-2"></i>
-        <p class="text-sm text-slate-400">Belum ada pesanan hari ini</p>
-      </div>
-      <div v-else class="space-y-1">
-        <div v-for="order in recentOrders" :key="order.id"
-          class="flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-slate-50 transition cursor-pointer">
-          <div class="flex items-center gap-3">
-            <span class="text-sm font-semibold text-slate-900 w-14">#{{ order.id }}</span>
-            <Tag :value="statusLabel(order.status)" :severity="statusSeverity(order.status)" rounded />
+        <div v-if="data.top_products?.length === 0" class="text-center py-6">
+          <i class="pi pi-box text-2xl text-slate-200 mb-2"></i>
+          <p class="text-sm text-slate-400">Belum ada data penjualan hari ini</p>
+        </div>
+        <div v-else class="space-y-1.5">
+          <div v-for="(item, idx) in data.top_products" :key="item.product_name"
+            class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition">
+            <!-- Ranking badge -->
+            <div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"
+              :class="rankClass(idx)">
+              {{ idx + 1 }}
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-slate-900 truncate">{{ item.product_name }}</p>
+              <p class="text-xs text-slate-400">{{ formatRupiah(item.total_revenue) }}</p>
+            </div>
+            <div class="text-right shrink-0">
+              <p class="text-sm font-bold text-slate-900">{{ item.total_qty }}</p>
+              <p class="text-[10px] text-slate-400">terjual</p>
+            </div>
           </div>
-          <div class="flex items-center gap-4">
-            <span class="text-xs text-slate-500">{{ order.customer_name || '-' }}</span>
-            <span class="text-xs font-medium text-slate-700">{{ formatRupiah(order.grand_total) }}</span>
-            <span class="text-xs text-slate-400">{{ formatTime(order.created_at) }}</span>
+        </div>
+      </div>
+
+      <!-- Recent Orders -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-semibold text-slate-900 flex items-center gap-2">
+            <i class="pi pi-receipt text-slate-400"></i>
+            Pesanan Terbaru
+          </h3>
+          <router-link to="/orders"
+            class="text-xs font-medium text-teal-600 hover:text-teal-700 transition flex items-center gap-1">
+            Lihat semua
+            <i class="pi pi-arrow-right text-[10px]"></i>
+          </router-link>
+        </div>
+        <div v-if="data.recent_orders?.length === 0" class="text-center py-6">
+          <i class="pi pi-inbox text-2xl text-slate-200 mb-2"></i>
+          <p class="text-sm text-slate-400">Belum ada pesanan hari ini</p>
+        </div>
+        <div v-else class="space-y-1">
+          <div v-for="order in data.recent_orders" :key="order.id"
+            class="flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-slate-50 transition cursor-pointer">
+            <div class="flex items-center gap-3">
+              <span class="text-sm font-semibold text-slate-900 w-14">#{{ order.id }}</span>
+              <Tag :value="statusLabel(order.status)" :severity="statusSeverity(order.status)" rounded />
+            </div>
+            <div class="flex items-center gap-4">
+              <span class="text-xs text-slate-500">{{ order.customer_name || '-' }}</span>
+              <span class="text-xs font-medium text-slate-700">{{ formatRupiah(order.grand_total) }}</span>
+              <span class="text-xs text-slate-400">{{ formatTime(order.created_at) }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -146,11 +212,13 @@ const data = ref({
     hpp: 0,
     gross_profit: 0,
     gross_margin: 0,
+    avg_order_value: 0,
   },
+  active_shifts: [],
+  pending_orders: [],
+  top_products: [],
   recent_orders: [],
 })
-
-const recentOrders = computed(() => data.value.recent_orders)
 
 // ── Stat Cards ──
 const statCards = computed(() => {
@@ -179,14 +247,14 @@ const statCards = computed(() => {
       trendClass: 'text-slate-500',
     },
     {
-      label: 'Outlet Aktif',
-      value: String(s.outlets || 0),
-      icon: 'pi pi-building',
+      label: 'Rata-rata Transaksi',
+      value: formatRupiah(s.avg_order_value),
+      icon: 'pi pi-chart-bar',
       iconClass: 'text-violet-600',
       bgClass: 'bg-violet-100',
       labelClass: 'text-violet-600',
-      trend: s.products > 0 ? s.products + ' produk' : 'Semua outlet',
-      trendIcon: 'pi pi-database',
+      trend: 'Per pesanan',
+      trendIcon: 'pi pi-calculator',
       trendClass: 'text-slate-500',
     },
     {
@@ -203,33 +271,7 @@ const statCards = computed(() => {
   ]
 })
 
-// ── Quick Actions ──
-const quickActions = [
-  { to: '/orders', label: 'Pesanan', icon: 'pi pi-receipt', iconClass: 'text-blue-600', textClass: 'text-blue-700', bgClass: 'bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-200/60 hover:from-blue-100 hover:to-blue-200/50' },
-  { to: '/shifts', label: 'Shift', icon: 'pi pi-clock', iconClass: 'text-amber-600', textClass: 'text-amber-700', bgClass: 'bg-gradient-to-br from-amber-50 to-amber-100/50 border border-amber-200/60 hover:from-amber-100 hover:to-amber-200/50' },
-  { to: '/menu', label: 'Menu', icon: 'pi pi-list', iconClass: 'text-emerald-600', textClass: 'text-emerald-700', bgClass: 'bg-gradient-to-br from-emerald-50 to-emerald-100/50 border border-emerald-200/60 hover:from-emerald-100 hover:to-emerald-200/50' },
-  { to: '/users', label: 'Pengguna', icon: 'pi pi-users', iconClass: 'text-violet-600', textClass: 'text-violet-700', bgClass: 'bg-gradient-to-br from-violet-50 to-violet-100/50 border border-violet-200/60 hover:from-violet-100 hover:to-violet-200/50' },
-  { to: '/report', label: 'Laporan', icon: 'pi pi-chart-bar', iconClass: 'text-purple-600', textClass: 'text-purple-700', bgClass: 'bg-gradient-to-br from-purple-50 to-purple-100/50 border border-purple-200/60 hover:from-purple-100 hover:to-purple-200/50' },
-  { to: '/withdraw', label: 'Penarikan', icon: 'pi pi-credit-card', iconClass: 'text-teal-600', textClass: 'text-teal-700', bgClass: 'bg-gradient-to-br from-teal-50 to-teal-100/50 border border-teal-200/60 hover:from-teal-100 hover:to-teal-200/50' },
-]
-
-// ── System Info ──
-const systemInfo = computed(() => {
-  const s = data.value.summary
-  return [
-    { label: 'Outlet', value: String(s.outlets), class: 'text-slate-900', border: true },
-    { label: 'Total Produk', value: String(s.products), class: 'text-slate-900', border: true },
-    { label: 'Pesanan Hari Ini', value: String(s.total_transactions), class: 'text-slate-900', border: true },
-    { label: 'Penjualan', value: formatRupiah(s.gross_sales), class: 'text-teal-600 font-bold', border: true },
-    { label: 'Laba', value: formatRupiah(s.gross_profit), class: s.gross_profit >= 0 ? 'text-emerald-600 font-bold' : 'text-red-600 font-bold', border: true },
-    { label: 'Versi Aplikasi', value: '1.0.0', class: 'text-slate-900', border: true },
-    { label: 'Status', value: 'Online', type: 'status', dotClass: 'bg-emerald-500 animate-pulse', class: 'text-emerald-600', border: false },
-  ]
-})
-
 // ── Helpers ──
-
-
 function statusLabel(s) {
   const map = { draft: 'Draft', confirmed: 'Baru', preparing: 'Dimasak', done: 'Selesai', cancelled: 'Batal', voided: 'Void' }
   return map[s] || s
@@ -238,6 +280,23 @@ function statusLabel(s) {
 function statusSeverity(s) {
   const map = { draft: 'info', confirmed: 'warn', preparing: 'warn', done: 'success', cancelled: 'danger', voided: 'danger' }
   return map[s] || 'info'
+}
+
+function pendingStatusLabel(s) {
+  const map = { confirmed: 'Baru', preparing: 'Dimasak' }
+  return map[s] || s
+}
+
+function pendingStatusSeverity(s) {
+  const map = { confirmed: 'warn', preparing: 'info' }
+  return map[s] || 'info'
+}
+
+function rankClass(idx) {
+  if (idx === 0) return 'bg-amber-100 text-amber-700'
+  if (idx === 1) return 'bg-slate-100 text-slate-600'
+  if (idx === 2) return 'bg-orange-100 text-orange-700'
+  return 'bg-slate-50 text-slate-400'
 }
 
 function formatTime(dateStr) {
@@ -259,8 +318,9 @@ async function fetchData() {
     if (res.success && res.data) {
       data.value = res.data
     }
-  } catch (_) {}
-  finally {
+  } catch (_) {
+    // Tetap pakai data default klo error
+  } finally {
     loading.value = false
     initialLoading.value = false
     updateTimestamp()

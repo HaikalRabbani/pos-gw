@@ -15,10 +15,21 @@ class OrderController extends Controller
 
     public function index(Request $request)
     {
-        $request->validate(['outlet_id' => 'required|exists:outlets,id']);
+        $request->validate([
+            'outlet_id' => 'required|exists:outlets,id',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+        ]);
 
         $query = Order::with('items', 'payments')
             ->where('outlet_id', $request->outlet_id);
+
+        if ($request->start_date && $request->end_date) {
+            $query->whereBetween('created_at', [
+                $request->start_date . ' 00:00:00',
+                $request->end_date . ' 23:59:59',
+            ]);
+        }
 
         if ($request->status) {
             $query->where('status', $request->status);

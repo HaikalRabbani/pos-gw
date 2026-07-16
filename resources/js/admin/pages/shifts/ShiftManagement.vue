@@ -3,7 +3,7 @@
     <!-- Header -->
     <div>
       <h1 class="text-2xl font-bold text-slate-900">Shift & Jadwal</h1>
-      <p class="text-sm text-slate-500 mt-1">Kelola shift, jadwal karyawan, dan laporan rekonsiliasi kas</p>
+      <p class="text-sm text-slate-500 mt-1">Kelola jenis shift dan jadwal karyawan</p>
     </div>
 
     <!-- Tabs -->
@@ -11,7 +11,7 @@
       <TabList>
         <Tab value="0"><i class="pi pi-cog mr-1.5"></i>Master Shift</Tab>
         <Tab value="1"><i class="pi pi-calendar mr-1.5"></i>Penjadwalan</Tab>
-        <Tab value="2"><i class="pi pi-chart-bar mr-1.5"></i>Laporan</Tab>
+
       </TabList>
 
       <TabPanels>
@@ -172,130 +172,6 @@
           </div>
         </TabPanel>
 
-        <!-- ════════════════════════ TAB 3: LAPORAN SHIFT ════════════════════════ -->
-        <TabPanel value="2">
-          <div class="space-y-4">
-            <!-- Active Shift Info -->
-            <div v-if="activeShift"
-              class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-800 via-emerald-900 to-emerald-950 p-5">
-              <div class="absolute top-0 right-0 w-48 h-48 bg-emerald-400/10 rounded-full -translate-y-1/2 translate-x-1/4 blur-3xl"></div>
-              <div class="relative z-10 flex items-start gap-4">
-                <div class="w-10 h-10 rounded-xl bg-emerald-700/50 flex items-center justify-center shrink-0 mt-0.5">
-                  <i class="pi pi-user text-emerald-200 text-lg"></i>
-                </div>
-                <div class="flex-1">
-                  <div class="flex items-center gap-2 mb-1">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span class="text-[10px] font-semibold uppercase tracking-wider text-emerald-300">Shift Aktif</span>
-                  </div>
-                  <p class="text-lg font-bold text-white">{{ activeShift.user?.name }}</p>
-                  <div class="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-emerald-200/80">
-                    <span><i class="pi pi-clock mr-1"></i>Mulai: {{ formatDateTime(activeShift.start_at) }}</span>
-                    <span><i class="pi pi-money-bill mr-1"></i>Kas Awal: {{ formatRupiah(activeShift.cash_begin) }}</span>
-                  </div>
-                </div>
-                <Tag value="Aktif" severity="success" rounded class="shrink-0" />
-              </div>
-            </div>
-
-            <!-- Summary Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div class="bg-white rounded-2xl border border-slate-200 p-4">
-                <div class="flex items-center gap-2 mb-1">
-                  <div class="w-8 h-8 rounded-xl bg-blue-100 flex items-center justify-center">
-                    <i class="pi pi-calendar text-blue-600 text-sm"></i>
-                  </div>
-                  <span class="text-[10px] font-semibold uppercase tracking-wider text-blue-600">Total Shift</span>
-                </div>
-                <p class="text-xl font-bold text-slate-900">{{ totalShifts }}</p>
-              </div>
-              <div class="bg-white rounded-2xl border border-slate-200 p-4">
-                <div class="flex items-center gap-2 mb-1">
-                  <div class="w-8 h-8 rounded-xl bg-emerald-100 flex items-center justify-center">
-                    <i class="pi pi-check-circle text-emerald-600 text-sm"></i>
-                  </div>
-                  <span class="text-[10px] font-semibold uppercase tracking-wider text-emerald-600">Selesai</span>
-                </div>
-                <p class="text-xl font-bold text-slate-900">{{ completedShifts }}</p>
-              </div>
-              <div class="bg-white rounded-2xl border border-slate-200 p-4">
-                <div class="flex items-center gap-2 mb-1">
-                  <div class="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center">
-                    <i class="pi pi-exclamation-triangle text-amber-600 text-sm"></i>
-                  </div>
-                  <span class="text-[10px] font-semibold uppercase tracking-wider text-amber-600">Selisih Kas</span>
-                </div>
-                <p class="text-xl font-bold text-slate-900">{{ formatRupiah(totalCashDiff) }}</p>
-              </div>
-            </div>
-
-            <!-- Shift History -->
-            <div v-if="reportLoading" class="animate-pulse space-y-2">
-              <div class="h-10 bg-slate-200 rounded-lg"></div>
-              <div class="h-10 bg-slate-100 rounded-lg"></div>
-            </div>
-
-            <DataTable v-else :value="shifts" paginator :rows="10" stripedRows size="small" class="text-sm"
-              paginatorTemplate="CurrentPageReport PrevPageLink NextPageLink"
-              currentPageReportTemplate="Halaman {currentPage} dari {totalPages}">
-              <template #empty>
-                <div class="flex flex-col items-center justify-center py-12 text-center">
-                  <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mb-3">
-                    <i class="pi pi-history text-2xl text-slate-300"></i>
-                  </div>
-                  <p class="text-slate-500 font-medium">Belum ada riwayat shift</p>
-                  <p class="text-slate-400 text-xs mt-1">Riwayat akan muncul setelah kasir memulai shift</p>
-                </div>
-              </template>
-              <Column header="No." style="width: 50px">
-                <template #body="{ index }">
-                  <span class="text-slate-400 text-xs font-mono">{{ index + 1 }}</span>
-                </template>
-              </Column>
-              <Column field="start_at" header="Tanggal" sortable>
-                <template #body="{ data }">
-                  <span class="text-slate-900 font-medium">{{ formatDate(data.start_at) }}</span>
-                </template>
-              </Column>
-              <Column field="user.name" header="Kasir" sortable />
-              <Column field="start_at" header="Mulai">
-                <template #body="{ data }">{{ formatTime(data.start_at) }}</template>
-              </Column>
-              <Column field="end_at" header="Selesai">
-                <template #body="{ data }">{{ data.end_at ? formatTime(data.end_at) : '-' }}</template>
-              </Column>
-              <Column field="cash_begin" header="Kas Awal">
-                <template #body="{ data }"><span class="font-medium">{{ formatRupiah(data.cash_begin) }}</span></template>
-              </Column>
-              <Column field="cash_expected" header="Kas Harapan">
-                <template #body="{ data }">
-                  <span class="font-medium">{{ data.cash_expected !== null ? formatRupiah(data.cash_expected) : '-' }}</span>
-                </template>
-              </Column>
-              <Column field="cash_actual" header="Kas Aktual">
-                <template #body="{ data }">
-                  <span class="font-medium">{{ data.cash_actual !== null ? formatRupiah(data.cash_actual) : '-' }}</span>
-                </template>
-              </Column>
-              <Column field="cash_diff" header="Selisih">
-                <template #body="{ data }">
-                  <span v-if="data.cash_diff !== null" class="font-semibold"
-                    :class="data.cash_diff === 0 ? 'text-slate-700' : data.cash_diff > 0 ? 'text-emerald-600' : 'text-red-600'">
-                    {{ data.cash_diff > 0 ? '+' : '' }}{{ formatRupiah(data.cash_diff) }}
-                  </span>
-                  <span v-else class="text-slate-300">—</span>
-                </template>
-              </Column>
-              <Column field="note" header="Catatan" />
-              <Column field="end_at" header="Status">
-                <template #body="{ data }">
-                  <Tag :value="data.end_at ? 'Selesai' : 'Aktif'"
-                    :severity="data.end_at ? 'success' : 'info'" rounded />
-                </template>
-              </Column>
-            </DataTable>
-          </div>
-        </TabPanel>
       </TabPanels>
     </Tabs>
 
@@ -513,12 +389,6 @@ const dayDialog = ref(false)
 const dayDialogDate = ref('')
 const daySchedules = ref([])
 
-const scheduleStatusOptions = [
-  { label: 'Terjadwal', value: 'scheduled' },
-  { label: 'Dikonfirmasi', value: 'confirmed' },
-  { label: 'Absen', value: 'absent' },
-]
-
 // Calendar days computed
 const calendarDays = computed(() => {
   const firstDay = new Date(calYear.value, calMonth.value - 1, 1)
@@ -578,14 +448,6 @@ const calendarDays = computed(() => {
   return cells
 })
 
-// ────── Tab 3: Shift Reports ──────
-const shifts = ref([])
-const activeShift = ref(null)
-const reportLoading = ref(false)
-const totalShifts = ref(0)
-const completedShifts = ref(0)
-const totalCashDiff = ref(0)
-
 // ────── Delete ──────
 const deleteDialog = ref(false)
 const deletingItem = ref(null)
@@ -613,11 +475,6 @@ function formatTime(dateStr) {
   if (!dateStr) return '-'
   const d = new Date(dateStr)
   return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-}
-
-function formatDateTime(dateStr) {
-  if (!dateStr) return '-'
-  return formatDate(dateStr) + ' ' + formatTime(dateStr)
 }
 
 // ────── Shared Fetch ──────
@@ -788,22 +645,6 @@ async function processGenerate() {
   } finally { genLoading.value = false }
 }
 
-// ────── Tab 3: Shift Reports ──────
-async function fetchShiftReports() {
-  if (!selectedOutletId.value) return
-  reportLoading.value = true
-  try {
-    const { data } = await client.get('/shifts', { params: { outlet_id: selectedOutletId.value, per_page: 50 } })
-    shifts.value = data.data || []
-    activeShift.value = shifts.value.find(s => !s.end_at) || null
-    totalShifts.value = data.meta?.total || 0
-    const completed = shifts.value.filter(s => s.end_at)
-    completedShifts.value = completed.length
-    totalCashDiff.value = completed.reduce((sum, s) => sum + (s.cash_diff || 0), 0)
-  } catch (_) {}
-  finally { reportLoading.value = false }
-}
-
 // ────── Delete ──────
 async function executeDelete() {
   deleting.value = true
@@ -827,8 +668,8 @@ onMounted(async () => {
   if (selectedOutletId.value) {
     fetchShiftTypes()
     fetchSchedules()
-    fetchShiftReports()
   }
   fetchUsers()
-})
+}
+)
 </script>

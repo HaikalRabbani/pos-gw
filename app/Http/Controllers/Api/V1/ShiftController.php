@@ -15,12 +15,23 @@ class ShiftController extends Controller
 
     public function index(Request $request)
     {
-        $request->validate(['outlet_id' => 'required|exists:outlets,id']);
+        $request->validate([
+            'outlet_id' => 'required|exists:outlets,id',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+        ]);
 
-        $shifts = Shift::with('user')
-            ->where('outlet_id', $request->outlet_id)
-            ->latest()
-            ->paginate($request->per_page ?? 20);
+        $shifts = Shift::with('user', 'outlet')
+            ->where('outlet_id', $request->outlet_id);
+
+        if ($request->start_date && $request->end_date) {
+            $shifts->whereBetween('created_at', [
+                $request->start_date . ' 00:00:00',
+                $request->end_date . ' 23:59:59',
+            ]);
+        }
+
+        $shifts = $shifts->latest()->paginate($request->per_page ?? 20);
 
         return response()->json([
             'success' => true,

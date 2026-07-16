@@ -237,9 +237,10 @@ const menuGroups = [
     ],
   },
   {
-    title: 'Shift & Jadwal',
+    title: 'Laporan',
     items: [
-      { path: '/shifts', label: 'Shift', icon: 'pi pi-clock' },
+      { path: '/report/financial', label: 'Keuangan', icon: 'pi pi-chart-bar' },
+      { path: '/report/shift', label: 'Shift', icon: 'pi pi-clock' },
     ],
   },
   {
@@ -252,10 +253,9 @@ const menuGroups = [
     ],
   },
   {
-    title: 'Pengaturan',
+    title: 'Shift & Jadwal',
     items: [
-      { path: '/users', label: 'Pengguna', icon: 'pi pi-users' },
-      { path: '/outlets', label: 'Outlet', icon: 'pi pi-building' },
+      { path: '/shifts', label: 'Shift', icon: 'pi pi-clock' },
     ],
   },
   {
@@ -265,9 +265,10 @@ const menuGroups = [
     ],
   },
   {
-    title: 'Laporan',
+    title: 'Pengaturan',
     items: [
-      { path: '/report', label: 'Laporan', icon: 'pi pi-chart-bar' },
+      { path: '/users', label: 'Pengguna', icon: 'pi pi-users' },
+      { path: '/outlets', label: 'Outlet', icon: 'pi pi-building' },
     ],
   },
 ]
@@ -322,7 +323,8 @@ const pageTitles = {
   '/users': 'Manajemen Pengguna',
   '/outlets': 'Manajemen Outlet',
   '/shifts': 'Shift & Jadwal',
-  '/report': 'Laporan',
+  '/report/financial': 'Laporan Keuangan',
+  '/report/shift': 'Laporan Shift',
   '/withdraw': 'Penarikan Saldo',
   '/profile': 'Pengaturan Profil',
 }
