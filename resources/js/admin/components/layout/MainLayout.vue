@@ -240,7 +240,7 @@ const menuGroups = [
     title: 'Laporan',
     items: [
       { path: '/report/financial', label: 'Keuangan', icon: 'pi pi-chart-bar' },
-      { path: '/report/shift', label: 'Shift', icon: 'pi pi-clock' },
+      { path: '/report/shift', label: 'Shift', icon: 'pi pi-history' },
     ],
   },
   {
@@ -255,7 +255,7 @@ const menuGroups = [
   {
     title: 'Shift & Jadwal',
     items: [
-      { path: '/shifts', label: 'Shift', icon: 'pi pi-clock' },
+      { path: '/shifts', label: 'Atur Shift', icon: 'pi pi-calendar-clock' },
     ],
   },
   {

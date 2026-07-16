@@ -291,12 +291,17 @@ class ReportController extends Controller
         $html .= 'Dicetak: ' . now()->format('d/m/Y H:i') . ' — POS Admin';
         $html .= '</div>';
 
+        $html .= '<script>window.onafterprint=()=>window.close();setTimeout(()=>window.print(),500)</script>';
         $html .= '</body></html>';
 
         return response($html, 200, [
             'Content-Type' => 'text/html',
         ]);
     }
+
+    /**
+     * Export shift report as CSV (opens in Excel).
+     */
 
     /**
      * Export shift report as CSV (opens in Excel).
@@ -466,6 +471,7 @@ class ReportController extends Controller
         $html .= 'Dicetak: ' . now()->format('d/m/Y H:i') . ' — POS Admin';
         $html .= '</div>';
 
+        $html .= '<script>window.onafterprint=()=>window.close();setTimeout(()=>window.print(),500)</script>';
         $html .= '</body></html>';
 
         return response($html, 200, ['Content-Type' => 'text/html']);

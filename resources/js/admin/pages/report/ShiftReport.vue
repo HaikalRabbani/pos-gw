@@ -51,68 +51,133 @@
         </div>
       </div>
 
-      <!-- Shift Table -->
+      <!-- Tab View: Riwayat / Audit -->
       <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-        <div class="p-5 border-b border-slate-100 flex items-center justify-between">
-          <h3 class="font-semibold text-slate-900 flex items-center gap-2">
-            <i class="pi pi-history text-slate-400"></i>
-            Riwayat Shift
-          </h3>
-        </div>
-        <DataTable :value="shifts" stripedRows size="small" class="text-sm">
-          <template #empty>
-            <div class="flex flex-col items-center justify-center py-16 text-center">
-              <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
-                <i class="pi pi-clock text-2xl text-slate-300"></i>
-              </div>
-              <p class="text-slate-500 font-medium">Belum ada data shift</p>
-              <p class="text-slate-400 text-xs mt-1">Data akan muncul setelah ada shift yang dimulai</p>
+        <div class="p-5 border-b border-slate-100">
+          <div class="flex items-center justify-between">
+            <div class="flex gap-1 bg-slate-100 rounded-lg p-0.5">
+              <Button :label="'Riwayat Shift'" :severity="tab === 'riwayat' ? 'primary' : 'secondary'" size="small" @click="tab = 'riwayat'" />
+              <Button :label="'Audit Karyawan'" :severity="tab === 'audit' ? 'primary' : 'secondary'" size="small" @click="tab = 'audit'" />
             </div>
-          </template>
-          <Column header="Karyawan">
-            <template #body="{ data }">
-              <span class="font-medium text-slate-900">{{ data.user?.name || '-' }}</span>
+          </div>
+        </div>
+
+        <!-- Riwayat Shift -->
+        <template v-if="tab === 'riwayat'">
+          <DataTable :value="shifts" stripedRows size="small" class="text-sm">
+            <template #empty>
+              <div class="flex flex-col items-center justify-center py-16 text-center">
+                <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
+                  <i class="pi pi-clock text-2xl text-slate-300"></i>
+                </div>
+                <p class="text-slate-500 font-medium">Belum ada data shift</p>
+                <p class="text-slate-400 text-xs mt-1">Data akan muncul setelah ada shift yang dimulai</p>
+              </div>
             </template>
-          </Column>
-          <Column header="Outlet">
-            <template #body="{ data }">
-              <span class="text-slate-600">{{ data.outlet?.name || '-' }}</span>
+            <Column header="Karyawan">
+              <template #body="{ data }">
+                <span class="font-medium text-slate-900">{{ data.user?.name || '-' }}</span>
+              </template>
+            </Column>
+            <Column header="Outlet">
+              <template #body="{ data }">
+                <span class="text-slate-600">{{ data.outlet?.name || '-' }}</span>
+              </template>
+            </Column>
+            <Column field="start_at" header="Mulai">
+              <template #body="{ data }">
+                <span class="text-slate-600">{{ formatDate(data.start_at) }}</span>
+              </template>
+            </Column>
+            <Column field="end_at" header="Selesai">
+              <template #body="{ data }">
+                <span v-if="data.end_at" class="text-slate-600">{{ formatDate(data.end_at) }}</span>
+                <Tag v-else value="Aktif" severity="success" rounded />
+              </template>
+            </Column>
+            <Column header="Durasi">
+              <template #body="{ data }">
+                <span class="text-slate-600">{{ formatDuration(data.start_at, data.end_at) }}</span>
+              </template>
+            </Column>
+            <Column field="cash_begin" header="Kas Awal">
+              <template #body="{ data }">
+                <span class="font-medium">{{ formatRupiah(data.cash_begin) }}</span>
+              </template>
+            </Column>
+            <Column field="cash_expected" header="Kas Diharapkan">
+              <template #body="{ data }">
+                <span class="font-medium">{{ formatRupiah(data.cash_expected) }}</span>
+              </template>
+            </Column>
+            <Column field="cash_actual" header="Kas Aktual">
+              <template #body="{ data }">
+                <span class="font-medium">{{ formatRupiah(data.cash_actual) }}</span>
+              </template>
+            </Column>
+            <Column field="cash_diff" header="Selisih">
+              <template #body="{ data }">
+                <span class="font-semibold" :class="diffClass(data.cash_diff)">
+                  {{ formatRupiah(data.cash_diff) }}
+                </span>
+              </template>
+            </Column>
+          </DataTable>
+        </template>
+
+        <!-- Audit Karyawan -->
+        <template v-if="tab === 'audit'">
+          <DataTable :value="auditData" stripedRows size="small" class="text-sm">
+            <template #empty>
+              <div class="flex flex-col items-center justify-center py-16 text-center">
+                <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
+                  <i class="pi pi-users text-2xl text-slate-300"></i>
+                </div>
+                <p class="text-slate-500 font-medium">Belum ada data shift</p>
+                <p class="text-slate-400 text-xs mt-1">Data akan muncul setelah ada shift yang dimulai</p>
+              </div>
             </template>
-          </Column>
-          <Column field="start_at" header="Mulai">
-            <template #body="{ data }">
-              <span class="text-slate-600">{{ formatDate(data.start_at) }}</span>
-            </template>
-          </Column>
-          <Column field="end_at" header="Selesai">
-            <template #body="{ data }">
-              <span v-if="data.end_at" class="text-slate-600">{{ formatDate(data.end_at) }}</span>
-              <Tag v-else value="Aktif" severity="success" rounded />
-            </template>
-          </Column>
-          <Column field="cash_begin" header="Kas Awal">
-            <template #body="{ data }">
-              <span class="font-medium">{{ formatRupiah(data.cash_begin) }}</span>
-            </template>
-          </Column>
-          <Column field="cash_expected" header="Kas Diharapkan">
-            <template #body="{ data }">
-              <span class="font-medium">{{ formatRupiah(data.cash_expected) }}</span>
-            </template>
-          </Column>
-          <Column field="cash_actual" header="Kas Aktual">
-            <template #body="{ data }">
-              <span class="font-medium">{{ formatRupiah(data.cash_actual) }}</span>
-            </template>
-          </Column>
-          <Column field="cash_diff" header="Selisih">
-            <template #body="{ data }">
-              <span class="font-semibold" :class="diffClass(data.cash_diff)">
-                {{ formatRupiah(data.cash_diff) }}
-              </span>
-            </template>
-          </Column>
-        </DataTable>
+            <Column header="Karyawan">
+              <template #body="{ data }">
+                <span class="font-medium text-slate-900">{{ data.name }}</span>
+              </template>
+            </Column>
+            <Column field="total_shifts" header="Shift" class="text-center" />
+            <Column field="total_jam" header="Total Jam" class="text-center" />
+            <Column field="rata_jam" header="Rata/shift" class="text-center" />
+            <Column field="total_cash_begin" header="Kas Awal">
+              <template #body="{ data }">
+                <span class="font-medium">{{ formatRupiah(data.total_cash_begin) }}</span>
+              </template>
+            </Column>
+            <Column field="total_cash_expected" header="Kas Diharapkan">
+              <template #body="{ data }">
+                <span class="font-medium">{{ formatRupiah(data.total_cash_expected) }}</span>
+              </template>
+            </Column>
+            <Column field="total_cash_actual" header="Kas Aktual">
+              <template #body="{ data }">
+                <span class="font-medium">{{ formatRupiah(data.total_cash_actual) }}</span>
+              </template>
+            </Column>
+            <Column field="total_cash_diff" header="Selisih">
+              <template #body="{ data }">
+                <span class="font-semibold" :class="diffClass(data.total_cash_diff)">
+                  {{ formatRupiah(data.total_cash_diff) }}
+                </span>
+              </template>
+            </Column>
+            <Column header="Shift ±">
+              <template #body="{ data }">
+                <div class="flex gap-2 justify-center">
+                  <Tag v-if="data.plus_count > 0" :value="'+' + data.plus_count" severity="success" rounded />
+                  <Tag v-if="data.minus_count > 0" :value="'-' + data.minus_count" severity="danger" rounded />
+                  <span v-if="data.plus_count === 0 && data.minus_count === 0" class="text-slate-400 text-xs">—</span>
+                </div>
+              </template>
+            </Column>
+          </DataTable>
+        </template>
       </div>
     </template>
   </div>
@@ -134,6 +199,7 @@ import Button from 'primevue/button'
 const auth = useAuthStore()
 const toast = useToastStore()
 const loading = ref(true)
+const tab = ref('riwayat')
 const dateRange = ref(null)
 const outletId = ref(null)
 const outlets = ref([])
@@ -210,6 +276,58 @@ function formatDate(dateStr) {
   const d = new Date(dateStr)
   return d.toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })
 }
+
+function formatDuration(start, end) {
+  if (!start || !end) return '-'
+  const ms = new Date(end) - new Date(start)
+  if (ms <= 0) return '-'
+  const jam = Math.floor(ms / 3600000)
+  const menit = Math.floor((ms % 3600000) / 60000)
+  return jam + 'j ' + menit + 'm'
+}
+
+// ── Audit Karyawan (grup per user) ──
+const auditData = computed(() => {
+  const map = {}
+  for (const s of shifts.value) {
+    const uid = s.user?.id || 0
+    if (!map[uid]) {
+      map[uid] = {
+        user_id: uid,
+        name: s.user?.name || '(dihapus)',
+        total_shifts: 0,
+        total_ms: 0,
+        completed_shifts: 0,
+        total_cash_begin: 0,
+        total_cash_expected: 0,
+        total_cash_actual: 0,
+        total_cash_diff: 0,
+        plus_count: 0,
+        minus_count: 0,
+      }
+    }
+    const a = map[uid]
+    a.total_shifts++
+    a.total_cash_begin += s.cash_begin || 0
+    a.total_cash_expected += s.cash_expected || 0
+    a.total_cash_actual += s.cash_actual || 0
+    a.total_cash_diff += s.cash_diff || 0
+    if (s.end_at) {
+      a.completed_shifts++
+      a.total_ms += new Date(s.end_at) - new Date(s.start_at)
+    }
+    if (s.cash_diff > 0) a.plus_count++
+    if (s.cash_diff < 0) a.minus_count++
+  }
+
+  return Object.values(map).map(a => ({
+    ...a,
+    total_jam: a.total_ms > 0 ? Math.round(a.total_ms / 3600000 * 10) / 10 + 'j' : '-',
+    rata_jam: a.total_ms > 0 && a.completed_shifts > 0
+      ? Math.round(a.total_ms / a.completed_shifts / 3600000 * 10) / 10 + 'j'
+      : '-',
+  }))
+})
 
 // ── Fetch ──
 async function fetchData() {
