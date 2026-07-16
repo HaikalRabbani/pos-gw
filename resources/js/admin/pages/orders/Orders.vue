@@ -397,6 +397,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { usePermission } from '../../utils/usePermission'
 import { formatRupiah } from '../../utils/format'
+import { useToastStore } from '../../stores/toast'
 import client from '../../api/client'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -413,6 +414,7 @@ import TabPanels from 'primevue/tabpanels'
 import TabPanel from 'primevue/tabpanel'
 
 const perm = usePermission()
+const toast = useToastStore()
 
 const loading = ref(true)
 const orders = ref([])
@@ -526,17 +528,17 @@ async function processRefund() {
       items.push({ order_item_id: item.id, qty })
     }
   }
-  if (items.length === 0) { alert('Pilih minimal 1 item untuk di-refund'); return }
+  if (items.length === 0) { toast.warning('Refund', 'Pilih minimal 1 item untuk di-refund'); return }
 
   refundLoading.value = true
   try {
     await client.post(`/orders/${selectedOrder.value.id}/refund`, { items, reason: refundReason.value })
-    alert('Refund berhasil')
+    toast.success('Refund Berhasil', 'Item berhasil di-refund')
     dialogVisible.value = false
     await fetchOrders()
   } catch (err) {
     const msg = err.response?.data?.message || err.response?.data?.errors?.items?.[0] || 'Gagal refund'
-    alert(msg)
+    toast.error('Refund Gagal', msg)
   } finally { refundLoading.value = false }
 }
 
@@ -545,11 +547,11 @@ async function voidOrder() {
   voidLoading.value = true
   try {
     await client.put(`/orders/${selectedOrder.value.id}/status`, { status: 'voided' })
-    alert('Pesanan telah di-void')
+    toast.success('Void Berhasil', 'Pesanan telah di-void')
     dialogVisible.value = false
     await fetchOrders()
   } catch (err) {
-    alert(err.response?.data?.message || 'Gagal void')
+    toast.error('Void Gagal', err.response?.data?.message || 'Gagal void')
   } finally { voidLoading.value = false }
 }
 
@@ -635,12 +637,12 @@ async function processSplit() {
 
     const { data } = await client.post(`/orders/${selectedOrder.value.id}/split`, { splits })
     const count = data.data.length
-    alert(`Split berhasil! ${count} tagihan baru dibuat.`)
+    toast.success('Split Berhasil', `${count} tagihan baru dibuat`)
     dialogVisible.value = false
     await fetchOrders()
   } catch (err) {
     const msg = err.response?.data?.message || err.response?.data?.errors?.splits?.[0] || 'Gagal split'
-    alert(msg)
+    toast.error('Split Gagal', msg)
   } finally {
     splitSaving.value = false
   }
@@ -680,13 +682,12 @@ async function processMerge() {
       order_ids: selectedOrderIds.value,
       customer_name: mergeCustomerName.value || null,
     })
-    alert(`Merge berhasil! Pesanan #${data.data.id} dibuat.`)
-    mergeDialogVisible.value = false
+    toast.success('Merge Berhasil', `Pesanan #${data.data.id} dibuat`)
     selectedOrders.value = []
     await fetchOrders()
   } catch (err) {
     const msg = err.response?.data?.message || err.response?.data?.errors?.orders?.[0] || 'Gagal merge'
-    alert(msg)  }
+    toast.error('Merge Gagal', msg)  }
   finally {
     mergeSaving.value = false
     selectedOrders.value = []
@@ -787,7 +788,7 @@ async function openDetail(order) {
     }
     orderTab.value = '0'
     dialogVisible.value = true
-  } catch (_) { alert('Gagal memuat detail pesanan') }
+  } catch (_) { toast.error('Gagal', 'Gagal memuat detail pesanan') }
 }
 
 // --- Seed Test Data ---
@@ -796,14 +797,14 @@ async function seedTestOrder() {
   try {
     const { data: outletRes } = await client.get('/outlets')
     const outlet = outletRes.data[0]
-    if (!outlet) { alert('Tidak ada outlet. Buat outlet dulu!'); return }
+    if (!outlet) { toast.warning('Sample Order', 'Tidak ada outlet. Buat outlet dulu!'); return }
 
     const { data: prodRes } = await client.get('/products', {
       params: { outlet_id: outlet.id }
     })
     const products = prodRes.data
     if (products.length < 2) {
-      alert('Butuh minimal 2 produk. Tambah menu dulu!')
+      toast.warning('Sample Order', 'Butuh minimal 2 produk. Tambah menu dulu!')
       return
     }
 
@@ -836,11 +837,11 @@ async function seedTestOrder() {
       await client.put(`/orders/${order.id}/status`, { status: 'confirmed' })
     }
 
-    alert(`✅ Sample order #${order.id} berhasil dibuat dengan ${selected.length} item!`)
+    toast.success('Sample Order', `Order #${order.id} berhasil dibuat dengan ${selected.length} item`)
     await fetchOrders()
   } catch (err) {
     const msg = err.response?.data?.message || err.message || 'Gagal buat sample'
-    alert('Gagal: ' + msg)
+    toast.error('Sample Gagal', msg)
   } finally {
     seeding.value = false
   }

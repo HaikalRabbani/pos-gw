@@ -63,11 +63,13 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
+import { useToastStore } from '../../stores/toast'
 import InputMask from 'primevue/inputmask'
 import Button from 'primevue/button'
 
 const router = useRouter()
 const auth = useAuthStore()
+const toast = useToastStore()
 const pin = ref('')
 const loading = ref(false)
 
@@ -75,9 +77,11 @@ async function handleLogin() {
   loading.value = true
   try {
     await auth.loginPin(pin.value)
+    toast.success('Berhasil Masuk', `Selamat datang kembali, ${auth.user?.name || 'Admin'}!`)
     router.push('/dashboard')
   } catch (e) {
-    alert(e.response?.data?.errors?.pin?.[0] || e.response?.data?.message || 'PIN salah')
+    const msg = e.response?.data?.errors?.pin?.[0] || e.response?.data?.message || 'PIN salah'
+    toast.error('Login Gagal', msg)
   } finally {
     loading.value = false
   }

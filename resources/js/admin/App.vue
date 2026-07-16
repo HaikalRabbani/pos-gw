@@ -4,7 +4,12 @@
       <component :is="Component" :key="route.path" />
     </transition>
   </router-view>
+  <ToastNotification />
 </template>
+
+<script setup>
+import ToastNotification from './components/ToastNotification.vue'
+</script>
 
 <style scoped>
 .fade-enter-active,

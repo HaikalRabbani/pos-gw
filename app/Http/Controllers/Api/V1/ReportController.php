@@ -202,7 +202,7 @@ class ReportController extends Controller
         );
 
         $summary = $data['summary'];
-        $outletName = \App\Models\Outlet::find($validated['outlet_id'])?->name ?? 'Outlet';
+        $outletName = htmlspecialchars(\App\Models\Outlet::find($validated['outlet_id'])?->name ?? 'Outlet', ENT_QUOTES, 'UTF-8');
 
         $html = '<!DOCTYPE html>';
         $html .= '<html><head><meta charset="utf-8"><title>Laporan Keuangan</title>';

@@ -27,8 +27,6 @@ class OrderService
         'voided'    => [],
     ];
 
-    const REFUND_STATUSES = ['partial', 'full'];
-
     public function createDraft(array $data): Order
     {
         $order = Order::create([
@@ -132,8 +130,8 @@ class OrderService
 
     protected function recalculate(Order $order): void
     {
-        $subtotal = $order->items()->sum('total_price');
-        $items    = $order->items;
+        $items    = $order->items()->get(); // single query, reuse
+        $subtotal = $items->sum('total_price');
 
         // Hitung diskon kompleks (otomatis dari master diskon aktif)
         $discountTotal = $this->calculateDiscounts($order, $subtotal, $items);
@@ -368,7 +366,6 @@ class OrderService
             // Reload items untuk dapetin refunded_qty terbaru setelah increment
             $order->load('items');
             $allFullyRefunded = $order->items->every(fn($i) => $i->refundable_qty === 0);
-            $newTotalRefunded = $totalRefundedSoFar + $totalRefundAmount;
             $refundStatus     = $allFullyRefunded ? 'full' : 'partial';
 
             $order->update([

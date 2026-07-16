@@ -77,11 +77,13 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
+import { useToastStore } from '../../stores/toast'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
 
 const router = useRouter()
 const auth = useAuthStore()
+const toast = useToastStore()
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
@@ -90,9 +92,11 @@ async function handleLogin() {
   loading.value = true
   try {
     await auth.login(email.value, password.value)
+    toast.success('Berhasil Masuk', `Selamat datang kembali, ${auth.user?.name || 'Admin'}!`)
     router.push('/dashboard')
   } catch (e) {
-    alert(e.response?.data?.errors?.email?.[0] || e.response?.data?.message || 'Login gagal. Periksa email dan password Anda.')
+    const msg = e.response?.data?.errors?.email?.[0] || e.response?.data?.message || 'Login gagal. Periksa email dan password Anda.'
+    toast.error('Login Gagal', msg)
   } finally {
     loading.value = false
   }

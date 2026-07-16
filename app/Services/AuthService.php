@@ -58,9 +58,18 @@ class AuthService
 
     public function loginByPin(string $pin, ?int $outletId = null): array
     {
-        $user = User::where('pin', $pin)->where('is_active', true)->first();
+        // PINs are stored hashed — find user by matching hash
+        $users = User::where('is_active', true)->get();
+        $matchedUser = null;
 
-        if (!$user) {
+        foreach ($users as $user) {
+            if ($user->pin && Hash::check($pin, $user->pin)) {
+                $matchedUser = $user;
+                break;
+            }
+        }
+
+        if (!$matchedUser) {
             throw ValidationException::withMessages([
                 'pin' => ['Invalid PIN.'],
             ]);
@@ -68,7 +77,7 @@ class AuthService
 
         // Validasi shift aktif di outlet tertentu
         if ($outletId) {
-            $activeShift = Shift::where('user_id', $user->id)
+            $activeShift = Shift::where('user_id', $matchedUser->id)
                 ->where('outlet_id', $outletId)
                 ->whereNull('end_at')
                 ->first();
@@ -80,10 +89,10 @@ class AuthService
             }
         }
 
-        Auth::guard('web')->login($user);
-        $user->load('outlets');
+        Auth::guard('web')->login($matchedUser);
+        $matchedUser->load('outlets');
 
-        return ['user' => $user];
+        return ['user' => $matchedUser];
     }
 
     public function setPin(User $user, string $pin): void
