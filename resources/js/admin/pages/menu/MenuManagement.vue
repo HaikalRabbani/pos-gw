@@ -103,10 +103,6 @@
               <Button v-if="perm.can('manageProducts')" icon="pi pi-pencil" text rounded severity="secondary" size="small"
                 v-tooltip.top="'Edit'"
                 @click="openProductDialog(data)" />
-              <Button v-if="perm.can('manageProducts')" icon="pi pi-power-off" text rounded size="small"
-                :class="data.is_active ? 'text-amber-600' : 'text-teal-600'"
-                v-tooltip.top="data.is_active ? 'Nonaktifkan' : 'Aktifkan'"
-                @click="toggleActive(data)" />
               <Button v-if="perm.can('manageProducts')" icon="pi pi-trash" text severity="danger" rounded size="small"
                 v-tooltip.top="'Hapus'"
                 @click="confirmDelete(data)" />
@@ -207,12 +203,12 @@
 
         <!-- Detail Grid -->
         <div class="grid grid-cols-2 gap-3">
-          <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
-            <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Harga Modal</p>
+          <div class="p-3 rounded-xl bg-teal-50 border border-teal-200">
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-teal-600">Harga Modal</p>
             <p class="text-sm font-bold text-slate-800 mt-0.5">{{ formatRupiah(viewingProduct.cost || 0) }}</p>
           </div>
-          <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
-            <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Laba per Item</p>
+          <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-emerald-600">Laba per Item</p>
             <p class="text-sm font-bold" :class="profitClass(viewingProduct)">
               {{ formatRupiah((viewingProduct.price || 0) - (viewingProduct.cost || 0)) }}
               <span class="text-xs font-normal text-slate-400 ml-1">

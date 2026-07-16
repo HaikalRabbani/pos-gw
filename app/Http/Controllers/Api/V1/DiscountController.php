@@ -11,12 +11,13 @@ class DiscountController extends Controller
     public function index(Request $request)
     {
         $request->validate(['outlet_id' => 'required|exists:outlets,id']);
+        $discounts = Discount::where('outlet_id', $request->outlet_id)
+            ->orderBy('name')
+            ->get();
+
         return response()->json([
             'success' => true,
-            'data' => Discount::where('outlet_id', $request->outlet_id)
-                ->with('targetProduct', 'targetCategory')
-                ->orderBy('name')
-                ->get(),
+            'data' => $discounts,
         ]);
     }
 
@@ -29,7 +30,8 @@ class DiscountController extends Controller
             'value' => 'required|integer|min:0',
             'is_active' => 'nullable|boolean',
             'target_type' => 'nullable|string|in:product,category,transaction',
-            'target_id' => 'nullable|integer|min:0',
+            'target_id' => 'nullable|array',
+            'target_id.*' => 'nullable|integer|min:0',
             'min_purchase' => 'nullable|integer|min:0',
             'max_discount' => 'nullable|integer|min:0',
             'buy_x' => 'nullable|integer|min:1',
@@ -41,14 +43,24 @@ class DiscountController extends Controller
         // target_id validation based on target_type
         $targetType = $validated['target_type'] ?? 'transaction';
         if ($targetType === 'product') {
-            $request->validate(['target_id' => 'required|integer|exists:products,id']);
+            $request->validate([
+                'target_id' => 'required|array|min:1',
+                'target_id.*' => 'required|integer|exists:products,id',
+            ]);
         } elseif ($targetType === 'category') {
-            $request->validate(['target_id' => 'required|integer|exists:categories,id']);
+            $request->validate([
+                'target_id' => 'required|array|min:1',
+                'target_id.*' => 'required|integer|exists:categories,id',
+            ]);
+        } else {
+            $validated['target_id'] = null;
         }
+
+        $discount = Discount::create($validated);
 
         return response()->json([
             'success' => true,
-            'data' => Discount::create($validated),
+            'data' => $discount,
         ], 201);
     }
 
@@ -60,7 +72,8 @@ class DiscountController extends Controller
             'value' => 'sometimes|integer|min:0',
             'is_active' => 'nullable|boolean',
             'target_type' => 'nullable|string|in:product,category,transaction',
-            'target_id' => 'nullable|integer|min:0',
+            'target_id' => 'nullable|array',
+            'target_id.*' => 'nullable|integer|min:0',
             'min_purchase' => 'nullable|integer|min:0',
             'max_discount' => 'nullable|integer|min:0',
             'buy_x' => 'nullable|integer|min:1',
@@ -72,14 +85,22 @@ class DiscountController extends Controller
         // target_id validation based on target_type
         $targetType = $request->input('target_type', $discount->target_type ?? 'transaction');
         if ($targetType === 'product') {
-            $request->validate(['target_id' => 'required|integer|exists:products,id']);
+            $request->validate([
+                'target_id' => 'required|array|min:1',
+                'target_id.*' => 'required|integer|exists:products,id',
+            ]);
         } elseif ($targetType === 'category') {
-            $request->validate(['target_id' => 'required|integer|exists:categories,id']);
+            $request->validate([
+                'target_id' => 'required|array|min:1',
+                'target_id.*' => 'required|integer|exists:categories,id',
+            ]);
+        } else {
+            $validated['target_id'] = null;
         }
 
         $discount->update($validated);
 
-        return response()->json(['success' => true, 'data' => $discount->load('targetProduct', 'targetCategory')]);
+        return response()->json(['success' => true, 'data' => $discount]);
     }
 
     public function destroy(Discount $discount)

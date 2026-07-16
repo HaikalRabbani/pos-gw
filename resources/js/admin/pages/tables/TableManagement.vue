@@ -125,11 +125,10 @@
         <div>
           <label class="block text-sm font-medium text-slate-700 mb-1">Nama Meja <span class="text-red-400">*</span></label>
           <InputText v-model="form.name" class="w-full" placeholder="Contoh: Meja 1, VIP Room, Outdoor A" required />
-        </div>
-        <div v-if="editing" class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
-          <i class="pi pi-info-circle text-blue-400 text-lg"></i>
-          <p class="text-xs text-slate-500">Untuk menonaktifkan/mengaktifkan meja, gunakan tombol toggle di tabel.</p>
-        </div>
+        </div>          <div v-if="editing" class="flex items-center gap-3 p-3 rounded-xl bg-blue-50 border border-blue-200">
+              <i class="pi pi-info-circle text-blue-400 text-lg"></i>
+              <p class="text-xs text-blue-700">Untuk menonaktifkan/mengaktifkan meja, gunakan tombol toggle di tabel.</p>
+            </div>
         <div class="flex justify-end gap-2 pt-2">
           <Button label="Batal" severity="secondary" @click="showDialog = false" />
           <Button type="submit" :label="editing ? 'Simpan' : 'Tambah'" :loading="saving" />
@@ -184,8 +183,8 @@
         </div>
 
         <!-- Print Description -->
-        <div class="flex items-center gap-2 text-xs text-slate-400 bg-slate-50 rounded-xl px-4 py-2.5 w-full">
-          <i class="pi pi-info-circle text-slate-300"></i>
+        <div class="flex items-center gap-2 text-xs text-slate-500 bg-blue-50 rounded-xl px-4 py-2.5 w-full border border-blue-100">
+          <i class="pi pi-info-circle text-blue-400"></i>
           <span>Cetak QR, laminating, dan tempel di meja agar pelanggan bisa scan untuk pesan sendiri.</span>
         </div>
       </div>

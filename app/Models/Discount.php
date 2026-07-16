@@ -16,6 +16,7 @@ class Discount extends Model
     {
         return [
             'is_active' => 'boolean',
+            'target_id' => 'array',
             'min_purchase' => 'integer',
             'max_discount' => 'integer',
             'buy_x' => 'integer',
@@ -25,18 +26,36 @@ class Discount extends Model
         ];
     }
 
+    protected $appends = ['target_products', 'target_categories'];
+
     public function outlet()
     {
         return $this->belongsTo(Outlet::class);
     }
 
-    public function targetProduct()
+    /**
+     * Get target products for frontend display.
+     * Works with both single ID (legacy) and array of IDs.
+     */
+    public function getTargetProductsAttribute()
     {
-        return $this->belongsTo(Product::class, 'target_id');
+        if ($this->target_type !== 'product' || empty($this->target_id)) {
+            return [];
+        }
+        $ids = is_array($this->target_id) ? $this->target_id : [$this->target_id];
+        return Product::whereIn('id', $ids)->get(['id', 'name'])->toArray();
     }
 
-    public function targetCategory()
+    /**
+     * Get target categories for frontend display.
+     * Works with both single ID (legacy) and array of IDs.
+     */
+    public function getTargetCategoriesAttribute()
     {
-        return $this->belongsTo(Category::class, 'target_id');
+        if ($this->target_type !== 'category' || empty($this->target_id)) {
+            return [];
+        }
+        $ids = is_array($this->target_id) ? $this->target_id : [$this->target_id];
+        return Category::whereIn('id', $ids)->get(['id', 'name'])->toArray();
     }
 }
