@@ -209,11 +209,13 @@ class OrderService
     protected function getApplicableSubtotal($discount, $items, int $subtotal): int
     {
         if ($discount->target_type === 'product' && $discount->target_id) {
-            return (int) $items->where('product_id', $discount->target_id)->sum('total_price');
+            $targetIds = (array) $discount->target_id;
+            return (int) $items->whereIn('product_id', $targetIds)->sum('total_price');
         }
 
         if ($discount->target_type === 'category' && $discount->target_id) {
-            $productIds = Product::where('category_id', $discount->target_id)->pluck('id');
+            $targetIds = (array) $discount->target_id;
+            $productIds = Product::whereIn('category_id', $targetIds)->pluck('id');
             return (int) $items->whereIn('product_id', $productIds)->sum('total_price');
         }
 
@@ -247,9 +249,11 @@ class OrderService
     {
         $targetItems = $items;
         if ($discount->target_type === 'product' && $discount->target_id) {
-            $targetItems = $items->where('product_id', $discount->target_id);
+            $targetIds   = (array) $discount->target_id;
+            $targetItems = $items->whereIn('product_id', $targetIds);
         } elseif ($discount->target_type === 'category' && $discount->target_id) {
-            $productIds  = Product::where('category_id', $discount->target_id)->pluck('id');
+            $targetIds   = (array) $discount->target_id;
+            $productIds  = Product::whereIn('category_id', $targetIds)->pluck('id');
             $targetItems = $items->whereIn('product_id', $productIds);
         }
 

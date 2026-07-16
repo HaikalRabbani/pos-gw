@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('name', 200);
             $table->text('address')->nullable();
             $table->string('phone', 20)->nullable();
-            $table->string('token_public', 64)->unique();
+            $table->string('token_public', 64)->nullable()->unique();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

@@ -342,6 +342,7 @@ Self-Order → API POS → Mobile POS → (sync)
 - [ ] Attendance / absensi karyawan
 - [ ] Kitchen Display System (KDS) — layar dapur otomatis
 - [x] Optimasi N+1 di Discount model accessors
+- [x] Testing — unit test OrderService, ShiftService, ReportService
 
 ---
 
@@ -361,8 +362,13 @@ Self-Order → API POS → Mobile POS → (sync)
   3. Sistem validasi PIN itu role manager+ di outlet ini → refund langsung jalan, `approved_by` = pemilik PIN
   - Fallback (kalau outlet kecil & manager beneran gak ada di lokasi sama sekali): refund kesimpen status `pending`, di-approve manager belakangan dari Admin Panel. Ini opsional, bukan flow utama.
   - **Detail implementasi**: `VerifyOutletAccess::findPinOwner()` cari user manager/admin/developer di outlet ini yang PIN-nya (hashed) cocok. Kalau kasir kirim `override_pin` di body request refund dan cocok, middleware `return $next($request)` alih-alih abort 403, sambil nempel `pin_override_by` ke request attributes. `OrderController::refund()` baca attribute itu buat nentuin `approved_by` (bukan `$request->user()->id`), dan response ngasih flag `authorized_via_pin` biar frontend bisa nampilin badge "disetujui via PIN". **Frontend Flutter belum digarap** — perlu modal PIN pas refund kena 403 dari endpoint ini.
-- [ ] **Testing** — masih cuma `ExampleTest.php` default Laravel. Prioritas: unit test buat `OrderService` (split/merge/refund proporsional), `ShiftService` (cash reconciliation), `ReportService` (HPP/laba). Area riskan karena logic-nya kompleks dan gampang regresi kalau diubah tanpa test.
+- [x] **Testing — Unit Tests** — ✅ **Implemented** — 43 unit tests covering 3 service layers:
+  - **OrderServiceTest** (22 tests): create draft, add/remove item, status transitions, pay cash, split bill (valid/qty mismatch/paid rejection), merge bill (valid/<2 orders/different outlet/paid), refund (partial/full/qty over limit/not paid), tax sequential calculation, discount (percentage/nominal/min-purchase/max-cap/product-specific/BOGO), split preserves tax.
+  - **ShiftServiceTest** (9 tests): start/end shift, active shift rejection, restart after ended, cash expected/actual/diff calculation, filter by payment method/date range/unpaid exclusion.
+  - **ReportServiceTest** (12 tests): summary (empty/HPP/profit/margin/date range/outlet/unpaid/multiple orders), daily sales grouping, top products (revenue ranking/unpaid exclusion/limit).
+- **Bugfix exposed**: `OrderService::getApplicableSubtotal()` dan `calculateBuyXGetY()` pake `$items->where('product_id', $discount->target_id)` — sejak `target_id` jadi JSON array (migration #7), perbandingan `int == array` di PHP 8 selalu false. Diperbaiki ke `whereIn('product_id', (array) $discount->target_id)`.
 
 ### Next (setelah fitur inti lain jadi duluan)
+
 - [ ] **Customer & membership** — tabel `customers` (sekarang `orders.customer_name` masih string doang, gak ada relasi/histori). Kalau udah jadi, bisa nempel ke sistem diskon multi-target yang udah ada (`target_type = 'customer_tier'`).
 
