@@ -412,10 +412,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { usePermission } from '../../utils/usePermission'
+import { useAuthStore } from '../../stores/auth'
 import { formatRupiah } from '../../utils/format'
 import { useToastStore } from '../../stores/toast'
+import { listenOrderUpdates } from '../../echo'
 import client from '../../api/client'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -432,6 +434,7 @@ import TabPanels from 'primevue/tabpanels'
 import TabPanel from 'primevue/tabpanel'
 
 const perm = usePermission()
+const auth = useAuthStore()
 const toast = useToastStore()
 
 const loading = ref(true)
@@ -439,6 +442,7 @@ const orders = ref([])
 const rowsPerPage = ref(10)
 const seeding = ref(false)
 const orderTab = ref('0')
+let stopListeners = []
 
 // Filters
 const filterStatus = ref('')
@@ -872,7 +876,32 @@ async function seedTestOrder() {
   }
 }
 
-onMounted(fetchOrders)
+/**
+ * Realtime: dengerin OrderStatusUpdated per outlet yang user ini akses.
+ * Order dari self-order/Flutter yang statusnya berubah bakal keupdate
+ * di tabel ini tanpa perlu refresh manual, plus toast notifikasi.
+ */
+function handleOrderUpdate(payload) {
+  const existing = orders.value.find((o) => o.id === payload.id)
+  if (existing) {
+    existing.status = payload.status
+    existing.payment_status = payload.payment_status
+    toast.info('Pesanan diperbarui', `Order #${payload.id} — ${statusLabel(payload.status)}`)
+  } else {
+    // Order baru (misal dari self-order) belum ada di list — refetch biar muncul
+    toast.info('Pesanan baru masuk', `Order #${payload.id}${payload.table_id ? ' dari meja' : ''}`)
+    fetchOrders()
+  }
+}
+
+onMounted(() => {
+  fetchOrders()
+  stopListeners = auth.outletIds.map((outletId) => listenOrderUpdates(outletId, handleOrderUpdate))
+})
+
+onUnmounted(() => {
+  stopListeners.forEach((stop) => stop())
+})
 </script>
 
 <style scoped>
