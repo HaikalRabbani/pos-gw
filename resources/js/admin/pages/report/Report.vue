@@ -429,7 +429,7 @@ async function fetchData() {
     topProducts.value = topRes.data.data || []
 
   } catch (err) {
-    console.error('Failed to fetch report data:', err)
+    toast.error('Gagal', 'Gagal memuat data laporan')
   } finally {
     loading.value = false
     await nextTick()

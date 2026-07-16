@@ -190,6 +190,7 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import { formatRupiah } from '../../utils/format'
+import { useToastStore } from '../../stores/toast'
 import { useAuthStore } from '../../stores/auth'
 
 const auth = useAuthStore()
@@ -236,7 +237,7 @@ const bankOptions = [
   { label: 'Bank Lain', value: 'OTHER' },
 ]
 
-
+const toast = useToastStore()
 
 function formatDate(date) {
   if (!date) return ''
@@ -275,7 +276,7 @@ async function submitWithdraw() {
       fetchData()
     }
   } catch (e) {
-    alert(e.response?.data?.message || 'Gagal memproses penarikan')
+    toast.error('Gagal', e.response?.data?.message || 'Gagal memproses penarikan')
   } finally {
     saving.value = false
   }

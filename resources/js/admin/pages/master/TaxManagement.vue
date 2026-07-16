@@ -26,12 +26,16 @@
 
     <!-- Table -->
     <div v-else class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-      <div class="p-3 border-b border-slate-100 flex items-center justify-end gap-2">
+      <div class="p-3 border-b border-slate-100 flex flex-wrap items-center gap-2">
+        <span class="flex-1 min-w-[200px]">
+          <InputText v-model="search" placeholder="🔍 Cari pajak..." class="w-full" />
+        </span>
         <Select v-if="outlets.length > 1" v-model="selectedOutletId" :options="outlets" optionLabel="name" optionValue="id"
           placeholder="Pilih outlet" class="w-44" @change="fetchTaxes" />
         <Button v-if="perm.can('manageTaxes')" label="Tambah Pajak" icon="pi pi-plus" size="small" @click="openAddDialog" :disabled="!selectedOutletId" />
       </div>
-      <DataTable :value="taxes" stripedRows size="small" class="text-sm">
+      <div class="overflow-x-auto">
+      <DataTable :value="filteredTaxes" stripedRows size="small" class="text-sm">
         <Column header="No." style="width: 50px">
           <template #body="{ index }">
             <span class="text-slate-400 text-xs font-mono">{{ index + 1 }}</span>
@@ -89,6 +93,7 @@
           </template>
         </Column>
       </DataTable>
+      </div>
     </div>
 
     <!-- Add/Edit Dialog -->
@@ -161,6 +166,7 @@ const taxes = ref([])
 const outlets = ref([])
 const selectedOutletId = ref(null)
 const loading = ref(false)
+const search = ref('')
 const saving = ref(false)
 const deleting = ref(false)
 const showDialog = ref(false)
@@ -169,6 +175,12 @@ const editing = ref(false)
 const deletingTax = ref(null)
 
 const form = ref({ name: '', rate: 11, sort_order: 0 })
+
+const filteredTaxes = computed(() => {
+  if (!search.value) return taxes.value
+  const q = search.value.toLowerCase()
+  return taxes.value.filter(t => t.name.toLowerCase().includes(q))
+})
 
 async function fetchOutlets() {
   try {

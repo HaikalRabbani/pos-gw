@@ -101,6 +101,7 @@
 
     <!-- Orders Table -->
     <div v-else class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+      <div class="overflow-x-auto">
       <DataTable :value="orders" paginator :rows="rowsPerPage" stripedRows size="small"
         paginatorTemplate="CurrentPageReport PrevPageLink NextPageLink"
         currentPageReportTemplate="Halaman {currentPage} dari {totalPages}"
@@ -159,6 +160,7 @@
           </template>
         </Column>
       </DataTable>
+      </div>
     </div>
 
     <!-- Detail Dialog — Tabbed (Info, Items, Refund, Split, Log) -->
@@ -211,7 +213,7 @@
               <!-- Action Buttons -->
               <div class="flex flex-wrap gap-2 mb-4">
                 <Button v-if="perm.can('voidOrder') && canVoid(selectedOrder)" label="Void" icon="pi pi-ban"
-                  severity="danger" text size="small" :loading="voidLoading" @click="voidOrder" />
+                  severity="danger" text size="small" :loading="voidLoading" @click="confirmVoid" />
                 <Button v-if="perm.can('refundOrder') && canRefund(selectedOrder)" label="Refund"
                   icon="pi pi-undo" severity="warning" text size="small" @click="orderTab='1'" />
                 <Button v-if="perm.can('splitBill') && canSplit(selectedOrder)" label="Split Bill"
@@ -390,6 +392,22 @@
       </div>
     </Dialog>
 
+    <!-- Void Confirm Dialog -->
+    <Dialog v-model:visible="showVoidConfirm" header="Void Pesanan" modal class="w-sm">
+      <div class="space-y-3">
+        <div class="flex items-center gap-3 p-3 rounded-xl bg-red-50 border border-red-100">
+          <i class="pi pi-exclamation-triangle text-red-500 text-xl"></i>
+          <p class="text-sm text-red-700">
+            Yakin ingin void pesanan <strong>#{{ selectedOrder?.id }}</strong>? Tindakan ini tidak bisa dibatalkan.
+          </p>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <Button label="Batal" severity="secondary" @click="showVoidConfirm = false" />
+          <Button label="Void" severity="danger" :loading="voidLoading" @click="voidOrder" />
+        </div>
+      </div>
+    </Dialog>
+
   </div>
 </template>
 
@@ -448,6 +466,9 @@ const selectedOrderIds = computed(() => selectedOrders.value.map(o => o.id))
 // Detail dialog
 const dialogVisible = ref(false)
 const selectedOrder = ref(null)
+
+// Void confirm
+const showVoidConfirm = ref(false)
 
 // Refund
 const refundQtys = ref({})
@@ -542,8 +563,12 @@ async function processRefund() {
   } finally { refundLoading.value = false }
 }
 
+function confirmVoid() {
+  showVoidConfirm.value = true
+}
+
 async function voidOrder() {
-  if (!confirm('Yakin ingin void pesanan ini?')) return
+  showVoidConfirm.value = false
   voidLoading.value = true
   try {
     await client.put(`/orders/${selectedOrder.value.id}/status`, { status: 'voided' })

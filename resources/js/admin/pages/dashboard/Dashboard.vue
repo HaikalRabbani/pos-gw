@@ -1,5 +1,14 @@
 <template>
   <div class="space-y-6">
+    <!-- Outlet Selector -->
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <Select v-if="outlets.length > 1" v-model="selectedOutletId" :options="outlets" optionLabel="name" optionValue="id"
+        class="w-56" @change="fetchData" :showClear="true" placeholder="Semua Outlet" />
+      <div v-else-if="outlets.length === 1" class="text-sm font-medium text-slate-600">
+        {{ outlets[0]?.name }}
+      </div>
+    </div>
+
     <!-- Welcome Banner -->
     <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-teal-800 via-teal-900 to-teal-950 p-6">
       <div class="absolute top-0 right-0 w-64 h-64 bg-amber-400/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
@@ -195,11 +204,14 @@ import { formatRupiah } from '../../utils/format'
 import { useAuthStore } from '../../stores/auth'
 import client from '../../api/client'
 import Tag from 'primevue/tag'
+import Select from 'primevue/select'
 
 const auth = useAuthStore()
 const initialLoading = ref(true)
 const loading = ref(false)
 const lastUpdate = ref('—')
+const outlets = ref([])
+const selectedOutletId = ref(null)
 
 // ── Data ──
 const data = ref({
@@ -314,7 +326,11 @@ function updateTimestamp() {
 async function fetchData() {
   loading.value = true
   try {
-    const { data: res } = await client.get('/dashboard')
+    const params = {}
+    if (selectedOutletId.value) {
+      params.outlet_id = selectedOutletId.value
+    }
+    const { data: res } = await client.get('/dashboard', { params })
     if (res.success && res.data) {
       data.value = res.data
     }
@@ -327,7 +343,15 @@ async function fetchData() {
   }
 }
 
-onMounted(() => {
+async function fetchOutlets() {
+  try {
+    const { data } = await client.get('/outlets')
+    outlets.value = data.data
+  } catch (_) {}
+}
+
+onMounted(async () => {
+  await fetchOutlets()
   fetchData()
 })
 </script>

@@ -15,6 +15,9 @@ class DiscountController extends Controller
             ->orderBy('name')
             ->get();
 
+        // Manual append untuk menghindari N+1 di model accessor ($appends)
+        $discounts->each->append(['target_products', 'target_categories']);
+
         return response()->json([
             'success' => true,
             'data' => $discounts,
@@ -57,6 +60,7 @@ class DiscountController extends Controller
         }
 
         $discount = Discount::create($validated);
+        $discount->append(['target_products', 'target_categories']);
 
         return response()->json([
             'success' => true,
@@ -99,6 +103,7 @@ class DiscountController extends Controller
         }
 
         $discount->update($validated);
+        $discount->append(['target_products', 'target_categories']);
 
         return response()->json(['success' => true, 'data' => $discount]);
     }

@@ -40,12 +40,16 @@
 
     <!-- Table -->
     <div v-else class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-      <div class="p-3 border-b border-slate-100 flex items-center justify-end gap-2">
+      <div class="p-3 border-b border-slate-100 flex flex-wrap items-center gap-2">
+        <span class="flex-1 min-w-[200px]">
+          <InputText v-model="search" placeholder="🔍 Cari meja..." class="w-full" />
+        </span>
         <Select v-if="outlets.length > 1" v-model="selectedOutletId" :options="outlets" optionLabel="name" optionValue="id"
           placeholder="Pilih outlet" class="w-44" @change="fetchTables" />
         <Button v-if="perm.can('manageTables')" label="Tambah Meja" icon="pi pi-plus" size="small" @click="openAddDialog" :disabled="!selectedOutletId" />
       </div>
-      <DataTable :value="tables" stripedRows size="small" class="text-sm">
+      <div class="overflow-x-auto">
+      <DataTable :value="filteredTables" stripedRows size="small" class="text-sm">
         <Column header="No." style="width: 50px">
           <template #body="{ index }">
             <span class="text-slate-400 text-xs font-mono">{{ index + 1 }}</span>
@@ -117,6 +121,7 @@
           </template>
         </Column>
       </DataTable>
+      </div>
     </div>
 
     <!-- Add/Edit Dialog -->
@@ -213,6 +218,7 @@ const tables = ref([])
 const outlets = ref([])
 const selectedOutletId = ref(null)
 const loading = ref(false)
+const search = ref('')
 const saving = ref(false)
 const deleting = ref(false)
 const showDialog = ref(false)
@@ -223,6 +229,12 @@ const deletingTable = ref(null)
 const qrPreviewTable = ref(null)
 
 const form = ref({ name: '' })
+
+const filteredTables = computed(() => {
+  if (!search.value) return tables.value
+  const q = search.value.toLowerCase()
+  return tables.value.filter(t => t.name.toLowerCase().includes(q))
+})
 
 // QR base URL — persisted di localStorage
 const qrBaseUrl = ref(localStorage.getItem('qr_base_url') || 'https://order.namaoutlet.com')

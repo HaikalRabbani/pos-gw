@@ -26,8 +26,6 @@ class Discount extends Model
         ];
     }
 
-    protected $appends = ['target_products', 'target_categories'];
-
     public function outlet()
     {
         return $this->belongsTo(Outlet::class);

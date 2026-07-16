@@ -22,8 +22,16 @@ class DashboardController extends Controller
         $user = $request->user();
         $today = now()->format('Y-m-d');
 
-        // Dapetin semua outlet ID milik user
+        // Dapetin outlet ID milik user — bisa spesifik atau semua
         $outletIds = $user->outlets()->pluck('id');
+
+        // Kalo ada filter outlet_id, cek apakah user punya akses ke outlet itu
+        if ($request->outlet_id) {
+            $filteredId = (int) $request->outlet_id;
+            if ($outletIds->contains($filteredId)) {
+                $outletIds = collect([$filteredId]);
+            }
+        }
 
         if ($outletIds->isEmpty()) {
             return response()->json([

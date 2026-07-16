@@ -223,6 +223,34 @@ Self-Order → API POS → Mobile POS → (sync)
 
 ---
 
+## Progress Sesi 17 Juli 2026 — Part 2: UX & Optimization
+
+### Alert/Confirm → Toast & Dialog
+1. ✅ **OutletManagement.vue** — `alert()` → `toast.error()` (import + 2 lokasi)
+2. ✅ **WithdrawManagement.vue** — `alert()` → `toast.error()` (import + 1 lokasi)
+3. ✅ **Report.vue** — `console.error()` → `toast.error()`
+4. ✅ **Orders.vue** — `confirm()` diganti Dialog konfirmasi Void
+5. ✅ **UserManagement.vue** — `confirm()` diganti Dialog konfirmasi Hapus Akses
+
+### N+1 Fix — Discount Model
+6. ✅ **Discount.php** — Hapus `$appends` penyebab N+1 tiap serialisasi
+7. ✅ **DiscountController** — Manual `->append()` cuma di index/store/update (3 endpoint)
+
+### Multi-Outlet Dashboard
+8. ✅ **DashboardController** — Tambah parameter `outlet_id` opsional (filter per outlet)
+9. ✅ **Dashboard.vue** — Selector outlet muncul kalo >1 outlet, data dashboard terfilter
+
+### Responsive Improvements
+10. ✅ **Overflow-x-auto** — 6 halaman (Orders, User, Discount, Tax, Table, Outlet)
+11. ✅ **Flex-wrap toolbar** — Search box rapi di mobile (User, Discount)
+
+### Search/Filter di Tabel
+12. ✅ **TaxManagement** — Search by nama pajak
+13. ✅ **TableManagement** — Search by nama meja
+14. ✅ **OutletManagement** — Search by nama/alamat outlet
+
+---
+
 ## Progress Sesi 14-15 Juli 2026
 
 ### Fitur Baru
@@ -313,4 +341,4 @@ Self-Order → API POS → Mobile POS → (sync)
 - [ ] Table reservation system
 - [ ] Attendance / absensi karyawan
 - [ ] Kitchen Display System (KDS) — layar dapur otomatis
-- [ ] Optimasi N+1 di Discount model accessors
+- [x] Optimasi N+1 di Discount model accessors

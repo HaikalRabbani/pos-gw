@@ -19,7 +19,7 @@
 
     <!-- Table -->
     <div v-else class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-      <div class="p-3 border-b border-slate-100 flex items-center justify-between">
+      <div class="p-3 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">
         <div class="flex items-center gap-2">
           <span class="text-sm text-slate-500">Tampilkan</span>
           <Select v-model="rowsPerPage" :options="[5, 10, 20, 50]" class="w-20" />
@@ -33,6 +33,7 @@
             @click="showAddDialog = true" />
         </div>
       </div>
+      <div class="overflow-x-auto">
       <DataTable :value="users" paginator :rows="rowsPerPage" stripedRows size="small"
         paginatorTemplate="CurrentPageReport PrevPageLink NextPageLink"
         currentPageReportTemplate="Halaman {currentPage} dari {totalPages}"
@@ -105,6 +106,7 @@
           </template>
         </Column>
       </DataTable>
+      </div>
     </div>
 
     <!-- Edit User Dialog (Nama + Foto) -->
@@ -174,11 +176,27 @@
         </div>
         <div class="flex justify-between pt-2">
           <Button label="Hapus akses" severity="danger" text
-            @click="removeRole" :disabled="!roleForm.outlet_id" />
+            @click="showRemoveConfirm = true" :disabled="!roleForm.outlet_id" />
           <div class="flex gap-2">
             <Button label="Batal" severity="secondary" @click="showRoleDialog = false" />
             <Button label="Simpan" @click="assignRole" :loading="savingRole" />
           </div>
+        </div>
+      </div>
+    </Dialog>
+
+    <!-- Remove Role Confirm Dialog -->
+    <Dialog v-model:visible="showRemoveConfirm" header="Hapus Akses" modal class="w-sm">
+      <div class="space-y-3">
+        <div class="flex items-center gap-3 p-3 rounded-xl bg-red-50 border border-red-100">
+          <i class="pi pi-exclamation-triangle text-red-500 text-xl"></i>
+          <p class="text-sm text-red-700">
+            Yakin ingin menghapus akses <strong>{{ selectedUser?.name }}</strong> dari outlet ini?
+          </p>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <Button label="Batal" severity="secondary" @click="showRemoveConfirm = false" />
+          <Button label="Hapus" severity="danger" @click="removeRole" />
         </div>
       </div>
     </Dialog>
@@ -228,6 +246,7 @@ const filterOutletId = ref(null)
 const showAddDialog = ref(false)
 const showEditDialog = ref(false)
 const showRoleDialog = ref(false)
+const showRemoveConfirm = ref(false)
 const showPinDialog = ref(false)
 const selectedUser = ref(null)
 const saving = ref(false)
@@ -380,7 +399,8 @@ async function assignRole() {
 }
 
 async function removeRole() {
-  if (!confirm('Hapus akses user ini ke outlet?')) return
+  showRemoveConfirm.value = false
+  showRoleDialog.value = false
   try {
     await client.post('/user-outlets/assign', {
       user_id: selectedUser.value.id,

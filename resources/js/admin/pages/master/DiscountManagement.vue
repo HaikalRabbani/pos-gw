@@ -25,11 +25,12 @@
 
     <!-- Table -->
     <div v-else class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-      <div class="p-3 border-b border-slate-100 flex items-center justify-end gap-2">
+      <div class="p-3 border-b border-slate-100 flex flex-wrap items-center justify-end gap-2">
         <Select v-if="outlets.length > 1" v-model="selectedOutletId" :options="outlets" optionLabel="name" optionValue="id"
           placeholder="Pilih outlet" class="w-44" @change="fetchDiscounts" />
         <Button v-if="perm.can('manageDiscounts')" label="Tambah Diskon" icon="pi pi-plus" size="small" @click="openAddDialog" :disabled="!selectedOutletId" />
       </div>
+      <div class="overflow-x-auto">
       <DataTable :value="discounts" stripedRows size="small" class="text-sm">
         <Column header="No." style="width: 50px">
           <template #body="{ index }">
@@ -107,6 +108,7 @@
           </template>
         </Column>
       </DataTable>
+      </div>
     </div>
 
     <!-- Add/Edit Dialog -->

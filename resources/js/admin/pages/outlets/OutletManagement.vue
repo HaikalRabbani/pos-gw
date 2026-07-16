@@ -56,10 +56,14 @@
 
     <!-- Table -->
     <div v-else class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-      <div class="p-3 border-b border-slate-100 flex items-center justify-end gap-2">
+      <div class="p-3 border-b border-slate-100 flex flex-wrap items-center gap-2">
+        <span class="flex-1 min-w-[200px]">
+          <InputText v-model="search" placeholder="🔍 Cari outlet..." class="w-full" />
+        </span>
         <Button v-if="perm.can('manageOutlets')" label="Tambah Outlet" icon="pi pi-plus" size="small" @click="openAddDialog" />
       </div>
-      <DataTable :value="outlets" stripedRows size="small" class="text-sm">
+      <div class="overflow-x-auto">
+      <DataTable :value="filteredOutlets" stripedRows size="small" class="text-sm">
         <Column field="id" header="ID Outlet" style="width: 100px" sortable>
           <template #body="{ data }">
             <span class="font-mono text-xs font-bold text-teal-600 bg-teal-50 px-2 py-1 rounded-md">#{{ data.id }}</span>
@@ -114,6 +118,7 @@
           </template>
         </Column>
       </DataTable>
+      </div>
     </div>
 
     <!-- Add/Edit Dialog -->
@@ -205,6 +210,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { usePermission } from '../../utils/usePermission'
+import { useToastStore } from '../../stores/toast'
 import client from '../../api/client'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
@@ -217,10 +223,12 @@ import Dialog from 'primevue/dialog'
 import Tooltip from 'primevue/tooltip'
 
 const perm = usePermission()
+const toast = useToastStore()
 
 const outlets = ref([])
 const loading = ref(true)
 const saving = ref(false)
+const search = ref('')
 const deleting = ref(false)
 const showDialog = ref(false)
 const showDeleteDialog = ref(false)
@@ -232,6 +240,12 @@ const showMidtransKey = ref(false)
 
 const activeCount = computed(() => outlets.value.filter((o) => o.is_active).length)
 const inactiveCount = computed(() => outlets.value.filter((o) => !o.is_active).length)
+
+const filteredOutlets = computed(() => {
+  if (!search.value) return outlets.value
+  const q = search.value.toLowerCase()
+  return outlets.value.filter(o => o.name.toLowerCase().includes(q) || (o.address || '').toLowerCase().includes(q))
+})
 
 async function fetchOutlets() {
   loading.value = true
@@ -282,7 +296,7 @@ async function saveOutlet() {
     showDialog.value = false
     fetchOutlets()
   } catch (e) {
-    alert(e.response?.data?.message || 'Gagal menyimpan outlet')
+    toast.error('Gagal', e.response?.data?.message || 'Gagal menyimpan outlet')
   } finally {
     saving.value = false
   }
@@ -307,7 +321,7 @@ async function deleteOutlet() {
     showDeleteDialog.value = false
     fetchOutlets()
   } catch (e) {
-    alert(e.response?.data?.message || 'Gagal menghapus outlet')
+    toast.error('Gagal', e.response?.data?.message || 'Gagal menghapus outlet')
   } finally {
     deleting.value = false
   }
