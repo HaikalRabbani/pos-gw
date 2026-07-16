@@ -11,19 +11,20 @@
 | Optimasi N+1 di Discount model accessors | ✅ |
 | Unit testing (OrderService, ShiftService, ReportService) | ✅ |
 | Audit Karyawan di Laporan Shift | ✅ |
+| Struktur Self-Order (folder, entry Vite, route, halaman kosong) | ✅ |
 
 ---
 
 ## 🗺️ Roadmap Selanjutnya
 
 ### 🥇 Prioritas 1: Web Self-Order via QR
-Halaman publik terpisah untuk customer scan QR meja → pesan sendiri.
-- [ ] Frontend React/Vue sederhana (terpisah dari Admin Panel)
-- [ ] Integrasi API yang sudah ada (products, customize, orders)
-- [ ] Bahan bisa dimatiin + add-on (via endpoint `/products/{id}/customize`)
+- [x] Struktur awal (folder `self-order/`, entry Vite, route Laravel, halaman kosong)
+- [ ] API endpoint menu publik (produk + kategori aktif)
+- [ ] Tampilan menu + kustomisasi (bahan bisa dimatiin, add-on)
+- [ ] Keranjang + checkout
+- [ ] QR code di tiap meja → scan → buka halaman
 
 ### 🥇 Prioritas 2: POS Mobile (Flutter)
-Aplikasi Flutter untuk kasir di tablet/HP.
 - [ ] Integrasi API yang sudah ada
 - [ ] Pilih outlet, produk, checkout
 - [ ] Thermal printer + QR payment
