@@ -161,6 +161,11 @@
                 <span class="text-xs text-slate-500">a.n. {{ data.account_holder }}</span>
               </template>
             </Column>
+            <Column header="Diminta oleh">
+              <template #body="{ data }">
+                <span class="text-sm text-slate-700">{{ data.user?.name || '—' }}</span>
+              </template>
+            </Column>
             <Column header="Status">
               <template #body="{ data }">
                 <Tag :value="data.status === 'completed' ? 'Berhasil' : 'Gagal'"
