@@ -8,11 +8,14 @@ use Illuminate\Database\Eloquent\Model;
 class Outlet extends Model
 {
     use HasFactory;
-    protected $fillable = ['tenant_id', 'name', 'address', 'phone', 'token_public', 'is_active'];
+    protected $fillable = ['tenant_id', 'name', 'address', 'phone', 'is_active', 'midtrans_server_key'];
 
     protected function casts(): array
     {
-        return ['is_active' => 'boolean'];
+        return [
+            'is_active' => 'boolean',
+            'midtrans_server_key' => 'encrypted',
+        ];
     }
 
     public function tenant()

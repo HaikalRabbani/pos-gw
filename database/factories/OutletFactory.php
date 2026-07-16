@@ -18,7 +18,6 @@ class OutletFactory extends Factory
             'name' => fake()->company() . ' Outlet',
             'address' => fake()->address(),
             'phone' => fake()->phoneNumber(),
-            'token_public' => bin2hex(random_bytes(32)),
             'is_active' => true,
         ];
     }

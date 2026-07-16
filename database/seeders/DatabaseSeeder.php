@@ -24,7 +24,6 @@ class DatabaseSeeder extends Seeder
             'name'         => 'Outlet Pusat',
             'address'      => 'Jl. Merdeka No. 1, Jakarta',
             'phone'        => '021-12345678',
-            'token_public' => bin2hex(random_bytes(32)),
             'is_active'    => true,
         ]);
 
@@ -33,7 +32,6 @@ class DatabaseSeeder extends Seeder
             'name'         => 'Outlet Cabang',
             'address'      => 'Jl. Sudirman No. 45, Bandung',
             'phone'        => '022-87654321',
-            'token_public' => bin2hex(random_bytes(32)),
             'is_active'    => true,
         ]);
 

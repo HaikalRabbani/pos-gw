@@ -6,7 +6,8 @@
 - **Database**: SQLite (dev) / MySQL (prod via Docker)
 - **Realtime**: Laravel Reverb (WebSocket)
 - **Payment**: Midtrans (snap) + Xendit (disbursement/payout)
-- **POS Mobile**: Rencana pakai Flutter / React Native (terpisah)
+- **POS Mobile**: Flutter (proyek terpisah — komunikasi via REST API yg sama)
+- **Web Self-Order**: Pelanggan scan QR meja → buka web order mandiri (proyek terpisah)
 
 ---
 
@@ -27,15 +28,14 @@
 ## Sidebar Navigation (Frontend)
 
 ```
-Ringkasan     → Dashboard
-Transaksi     → Pesanan, Dapur, Shift
-Master Data   → Menu, Diskon, Pajak
-Keuangan      → Penarikan Saldo          ← BARU
-Pengaturan    → Pengguna, Outlet         ← disembunyikan utk Manager
-Laporan       → Laporan
+Dashboard       → Ringkasan
+Transaksi       → Pesanan
+Laporan         → Keuangan, Shift
+Master Data     → Menu, Diskon, Pajak, Meja
+Shift & Jadwal  → Shift (master + jadwal)
+Keuangan        → Penarikan
+Pengaturan      → Pengguna, Outlet (owner only)
 ```
-
-Total: **11 menu** (8 untuk Manager)
 
 ---
 
@@ -56,10 +56,26 @@ Outlet: Outlet Pusat, Outlet Cabang
 
 ## Payment Integration
 
-- **Midtrans** — QRIS / pembayaran online (via Snap)
-- **Xendit** — Disbursement/Payout (kirim dana ke rekening owner)
-- **Withdraw system** — auto cair tanpa approval, tracking balance per outlet
-- **Sandbox**: Xendit API key sudah terisi, bisa test withdraw langsung
+### Dual Mode Payment
+
+```
+┌─ Outlet punya Midtrans key sendiri? ──────────────┐
+│                                                     │
+│  YA ───► Midtrans Snap (own key)                   │
+│           Uang LANGSUNG ke akun Midtrans outlet     │
+│           Tidak ada saldo internal / withdraw       │
+│                                                     │
+│  TIDAK ─► Xendit Invoice (QRIS/VA)                 │
+│            Uang ke akun Xendit platform             │
+│            + Saldo internal → withdraw (Xendit payout)
+└─────────────────────────────────────────────────────┘
+```
+
+### Provider
+- **Xendit** — Payment gateway (Invoice QRIS/VA) + Disbursement/Payout (platform mode)
+- **Midtrans** — Payment gateway opsional kalo outlet punya akun sendiri (own key mode)
+- **Auto-detection** — Sandbox/production dideteksi dari format key: `SB-Mid-server` = sandbox, `Mid-server` = production
+- **Webhook Security** — Webhook token verification di Xendit callback endpoint
 
 ---
 
@@ -87,7 +103,8 @@ Seeder sekarang minimalis — hanya **2 data** per entitas untuk testing:
 - `app/Services/OrderService.php` — order logic + diskon kompleks + pajak bertingkat
 - `app/Services/ReportService.php` — laporan keuangan (HPP, laba, margin)
 - `app/Services/WithdrawService.php` — balance tracking + Xendit payout
-- `app/Services/MidtransService.php` — Midtrans snap + auto-add balance
+- `app/Services/XenditPaymentService.php` — Xendit invoice payment + callback handler
+- `app/Services/MidtransService.php` — Midtrans snap + auto-add balance (own key: SKIP balance)
 - `database/seeders/DatabaseSeeder.php` — seeder akun & outlet
 - `database/seeders/TransactionSeeder.php` — seeder transaksi dummy (2 data)
 - `database/factories/OutletFactory.php` — factory outlet
@@ -104,30 +121,32 @@ Seeder sekarang minimalis — hanya **2 data** per entitas untuk testing:
 - `resources/css/app.css` — global styles + PrimeVue overrides
 
 ### Pages
-- `pages/auth/Login.vue` — login form
-- `pages/auth/PinLogin.vue` — PIN login
+- `pages/auth/Login.vue` — login form + PIN login
 - `pages/auth/NoAccess.vue` — halaman staff tanpa akses
 - `pages/dashboard/Dashboard.vue` — dashboard real-time dari API
-- `pages/orders/Orders.vue` — daftar pesanan
-- `pages/menu/MenuManagement.vue` — CRUD produk + deskripsi + kategori & station inline
-- `pages/master/DiscountManagement.vue` — CRUD diskon kompleks
+- `pages/orders/Orders.vue` — daftar pesanan + split bill + merge bill
+- `pages/menu/MenuManagement.vue` — CRUD produk + foto + kategori & station inline
+- `pages/master/DiscountManagement.vue` — CRUD diskon multi-produk (MultiSelect pills)
 - `pages/master/TaxManagement.vue` — CRUD pajak + urutan perhitungan
+- `pages/tables/TableManagement.vue` — CRUD meja + QR code gambar
 - `pages/users/UserManagement.vue` — CRUD user + foto + role assignment
-- `pages/outlets/OutletManagement.vue` — CRUD outlet + token publik
-- `pages/report/Report.vue` — laporan + Chart.js (bar/line/doughnut)
-- `pages/shifts/ShiftManagement.vue` — riwayat shift kasir
-- `pages/withdraw/WithdrawManagement.vue` — saldo QRIS + withdraw otomatis
-- `pages/auth/ProfileSettings.vue` — edit profil sendiri (nama, email, password, foto, PIN)
+- `pages/outlets/OutletManagement.vue` — CRUD outlet + config Midtrans key (opsional)
+- `pages/report/Report.vue` — laporan keuangan + Chart.js
+- `pages/report/ShiftReport.vue` — laporan shift khusus
+- `pages/shifts/ShiftManagement.vue` — master shift + penjadwalan (tabs)
+- `pages/withdraw/WithdrawManagement.vue` — saldo QRIS + withdraw otomatis (own key: info card)
+- `pages/auth/ProfileSettings.vue` — edit profil sendiri
 
 ---
 
 ## API Endpoints (v1)
 
 ### Public
-- `POST /api/v1/auth/register`
-- `POST /api/v1/auth/login`
-- `POST /api/v1/auth/login-pin`
-- `POST /api/v1/midtrans/notification`
+- `POST /api/v1/auth/register` (throttled)
+- `POST /api/v1/auth/login` (throttled)
+- `POST /api/v1/auth/login-pin` (throttled)
+- `POST /api/v1/midtrans/notification` (Midtrans own-key notification)
+- `POST /api/v1/xendit/callback` (Xendit webhook, verified with token)
 
 ### Authenticated
 - `GET /api/v1/dashboard` — optimized single-endpoint dashboard
@@ -138,11 +157,16 @@ Seeder sekarang minimalis — hanya **2 data** per entitas untuk testing:
 - `POST /api/v1/users/{id}/toggle-active` — toggle aktif
 - `POST /api/v1/users/{id}/pin` — set PIN
 - `GET/POST/PUT/DELETE /api/v1/categories`
-- `GET/POST/PUT/DELETE /api/v1/products`
+- `GET/POST/PUT/DELETE /api/v1/products` (+ variant, station, category)
 - `GET/POST/PUT/DELETE /api/v1/taxes`
-- `GET/POST/PUT/DELETE /api/v1/discounts`
-- `GET/POST/PUT/DELETE /api/v1/tables`
-- `GET/POST /api/v1/orders` + items, status, pay
+- `GET/POST/PUT/DELETE /api/v1/discounts` (+ multi-produk array target_id)
+- `GET/POST/PUT/DELETE /api/v1/stations`
+- `GET/POST/PUT/DELETE /api/v1/tables` + regenerate QR
+- `GET/POST /api/v1/orders` + items, status, pay, split, merge, refund
+- `GET /api/v1/orders/{id}/print-groups` — routing cetak per station
+- `GET/POST/PUT/DELETE /api/v1/shift-types`
+- `GET/POST/PUT/DELETE /api/v1/shift-schedules` + generate bulanan
+- `GET /api/v1/shifts` + start/end shift
 - `GET /api/v1/withdraw/balance` — lihat saldo outlet
 - `GET /api/v1/withdraw/transactions` — riwayat mutasi
 - `GET /api/v1/withdraw/withdrawals` — riwayat penarikan
@@ -156,74 +180,137 @@ Seeder sekarang minimalis — hanya **2 data** per entitas untuk testing:
 
 ---
 
-## Progress Sesi Ini (14 Juli 2026)
+## Ekosistem POS (3 Aplikasi)
+
+| Aplikasi | Platform | Fungsi | Status |
+|---|---|---|---|
+| **POS Admin** | Web (Vue + Laravel) | Manajemen outlet, menu, diskon, laporan | ✅ Aktif (ini) |
+| **POS Mobile** | Flutter | Input pesanan, pembayaran, shift kasir | 🚧 Rencana |
+| **Self-Order** | Web (terpisah) | Pelanggan scan QR meja → order mandiri | 🚧 Rencana |
+
+### Alur Data:
+```
+Self-Order → API POS → Mobile POS → (sync)
+    ↓                        ↓
+  QR Meja                Thermal Printer
+    ↓                        ↓
+  Customer                Dapur/Bar/Grill
+```
+
+---
+
+## Progress Sesi 17 Juli 2026 — Payment Overhaul
+
+### Dual Mode Payment System
+1. ✅ **Migration** — Tambah `midtrans_server_key` (encrypted) di outlets
+2. ✅ **MidtransService** — Conditional key: pake key outlet kalo ada, fallback ke config
+3. ✅ **XenditPaymentService (baru)** — Create Xendit Invoice + handle callback
+4. ✅ **PaymentController** — Deteksi otomatis: Midtrans (own key) vs Xendit (platform)
+5. ✅ **Routes** — Tambah `/v1/xendit/callback`, rename midtrans endpoint
+6. ✅ **Webhook Security** — Xendit callback verification dengan token
+7. ✅ **Bug Fix Critical** — Own key transactions sekarang gak addBalance (fix double-payment)
+8. ✅ **Auto-detect Sandbox/Prod** — Dari format key (`SB-Mid-server` / `Mid-server`)
+9. ✅ **OutletManagement UI** — Input Midtrans key (password field + eye toggle)
+10. ✅ **Withdraw UI** — Sembunyiin form withdraw + riwayat kalo own key (ganti info card)
+11. ✅ **Text Simplification** — Hapus semua jargon provider dari halaman Penarikan
+12. ✅ **Cleanup** — Hapus `token_public` (dead code, gak kepake)
+
+### Key Decisions
+- **Xendit = platform payment + payout** (satu ekosistem, uang gak pindah provider)
+- **Midtrans = opsional untuk outlet yang punya akun sendiri**
+- **Gak ada toggle sandbox/production** — format key sudah menentukan
+- **Halaman Penarikan polos** — Gak pake nama provider, cuma jelasin flow doang
+
+---
+
+## Progress Sesi 14-15 Juli 2026
 
 ### Fitur Baru
 1. ✅ **Pajak Bertingkat** — Service Charge dulu, baru PPN (sequential)
 2. ✅ **Deskripsi Produk** — migration + frontend
 3. ✅ **Avatar/Foto User** — migration + upload + frontend
-4. ✅ **Diskon Kompleks** — target_type (produk/kategori/transaksi), min_purchase, max_discount, buy_x_get_y, masa aktif
+4. ✅ **Diskon Kompleks** — target_type, min_purchase, max_discount, buy_x_get_y, masa aktif
 5. ✅ **Notes Order Item** — catatan per item di POS Cashier
 6. ✅ **Withdraw QRIS System** — Xendit disbursement, auto cair, tracking balance per outlet
-
-### Perbaikan
-7. ✅ **RBAC Fix** — Owner tidak bisa lihat/edit Developer
-8. ✅ **DataTable Redesign** — gradient header, striped rows, paginator
-9. ✅ **CRUD buttons** — pindah ke toolbar tabel, gap lebih lega
-10. ✅ **Dialog opacity fix** — modal putih solid
-11. ✅ **Dropdown overlay fix** — background putih
-12. ✅ **Button icon size** — lebih kecil, ada gap
-13. ✅ **Edit user** — foto digabung ke dialog edit
-
-### Dashboard
-14. ✅ **Dashboard real-time** — data asli dari API, optimized query
-15. ✅ **DashboardController** — single endpoint, scoped ke user outlets
-16. ✅ **Auto-refresh dihapus** — manual refresh aja
-
-### Seeder
-17. ✅ **TransactionSeeder** — hanya 2 data per entitas
-18. ✅ **Session Auth** — Login pake cookie/session (ganti dari token Bearer). AuthService pake `Auth::login()`, bootstrap/app.php tambah middleware session di API group
-
-## Progress Sesi Ini (15 Juli 2026)
-
-### Fitur Baru
-1. ✅ **Manajemen Meja (Frontend)** — TableManagement.vue dengan QR code gambar per meja (bukan token teks)
-2. ✅ **Split Bill & Merge Bill** — Backend (OrderService) + frontend (dialog split per item, merge multi-order)
-3. ✅ **Sample Order Button** — Generate dummy draft/confirmed orders langsung dari halaman Orders buat testing
-4. ✅ **Stations Feature** — Migration `stations` + `station_id` di products + CRUD controller + print-groups API (`GET /orders/{id}/print-groups`) untuk routing thermal printer per station
-5. ✅ **RBAC (Role-Based Access Control)** — Backend middleware rules (void=cashier, split/merge=cashier, refund=manager, shifts=cashier, users=admin, stations=manager) + Frontend action gating (`usePermission.js` composable)
-6. ✅ **Profile Settings** — Halaman `/profile` untuk edit nama, email, password, PIN, foto profil. Dropdown di navbar avatar → link ke Profile Settings + tombol Keluar
+7. ✅ **Manajemen Meja (Frontend)** — QR code gambar per meja
+8. ✅ **Split Bill & Merge Bill** — Backend + frontend dialog
+9. ✅ **Stations Feature** — Migration + CRUD + print-groups API
+10. ✅ **Profile Settings** — Halaman `/profile` edit profil sendiri
 
 ### Perbaikan & Refactor
-7. ✅ **PosCashier.vue & KitchenDisplay.vue dihapus** — POS pindah ke Flutter, KDS belum ada rencana. File dikosongkan, route & sidebar dibersihkan
-8. ✅ **Kategori & Station Modal Inline** — Manajemen kategori & station jadi modal dialog di halaman Menu, bukan halaman terpisah. StationManagement.vue dikosongkan
-9. ✅ **Column header # → No.** — Semua 10 DataTable columns di 9 file diganti
-10. ✅ **Format Rupiah Diseragamkan** — Shared helper `utils/format.js` (formatRupiah ÷ 100 + Rp prefix), 5 local functions dihapus, 3 bug fix (Shift/Report/Dashboard tadinya gak ÷ 100), 9 template `Rp ` ganda di Orders.vue diperbaiki, chart tooltip labels Report.vue diperbaiki
-11. ✅ **ReportController formatRupiah ÷ 100** — Export Excel/PDF tadinya gak bagi 100 (keliatan 100x lipat)
-12. ✅ **Seeder disederhanakan** — Hanya 4 akun (dev, owner, manager, kasir) + 2 outlet. Pake `User::create()` langsung, gak pake factory
-13. ✅ **N+1 query fix** — AuthService login & login-pin sekarang eager load outlets biar gak N+1
-14. ✅ **Duplicate dashboard route dihapus** — Route `GET /v1/dashboard` di dalam `outlet.access` middleware dihapus (dead code)
-15. ✅ **UserManagement sembunyikan akun sendiri** — User yg login difilter dari daftar (edit via Profile Settings)
-16. ✅ **Smart Auto Outlet Mode** — Kalo cuma 1 outlet, selector `outlet` di toolbar otomatis ilang (Tax, Discount, Tables, Withdraw). Kalo tiba-tiba nambah outlet >1, selector muncul lagi otomatis
-17. ✅ **Migration Konsolidasi (35→6 file)** — Semua migration digabung jadi 6 file tematik (user/auth, cache/jobs, pos_core, order_tables, finance, placeholder). Semua kolom & FK di-CREATE langsung, gak ada ALTER tambahan di file terpisah. FK `tenants` dipindah ke file #1 biar gak error FK reference
-18. ✅ **Shift Page Revamp — 3 Tabs** — ShiftManagement.vue di-refactor pake PrimeVue 4 Tabs: (1) Master Shift — CRUD jenis shift (Pagi/Siang/Malam) dengan jam kerja, (2) Penjadwalan — assign karyawan ke shift per tanggal, (3) Laporan — riwayat shift + rekonsiliasi kas
-19. ✅ **Orders Detail Dialog — 5 Tabs** — Dialog detail pesanan di-refactor dari `v-if` mode toggling jadi tabs: Info, Items, Refund, Split, Log. State refund & split di-pre-initialize pas buka dialog
-20. ✅ **Sidebar Restruktur** — Ringkasan→Dashboard, Shift dipisah dari Transaksi ke grup "Shift & Jadwal" sendiri, filter permission pake `g.title` (bukan index)
-21. ✅ **Backend Shift Types & Schedules** — Migration `shift_types` + `shift_schedules` tabel, Model, Controller CRUD, Routes
+11. ✅ **RBAC Fix** — Owner tidak bisa lihat/edit Developer
+12. ✅ **RBAC Frontend** — `usePermission.js` composable + action gating
+13. ✅ **DataTable Redesign** — gradient header, striped rows, paginator
+14. ✅ **CRUD buttons** — pindah ke toolbar tabel
+15. ✅ **Format Rupiah Diseragamkan** — Shared helper `utils/format.js`
+16. ✅ **ReportController formatRupiah ÷ 100** — Export Excel/PDF fix
+17. ✅ **PosCashier.vue & KitchenDisplay.vue dihapus** — POS pindah ke Flutter
+18. ✅ **StationManagement.vue dikosongkan** — Diganti modal inline di Menu
+19. ✅ **Shift Page Revamp — 2 Tabs** — Master Shift + Penjadwalan (tab Laporan dipindah ke sidebar Laporan > Shift)
+20. ✅ **Sidebar Restruktur** — Dashboard, Transaksi, Laporan, Master Data, Shift & Jadwal, Keuangan, Pengaturan
+21. ✅ **N+1 query fix** — AuthService login sekarang eager load outlets
+22. ✅ **Smart Auto Outlet Mode** — Selector outlet otomatis ilang klo cuma 1
+23. ✅ **Duplicate session check dihapus** — Router guard handle semua, main.js gak perlu
+
+---
+
+## Progress Sesi 16 Juli 2026
+
+### Optimasi & Perbaikan Kode
+1. ✅ **Dead Code Cleanup** — File kosong/tak terpakai dihapus:
+   - `CategoryManagement.vue` (inline di Menu)
+   - `StationManagement.vue` (inline di Menu)
+   - `Orders copy.vue` (duplicate)
+   - `OrderReport.vue` (redundan — gap andanya `/orders`)
+   - Folder `auth/Register.vue` gak dipake
+
+2. ✅ **Unused Dependencies Dihapus** — `package.json` dibersihkan dari library tak terpakai (chart.js, html2canvas, jspdf, qrcode, vue-chartjs, dll)
+
+3. ✅ **Session Check Optimization** — Hapus duplikasi `checkSession()` di main.js + circular dependency di router
+
+### Security Improvements
+4. ✅ **Rate Limiting** — Login, register, login-pin pake throttle (5-10x/60 detik)
+5. ✅ **Mass Assignment Protection** — Semua model pake `$fillable`, validasi ketat di controller
+6. ✅ **XSS Prevention** — Vue template auto-escape, tag pake component Tag, inputNumber buat numeric
+7. ✅ **SQL Injection Safe** — Semua query pake Eloquent (parameter binding)
+8. ✅ **CORS & Session** — API pake cookie-based auth (Sanctum SPA), CSRF protection aktif
+9. ✅ **File Upload Validation** — Upload dibatasi image only, max 2MB
+10. ✅ **Route Protection** — Semua route di `auth:sanctum` + `outlet.access` middleware
+
+### Dashboard Redesign
+11. ✅ **Dashboard Cards** — Revenue, pesanan, produk, shift — pakai data real, bukan dummy
+12. ✅ **Ringkasan Sistem Dihapus** — Versi aplikasi, status server, laba rangkap — gak esensial
+13. ✅ **Auto-refresh Dihapus** — Manual refresh via tombol
+
+### Laporan (Sidebar Category)
+14. ✅ **Sidebar Tab Laporan Baru** — Laporan > Keuangan, Shift, Pesanan (lalu Pesanan dihapus karena redundan)
+15. ✅ **ShiftReport.vue** — Halaman laporan shift khusus
+16. ✅ **Backend Date Filter** — ShiftController + OrderController terima `start_date`/`end_date`
+17. ✅ **Tab Laporan di ShiftManagement dihapus** — Pindah ke sidebar Laporan > Shift
+
+### Menu Management Improvements
+18. ✅ **DataTable Sederhana** — Hapus kolom Deskripsi & Status dari tabel (pindah ke detail dialog)
+19. ✅ **Foto Produk** — Thumbnail di tabel + upload di form + detail dialog
+20. ✅ **Detail Dialog** — Card info lengkap: modal, laba, persentase, timestamp
+21. ✅ **Status Diatur via Form** — Dropdown status di dialog edit (ganti toggle di tabel)
+22. ✅ **Fix station_id gak kesimpan** — Tambah `station_id` ke validasi controller + `$fillable` model + eager load
+23. ✅ **Eager Load Kategori & Station** — `index()` sekarang load `category` & `station` (sebelumnya cuma `variants`)
+
+### Discount Management Redesign
+24. ✅ **Form Terstruktur** — 5 section: Informasi Dasar, Jenis Diskon, Sasaran, Ketentuan, Masa Berlaku
+25. ✅ **Visual Card Selector** — Persentase, Nominal, Beli Gratis (BOGO) — pake kartu dengan icon + centang
+26. ✅ **Adaptive Fields** — BOGO fields cuma muncul kalo pilih BOGO
+27. ✅ **Multi-Produk MultiSelect** — Pilih >1 produk dengan pills + tombol X hapus per item
+28. ✅ **Preview Summary** — Live preview card di bawah form
+29. ✅ **Migration target_id** — Kolom diubah dari integer ke text untuk simpan JSON array
 
 ### Pending / Next
 - [ ] Export laporan Excel/PDF
+- [ ] POS Mobile (Flutter) — integrasi API
+- [ ] Web Self-Order via QR — pelanggan scan QR meja → pesan sendiri
 - [ ] Manajemen metode pembayaran (Flutter/QR)
-- [ ] POS Mobile (Flutter/RN — proyek terpisah)
 - [ ] Dark mode toggle
 - [ ] Table reservation system
-- [ ] Promo engine UI testing
 - [ ] Attendance / absensi karyawan
-- [ ] Sistem refund (frontend flow) — dialog detail refund + pilih item
-- [ ] Export laporan Excel/PDF
-- [ ] Manajemen metode pembayaran
-- [ ] POS Mobile (Flutter/RN — proyek terpisah)
-- [ ] Dark mode toggle
-- [ ] Table reservation system
-- [ ] Promo engine UI testing
-- [ ] Attendance / absensi karyawan
+- [ ] Kitchen Display System (KDS) — layar dapur otomatis
+- [ ] Optimasi N+1 di Discount model accessors

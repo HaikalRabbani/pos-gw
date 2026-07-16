@@ -98,17 +98,6 @@
               :severity="data.is_active ? 'success' : 'danger'" rounded />
           </template>
         </Column>
-        <Column header="Token Publik" style="width: 200px">
-          <template #body="{ data }">
-            <div class="flex items-center gap-1">
-              <code class="text-xs bg-slate-100 px-2 py-1 rounded font-mono truncate max-w-[140px]">
-                {{ data.token_public ? data.token_public.substring(0, 16) + '...' : '—' }}
-              </code>
-              <Button v-if="data.token_public" icon="pi pi-copy" text rounded size="small"
-                v-tooltip.top="'Salin Token'" @click="copyToken(data.token_public)" />
-            </div>
-          </template>
-        </Column>
         <Column header="Aksi" style="width: 160px">
           <template #body="{ data }">
             <div class="flex gap-3">
@@ -128,21 +117,66 @@
     </div>
 
     <!-- Add/Edit Dialog -->
-    <Dialog v-model:visible="showDialog" :header="editing ? 'Edit Outlet' : 'Tambah Outlet'" modal class="w-md">
-      <form @submit.prevent="saveOutlet" class="space-y-4">
+    <Dialog v-model:visible="showDialog" :header="editing ? 'Edit Outlet' : 'Tambah Outlet'" modal class="w-lg">
+      <form @submit.prevent="saveOutlet" class="space-y-6">
+        <!-- Section: Informasi Outlet -->
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">Nama Outlet <span class="text-red-400">*</span></label>
-          <InputText v-model="form.name" class="w-full" placeholder="Nama cabang" required />
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-6 h-6 rounded-lg bg-teal-100 flex items-center justify-center">
+              <i class="pi pi-building text-xs text-teal-700"></i>
+            </div>
+            <h3 class="text-sm font-semibold text-slate-800">Informasi Outlet</h3>
+          </div>
+          <div class="bg-slate-50 rounded-xl p-4 space-y-3">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Nama Outlet <span class="text-red-400">*</span></label>
+              <InputText v-model="form.name" class="w-full" placeholder="Nama cabang" required />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Alamat</label>
+              <Textarea v-model="form.address" class="w-full" placeholder="Alamat lengkap" :rows="2" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Telepon</label>
+              <InputText v-model="form.phone" class="w-full" placeholder="Nomor telepon" />
+            </div>
+          </div>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">Alamat</label>
-          <Textarea v-model="form.address" class="w-full" placeholder="Alamat lengkap" :rows="2" />
+
+        <!-- Section: Pembayaran QRIS (hanya saat edit) -->
+        <div v-if="editing">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-6 h-6 rounded-lg bg-blue-100 flex items-center justify-center">
+              <i class="pi pi-credit-card text-xs text-blue-700"></i>
+            </div>
+            <h3 class="text-sm font-semibold text-slate-800">Akun Midtrans</h3>
+            <span class="text-[10px] text-slate-400 font-normal">(opsional — default pake Xendit)</span>
+          </div>
+          <div class="bg-slate-50 rounded-xl p-4">
+            <div class="flex items-center gap-3 p-3 rounded-xl bg-blue-50 border border-blue-100 mb-3">
+              <i class="pi pi-info-circle text-blue-400 text-lg shrink-0"></i>
+              <p class="text-xs text-blue-700">Default pembayaran via <strong>Xendit</strong>. Isi Midtrans key hanya jika outlet punya akun Midtrans sendiri.</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">
+                Midtrans Server Key
+                <span class="text-xs text-slate-400 font-normal ml-1">— isi jika punya akun sendiri</span>
+              </label>
+              <div class="relative">
+                <InputText v-model="form.midtrans_server_key" class="w-full pr-10"
+                  :type="showMidtransKey ? 'text' : 'password'"
+                  placeholder="SB-Mid-server-xxxxxxxxxx" autocomplete="off" />
+                <button type="button"
+                  class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  @click="showMidtransKey = !showMidtransKey">
+                  <i :class="showMidtransKey ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">Telepon</label>
-          <InputText v-model="form.phone" class="w-full" placeholder="Nomor telepon" />
-        </div>
-        <div class="flex justify-end gap-2 pt-2">
+
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
           <Button label="Batal" severity="secondary" @click="showDialog = false" />
           <Button type="submit" :label="editing ? 'Simpan' : 'Tambah'" :loading="saving" />
         </div>
@@ -174,6 +208,7 @@ import { usePermission } from '../../utils/usePermission'
 import client from '../../api/client'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
+
 import Textarea from 'primevue/textarea'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -192,7 +227,8 @@ const showDeleteDialog = ref(false)
 const editing = ref(false)
 const deletingOutlet = ref(null)
 
-const form = ref({ name: '', address: '', phone: '' })
+const form = ref({ name: '', address: '', phone: '', midtrans_server_key: '' })
+const showMidtransKey = ref(false)
 
 const activeCount = computed(() => outlets.value.filter((o) => o.is_active).length)
 const inactiveCount = computed(() => outlets.value.filter((o) => !o.is_active).length)
@@ -208,14 +244,21 @@ async function fetchOutlets() {
 
 function openAddDialog() {
   editing.value = false
-  form.value = { name: '', address: '', phone: '' }
+  form.value = { name: '', address: '', phone: '', midtrans_server_key: '' }
+  showMidtransKey.value = false
   showDialog.value = true
 }
 
 function openEditDialog(outlet) {
   editing.value = true
-  form.value = { name: outlet.name, address: outlet.address || '', phone: outlet.phone || '' }
-  form.value.id = outlet.id
+  form.value = {
+    id: outlet.id,
+    name: outlet.name,
+    address: outlet.address || '',
+    phone: outlet.phone || '',
+    midtrans_server_key: outlet.midtrans_server_key || '',
+  }
+  showMidtransKey.value = false
   showDialog.value = true
 }
 
@@ -227,6 +270,7 @@ async function saveOutlet() {
         name: form.value.name,
         address: form.value.address,
         phone: form.value.phone,
+        midtrans_server_key: form.value.midtrans_server_key || null,
       })
     } else {
       await client.post('/outlets', {
@@ -266,14 +310,6 @@ async function deleteOutlet() {
     alert(e.response?.data?.message || 'Gagal menghapus outlet')
   } finally {
     deleting.value = false
-  }
-}
-
-async function copyToken(token) {
-  try {
-    await navigator.clipboard.writeText(token)
-  } catch (_) {
-    alert('Token: ' + token)
   }
 }
 

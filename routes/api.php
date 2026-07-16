@@ -26,7 +26,9 @@ use Illuminate\Support\Facades\Storage;
 Route::post('/v1/auth/register', [AuthController::class, 'register'])->middleware('throttle:5,60');
 Route::post('/v1/auth/login', [AuthController::class, 'login'])->middleware('throttle:10,60');
 Route::post('/v1/auth/login-pin', [AuthController::class, 'loginPin'])->middleware('throttle:10,60');
-Route::post('/v1/midtrans/notification', [PaymentController::class, 'notification']);
+// Payment callbacks
+Route::post('/v1/midtrans/notification', [PaymentController::class, 'midtransNotification']);
+Route::post('/v1/xendit/callback', [PaymentController::class, 'xenditCallback']);
 
 // Protected
 Route::middleware('auth:sanctum')->group(function () {

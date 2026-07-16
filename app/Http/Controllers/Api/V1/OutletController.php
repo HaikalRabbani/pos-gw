@@ -22,7 +22,6 @@ class OutletController extends Controller
             'phone' => 'nullable|string|max:20',
         ]);
 
-        $validated['token_public'] = bin2hex(random_bytes(32));
         $validated['tenant_id'] = $request->user()->tenant_id;
 
         $outlet = Outlet::create($validated);
@@ -45,6 +44,7 @@ class OutletController extends Controller
             'address' => 'nullable|string',
             'phone' => 'nullable|string|max:20',
             'is_active' => 'sometimes|boolean',
+            'midtrans_server_key' => 'nullable|string|max:255',
         ]);
 
         $outlet->update($validated);

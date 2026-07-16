@@ -12,8 +12,11 @@ class MidtransService
 
     public function createTransaction(Order $order): array
     {
-        \Midtrans\Config::$serverKey = config('midtrans.server_key');
-        \Midtrans\Config::$isProduction = config('midtrans.is_production');
+        // Pake key outlet kalo ada, fallback ke key platform
+        $outlet = $order->outlet;
+        $serverKey = $outlet?->midtrans_server_key ?: config('midtrans.server_key');
+        \Midtrans\Config::$serverKey = $serverKey;
+        \Midtrans\Config::$isProduction = str_starts_with($serverKey, 'Mid-server');
         \Midtrans\Config::$isSanitized = true;
         \Midtrans\Config::$is3ds = true;
 
@@ -37,8 +40,9 @@ class MidtransService
 
     public function handleNotification(array $notification): ?Order
     {
-        \Midtrans\Config::$serverKey = config('midtrans.server_key');
-        \Midtrans\Config::$isProduction = config('midtrans.is_production');
+        // Key akan di-set per-order setelah kita tau outlet-nya
+        \Midtrans\Config::$isSanitized = true;
+        \Midtrans\Config::$is3ds = true;
 
         $orderId = $notification['order_id'] ?? null;
         $transactionStatus = $notification['transaction_status'] ?? '';
@@ -53,8 +57,14 @@ class MidtransService
         $internalId = $parts[1] ?? null;
         if (!$internalId) return null;
 
-        $order = Order::find($internalId);
+        $order = Order::with('outlet')->find($internalId);
         if (!$order) return null;
+
+        // Set Midtrans key berdasarkan outlet order
+        $outlet = $order->outlet;
+        $serverKey = $outlet?->midtrans_server_key ?: config('midtrans.server_key');
+        \Midtrans\Config::$serverKey = $serverKey;
+        \Midtrans\Config::$isProduction = str_starts_with($serverKey, 'Mid-server');
 
         if ($transactionStatus === 'capture' || $transactionStatus === 'settlement') {
             if ($fraudStatus === 'accept' || $fraudStatus === '') {
@@ -71,8 +81,9 @@ class MidtransService
                     'payment_method' => 'midtrans',
                 ]);
 
-                // Auto-add balance untuk outlet (QRIS / non-tunai)
-                if ($order->outlet) {
+                // Auto-add balance outlet — HANYA kalo pake platform key (uang ke akun Xendit platform)
+                // Kalo outlet punya Midtrans key sendiri, uang langsung ke akun mereka — gak perlu balance
+                if ($order->outlet && !$outlet->midtrans_server_key) {
                     $this->withdrawService->addBalance(
                         $order->outlet,
                         $order->grand_total,
