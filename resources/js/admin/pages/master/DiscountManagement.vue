@@ -8,54 +8,6 @@
       </div>
     </div>
 
-    <!-- Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div class="bg-white rounded-2xl border border-slate-200 p-5">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-            <i class="pi pi-percentage text-blue-600 text-lg"></i>
-          </div>
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-wider text-blue-600">Total Diskon</p>
-            <p class="text-2xl font-bold text-slate-900 mt-0.5">{{ discounts.length }}</p>
-          </div>
-        </div>
-      </div>
-      <div class="bg-white rounded-2xl border border-slate-200 p-5">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-            <i class="pi pi-check-circle text-emerald-600 text-lg"></i>
-          </div>
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-wider text-emerald-600">Aktif</p>
-            <p class="text-2xl font-bold text-slate-900 mt-0.5">{{ activeCount }}</p>
-          </div>
-        </div>
-      </div>
-      <div class="bg-white rounded-2xl border border-slate-200 p-5">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
-            <i class="pi pi-tag text-amber-600 text-lg"></i>
-          </div>
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-wider text-amber-600">Beli Dapat</p>
-            <p class="text-2xl font-bold text-slate-900 mt-0.5">{{ buyXGetYCount }}</p>
-          </div>
-        </div>
-      </div>
-      <div class="bg-white rounded-2xl border border-slate-200 p-5">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center">
-            <i class="pi pi-target text-violet-600 text-lg"></i>
-          </div>
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-wider text-violet-600">Terjadwal</p>
-            <p class="text-2xl font-bold text-slate-900 mt-0.5">{{ scheduledCount }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Outlet Selector (when no outlet selected) -->
     <div v-if="!selectedOutletId" class="bg-white rounded-2xl border border-slate-200 p-12 flex flex-col items-center justify-center text-center">
       <i class="pi pi-building text-4xl text-slate-200 mb-3"></i>
@@ -170,7 +122,7 @@
           <!-- Tipe Diskon -->
           <div>
             <label class="block text-sm font-medium text-slate-700 mb-1">Tipe <span class="text-red-400">*</span></label>
-            <Select v-model="form.type" :options="typeOptions" class="w-full" required />
+            <Select v-model="form.type" :options="typeOptions" optionLabel="label" optionValue="value" class="w-full" required />
           </div>
           <!-- Nilai -->
           <div>
@@ -191,7 +143,7 @@
           <!-- Sasaran -->
           <div>
             <label class="block text-sm font-medium text-slate-700 mb-1">Sasaran Diskon</label>
-            <Select v-model="form.target_type" :options="targetTypeOptions" class="w-full"
+            <Select v-model="form.target_type" :options="targetTypeOptions" optionLabel="label" optionValue="value" class="w-full"
               @change="form.target_id = null" />
           </div>
           <!-- Target Produk/Kategori -->
@@ -274,6 +226,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { usePermission } from '../../utils/usePermission'
 import { formatRupiah } from '../../utils/format'
+import { useToastStore } from '../../stores/toast'
 import client from '../../api/client'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
@@ -287,6 +240,7 @@ import Dialog from 'primevue/dialog'
 import Tooltip from 'primevue/tooltip'
 
 const perm = usePermission()
+const toast = useToastStore()
 
 const discounts = ref([])
 const outlets = ref([])
@@ -325,10 +279,6 @@ const form = ref({
   start_date: null,
   end_date: null,
 })
-
-const activeCount = computed(() => discounts.value.filter((d) => d.is_active).length)
-const buyXGetYCount = computed(() => discounts.value.filter((d) => d.buy_x && d.buy_y).length)
-const scheduledCount = computed(() => discounts.value.filter((d) => d.start_date || d.end_date).length)
 
 function discountTypeLabel(d) {
   if (d.buy_x && d.buy_y) return `Beli ${d.buy_x} Gratis ${d.buy_y}`
@@ -458,7 +408,7 @@ async function saveDiscount() {
     showDialog.value = false
     fetchDiscounts()
   } catch (e) {
-    alert(e.response?.data?.message || 'Gagal menyimpan diskon')
+    toast.error('Gagal Simpan Diskon', e.response?.data?.message || 'Gagal menyimpan diskon')
   } finally {
     saving.value = false
   }
@@ -483,7 +433,7 @@ async function deleteDiscount() {
     showDeleteDialog.value = false
     fetchDiscounts()
   } catch (e) {
-    alert(e.response?.data?.message || 'Gagal menghapus diskon')
+    toast.error('Gagal Hapus Diskon', e.response?.data?.message || 'Gagal menghapus diskon')
   } finally {
     deleting.value = false
   }

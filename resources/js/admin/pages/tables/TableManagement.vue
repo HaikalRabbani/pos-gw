@@ -8,54 +8,6 @@
       </div>
     </div>
 
-    <!-- Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div class="bg-white rounded-2xl border border-slate-200 p-5">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-            <i class="pi pi-table text-blue-600 text-lg"></i>
-          </div>
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-wider text-blue-600">Total Meja</p>
-            <p class="text-2xl font-bold text-slate-900 mt-0.5">{{ tables.length }}</p>
-          </div>
-        </div>
-      </div>
-      <div class="bg-white rounded-2xl border border-slate-200 p-5">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-            <i class="pi pi-check-circle text-emerald-600 text-lg"></i>
-          </div>
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-wider text-emerald-600">Aktif</p>
-            <p class="text-2xl font-bold text-slate-900 mt-0.5">{{ activeCount }}</p>
-          </div>
-        </div>
-      </div>
-      <div class="bg-white rounded-2xl border border-slate-200 p-5">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
-            <i class="pi pi-ban text-slate-400 text-lg"></i>
-          </div>
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Non-Aktif</p>
-            <p class="text-2xl font-bold text-slate-400 mt-0.5">{{ inactiveCount }}</p>
-          </div>
-        </div>
-      </div>
-      <div class="bg-white rounded-2xl border border-slate-200 p-5">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center">
-            <i class="pi pi-qrcode text-violet-600 text-lg"></i>
-          </div>
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-wider text-violet-600">Dengan QR</p>
-            <p class="text-2xl font-bold text-slate-900 mt-0.5">{{ withQrCount }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- QR Base URL Config -->
     <div class="bg-white rounded-2xl border border-slate-200 p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
       <div class="flex items-center gap-2 shrink-0">
@@ -244,6 +196,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { usePermission } from '../../utils/usePermission'
+import { useToastStore } from '../../stores/toast'
 import client from '../../api/client'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
@@ -255,6 +208,7 @@ import Dialog from 'primevue/dialog'
 import Tooltip from 'primevue/tooltip'
 
 const perm = usePermission()
+const toast = useToastStore()
 
 const tables = ref([])
 const outlets = ref([])
@@ -287,10 +241,6 @@ function qrCodeUrl(token, size = 250) {
   const url = encodeURIComponent(qrFullUrl(token))
   return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${url}&margin=10`
 }
-
-const activeCount = computed(() => tables.value.filter((t) => t.is_active).length)
-const inactiveCount = computed(() => tables.value.filter((t) => !t.is_active).length)
-const withQrCount = computed(() => tables.value.filter((t) => t.qr_token).length)
 
 async function fetchOutlets() {
   try {
@@ -340,7 +290,7 @@ async function saveTable() {
     showDialog.value = false
     fetchTables()
   } catch (e) {
-    alert(e.response?.data?.message || 'Gagal menyimpan meja')
+    toast.error('Gagal Simpan Meja', e.response?.data?.message || 'Gagal menyimpan meja')
   } finally {
     saving.value = false
   }
@@ -419,7 +369,7 @@ async function copyQrUrl(token) {
   try {
     await navigator.clipboard.writeText(fullUrl)
   } catch (_) {
-    alert('URL: ' + fullUrl)
+    toast.info('QR URL', fullUrl)
   }
 }
 
@@ -439,7 +389,7 @@ async function deleteTable() {
     showDeleteDialog.value = false
     fetchTables()
   } catch (e) {
-    alert(e.response?.data?.message || 'Gagal menghapus meja')
+    toast.error('Gagal Hapus Meja', e.response?.data?.message || 'Gagal menghapus meja')
   } finally {
     deleting.value = false
   }

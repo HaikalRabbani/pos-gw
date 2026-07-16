@@ -8,54 +8,6 @@
       </div>
     </div>
 
-    <!-- Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div class="bg-white rounded-2xl border border-slate-200 p-5">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-            <i class="pi pi-users text-blue-600 text-lg"></i>
-          </div>
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-wider text-blue-600">Total User</p>
-            <p class="text-2xl font-bold text-slate-900 mt-0.5">{{ users.length }}</p>
-          </div>
-        </div>
-      </div>
-      <div class="bg-white rounded-2xl border border-slate-200 p-5">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-            <i class="pi pi-check-circle text-emerald-600 text-lg"></i>
-          </div>
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-wider text-emerald-600">Aktif</p>
-            <p class="text-2xl font-bold text-slate-900 mt-0.5">{{ activeCount }}</p>
-          </div>
-        </div>
-      </div>
-      <div class="bg-white rounded-2xl border border-slate-200 p-5">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
-            <i class="pi pi-ban text-slate-400 text-lg"></i>
-          </div>
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Non-Aktif</p>
-            <p class="text-2xl font-bold text-slate-400 mt-0.5">{{ inactiveCount }}</p>
-          </div>
-        </div>
-      </div>
-      <div class="bg-white rounded-2xl border border-slate-200 p-5">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center">
-            <i class="pi pi-camera text-violet-600 text-lg"></i>
-          </div>
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-wider text-violet-600">Dengan Foto</p>
-            <p class="text-2xl font-bold text-slate-900 mt-0.5">{{ withPhotoCount }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Loading State -->
     <div v-if="loading" class="bg-white rounded-2xl border border-slate-200 p-6">
       <div class="animate-pulse space-y-3">
@@ -218,7 +170,7 @@
         </div>
         <div>
           <label class="block text-sm font-medium text-slate-700 mb-1">Role</label>
-          <Select v-model="roleForm.role" :options="roleOptions" class="w-full" />
+          <Select v-model="roleForm.role" :options="roleOptions" optionLabel="label" optionValue="value" class="w-full" />
         </div>
         <div class="flex justify-between pt-2">
           <Button label="Hapus akses" severity="danger" text
@@ -252,6 +204,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../../stores/auth'
+import { useToastStore } from '../../stores/toast'
 import client from '../../api/client'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
@@ -265,6 +218,7 @@ import Tooltip from 'primevue/tooltip'
 import { roleLabel, roleBadgeClass } from '../../utils/roleBadge'
 
 const auth = useAuthStore()
+const toast = useToastStore()
 
 const loading = ref(true)
 const users = ref([])
@@ -288,10 +242,6 @@ const form = ref({ name: '', email: '', password: '' })
 const editForm = ref({ name: '' })
 const roleForm = ref({ outlet_id: null, role: 'cashier' })
 const pinForm = ref({ pin: '' })
-
-const activeCount = computed(() => users.value.filter((u) => u.is_active).length)
-const inactiveCount = computed(() => users.value.filter((u) => !u.is_active).length)
-const withPhotoCount = computed(() => users.value.filter((u) => u.photo).length)
 
 /** Outlets available for the current user's role */
 const myOutlets = computed(() => {
@@ -346,7 +296,7 @@ async function addUser() {
     showAddDialog.value = false
     fetchUsers()
   } catch (e) {
-    alert(e.response?.data?.message || 'Gagal tambah user')
+    toast.error('Gagal Tambah User', e.response?.data?.message || 'Gagal tambah user')
   } finally {
     saving.value = false
   }
@@ -382,7 +332,7 @@ async function saveEdit() {
     showEditDialog.value = false
     fetchUsers()
   } catch (e) {
-    alert(e.response?.data?.message || 'Gagal edit user')
+    toast.error('Gagal Edit User', e.response?.data?.message || 'Gagal edit user')
   } finally {
     savingEdit.value = false
   }
@@ -423,7 +373,7 @@ async function assignRole() {
     showRoleDialog.value = false
     fetchUsers()
   } catch (e) {
-    alert(e.response?.data?.message || 'Gagal assign role')
+    toast.error('Gagal Assign Role', e.response?.data?.message || 'Gagal assign role')
   } finally {
     savingRole.value = false
   }
@@ -463,7 +413,7 @@ async function savePin() {
     showPinDialog.value = false
     fetchUsers()
   } catch (e) {
-    alert(e.response?.data?.message || 'Gagal set PIN')
+    toast.error('Gagal Set PIN', e.response?.data?.message || 'Gagal set PIN')
   } finally {
     savingPin.value = false
   }

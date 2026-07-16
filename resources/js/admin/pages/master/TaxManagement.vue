@@ -9,43 +9,6 @@
 
     </div>
 
-    <!-- Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="bg-white rounded-2xl border border-slate-200 p-5">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-            <i class="pi pi-percentage text-blue-600 text-lg"></i>
-          </div>
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-wider text-blue-600">Total Pajak</p>
-            <p class="text-2xl font-bold text-slate-900 mt-0.5">{{ taxes.length }}</p>
-          </div>
-        </div>
-      </div>
-      <div class="bg-white rounded-2xl border border-slate-200 p-5">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-            <i class="pi pi-check-circle text-emerald-600 text-lg"></i>
-          </div>
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-wider text-emerald-600">Aktif</p>
-            <p class="text-2xl font-bold text-slate-900 mt-0.5">{{ activeCount }}</p>
-          </div>
-        </div>
-      </div>
-      <div class="bg-white rounded-2xl border border-slate-200 p-5">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
-            <i class="pi pi-ban text-slate-400 text-lg"></i>
-          </div>
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Non-Aktif</p>
-            <p class="text-2xl font-bold text-slate-400 mt-0.5">{{ inactiveCount }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Outlet Selector (when no outlet selected) -->
     <div v-if="!selectedOutletId" class="bg-white rounded-2xl border border-slate-200 p-12 flex flex-col items-center justify-center text-center">
       <i class="pi pi-building text-4xl text-slate-200 mb-3"></i>
@@ -179,6 +142,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { usePermission } from '../../utils/usePermission'
+import { useToastStore } from '../../stores/toast'
 import client from '../../api/client'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
@@ -191,6 +155,7 @@ import Dialog from 'primevue/dialog'
 import Tooltip from 'primevue/tooltip'
 
 const perm = usePermission()
+const toast = useToastStore()
 
 const taxes = ref([])
 const outlets = ref([])
@@ -204,9 +169,6 @@ const editing = ref(false)
 const deletingTax = ref(null)
 
 const form = ref({ name: '', rate: 11, sort_order: 0 })
-
-const activeCount = computed(() => taxes.value.filter((t) => t.is_active).length)
-const inactiveCount = computed(() => taxes.value.filter((t) => !t.is_active).length)
 
 async function fetchOutlets() {
   try {
@@ -258,7 +220,7 @@ async function saveTax() {
     showDialog.value = false
     fetchTaxes()
   } catch (e) {
-    alert(e.response?.data?.message || 'Gagal menyimpan pajak')
+    toast.error('Gagal Simpan Pajak', e.response?.data?.message || 'Gagal menyimpan pajak')
   } finally {
     saving.value = false
   }
@@ -283,7 +245,7 @@ async function deleteTax() {
     showDeleteDialog.value = false
     fetchTaxes()
   } catch (e) {
-    alert(e.response?.data?.message || 'Gagal menghapus pajak')
+    toast.error('Gagal Hapus Pajak', e.response?.data?.message || 'Gagal menghapus pajak')
   } finally {
     deleting.value = false
   }

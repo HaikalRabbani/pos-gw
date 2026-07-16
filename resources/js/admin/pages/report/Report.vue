@@ -164,6 +164,7 @@ import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import client from '../../api/client'
 import { formatRupiah } from '../../utils/format'
 import { useAuthStore } from '../../stores/auth'
+import { useToastStore } from '../../stores/toast'
 import Chart from 'chart.js/auto'
 import Button from 'primevue/button'
 import DatePicker from 'primevue/datepicker'
@@ -172,6 +173,7 @@ import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 
 const authStore = useAuthStore()
+const toast = useToastStore()
 const loading = ref(true)
 
 const dateRange = ref(null)
@@ -463,7 +465,7 @@ async function exportExcel() {
     link.remove()
     window.URL.revokeObjectURL(url)
   } catch (err) {
-    alert('Gagal export Excel')
+    toast.error('Gagal Export Excel', 'Terjadi kesalahan saat export')
   }
 }
 
@@ -489,7 +491,7 @@ async function exportPdf() {
       win.document.close()
     }
   } catch (err) {
-    alert('Gagal export PDF')
+    toast.error('Gagal Export PDF', 'Terjadi kesalahan saat export')
   }
 }
 

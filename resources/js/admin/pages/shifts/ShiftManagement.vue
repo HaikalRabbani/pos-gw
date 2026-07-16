@@ -451,6 +451,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { formatRupiah } from '../../utils/format'
 import { usePermission } from '../../utils/usePermission'
+import { useToastStore } from '../../stores/toast'
 import client from '../../api/client'
 import Tabs from 'primevue/tabs'
 import TabList from 'primevue/tablist'
@@ -468,6 +469,7 @@ import Select from 'primevue/select'
 import Checkbox from 'primevue/checkbox'
 
 const perm = usePermission()
+const toast = useToastStore()
 
 // ────── Tab ──────
 const activeTab = ref('0')
@@ -673,7 +675,7 @@ async function saveShiftType() {
     shiftTypeDialog.value = false
     fetchShiftTypes()
   } catch (e) {
-    alert(e.response?.data?.message || 'Gagal menyimpan shift')
+    toast.error('Gagal Simpan Shift', e.response?.data?.message || 'Gagal menyimpan shift')
   } finally { stSaving.value = false }
 }
 
@@ -741,7 +743,7 @@ async function saveSchedule() {
     scheduleDialog.value = false
     fetchSchedules()
   } catch (e) {
-    alert(e.response?.data?.message || 'Gagal menambah jadwal')
+    toast.error('Gagal Tambah Jadwal', e.response?.data?.message || 'Gagal menambah jadwal')
   } finally { scSaving.value = false }
 }
 
@@ -778,11 +780,11 @@ async function processGenerate() {
       user_ids: genUserIds.value,
       shift_type_ids: genShiftTypeIds.value,
     })
-    alert(data.message || 'Generate berhasil!')
+    toast.success('Generate Berhasil', data.message || 'Jadwal berhasil digenerate')
     generateDialog.value = false
     fetchSchedules()
   } catch (e) {
-    alert(e.response?.data?.message || 'Gagal generate')
+    toast.error('Gagal Generate', e.response?.data?.message || 'Gagal generate jadwal')
   } finally { genLoading.value = false }
 }
 
@@ -815,7 +817,7 @@ async function executeDelete() {
     }
     deleteDialog.value = false
   } catch (e) {
-    alert('Gagal menghapus')
+    toast.error('Gagal Hapus', 'Gagal menghapus data')
   } finally { deleting.value = false }
 }
 

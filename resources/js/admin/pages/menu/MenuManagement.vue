@@ -239,6 +239,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { usePermission } from '../../utils/usePermission'
 import { formatRupiah } from '../../utils/format'
+import { useToastStore } from '../../stores/toast'
 import client from '../../api/client'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
@@ -252,6 +253,7 @@ import Dialog from 'primevue/dialog'
 import Tooltip from 'primevue/tooltip'
 
 const perm = usePermission()
+const toast = useToastStore()
 
 const loading = ref(true)
 const products = ref([])
@@ -350,7 +352,7 @@ async function saveProduct() {
     showProductDialog.value = false
     fetchData()
   } catch (e) {
-    alert(e.response?.data?.message || 'Gagal menyimpan produk')
+    toast.error('Gagal Simpan', e.response?.data?.message || 'Gagal menyimpan produk')
   } finally {
     savingProduct.value = false
   }
@@ -384,7 +386,7 @@ async function executeDelete() {
     showDeleteDialog.value = false
     await fetchData()
   } catch (e) {
-    alert(e.response?.data?.message || 'Gagal menghapus')
+    toast.error('Gagal Hapus', e.response?.data?.message || 'Gagal menghapus')
   } finally {
     deleting.value = false
   }
@@ -416,7 +418,7 @@ async function addCategory() {
     newCategoryName.value = ''
     await fetchCategories()
   } catch (e) {
-    alert(e.response?.data?.message || 'Gagal tambah kategori')
+    toast.error('Gagal Tambah Kategori', e.response?.data?.message || 'Gagal tambah kategori')
   } finally {
     savingCategory.value = false
   }
@@ -453,7 +455,7 @@ async function addStation() {
     newStationName.value = ''
     await fetchStations()
   } catch (e) {
-    alert(e.response?.data?.message || 'Gagal tambah station')
+    toast.error('Gagal Tambah Station', e.response?.data?.message || 'Gagal tambah station')
   } finally {
     savingStation.value = false
   }
