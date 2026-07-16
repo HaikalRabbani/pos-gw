@@ -4,8 +4,10 @@ namespace App\Services;
 
 use App\Events\OrderStatusUpdated;
 use App\Models\Discount;
+use App\Models\Ingredient;
 use App\Models\Order;
 use App\Models\OrderLog;
+use App\Models\Outlet;
 use App\Models\Product;
 use App\Models\Tax;
 use Illuminate\Support\Facades\DB;
@@ -122,10 +124,49 @@ class OrderService
                 'payment_method' => 'cash',
             ]);
 
+            $this->deductStock($order);
+
             $this->log($order->id, $order->status, $order->status, $userId, 'paid cash');
 
             return $order->fresh();
         });
+    }
+
+    /**
+     * Deduct stock after payment based on outlet's stock_mode.
+     */
+    protected function deductStock(Order $order): void
+    {
+        $outlet = Outlet::find($order->outlet_id);
+        if (!$outlet) return;
+
+        if ($outlet->stock_mode === 'product') {
+            // Kurangi stok per produk
+            foreach ($order->items as $item) {
+                if ($item->product_id) {
+                    Product::where('id', $item->product_id)
+                        ->where('stock', '>=', $item->qty)
+                        ->decrement('stock', $item->qty);
+                }
+            }
+        } elseif ($outlet->stock_mode === 'ingredient') {
+            // Kurangi stok per ingredient berdasarkan product_ingredients
+            $productIds = $order->items->pluck('product_id')->filter()->unique();
+            $productIngredients = \DB::table('product_ingredients')
+                ->whereIn('product_id', $productIds)
+                ->get()
+                ->groupBy('product_id');
+
+            foreach ($order->items as $item) {
+                if (!$item->product_id) continue;
+                $ingredients = $productIngredients->get($item->product_id, collect());
+                foreach ($ingredients as $pi) {
+                    Ingredient::where('id', $pi->ingredient_id)
+                        ->where('stock', '>=', $item->qty)
+                        ->decrement('stock', $item->qty);
+                }
+            }
+        }
     }
 
     protected function recalculate(Order $order): void

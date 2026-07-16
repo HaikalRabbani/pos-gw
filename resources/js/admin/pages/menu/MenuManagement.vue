@@ -35,7 +35,7 @@
       <div class="p-3 border-b border-slate-100">
         <div class="flex items-center gap-3">
           <span class="flex-1">
-            <InputText v-model="search" placeholder="🔍 Cari produk..." class="w-full" />
+            <InputText v-model="search" placeholder="Cari produk..." class="w-full" />
           </span>
           <Select v-model="selectedCategory" :options="categories" optionLabel="name" optionValue="id"
             placeholder="Semua kategori" class="w-48" :showClear="true" />
@@ -94,6 +94,12 @@
             <span class="font-medium">{{ formatRupiah(data.price) }}</span>
           </template>
         </Column>
+        <!-- Stock Column (product mode) — read-only, edit di modal -->
+        <Column v-if="outletStockMode === 'product'" field="stock" header="Stok" style="width: 80px" sortable>
+          <template #body="{ data }">
+            <span class="font-medium" :class="data.stock > 0 ? 'text-slate-800' : 'text-red-500'">{{ data.stock ?? 0 }}</span>
+          </template>
+        </Column>
         <Column header="Aksi" :exportable="false" style="width: 180px">
           <template #body="{ data }">
             <div class="flex gap-1.5">
@@ -103,6 +109,9 @@
               <Button v-if="perm.can('manageProducts')" icon="pi pi-pencil" text rounded severity="secondary" size="small"
                 v-tooltip.top="'Edit'"
                 @click="openProductDialog(data)" />
+                      <Button v-if="perm.can('manageProducts')" icon="pi pi-palette" text rounded severity="info" size="small"
+                v-tooltip.top="'Atur Bahan & Add-on'"
+                @click="openProductIngredients(data)" />
               <Button v-if="perm.can('manageProducts')" icon="pi pi-trash" text severity="danger" rounded size="small"
                 v-tooltip.top="'Hapus'"
                 @click="confirmDelete(data)" />
@@ -156,6 +165,11 @@
             <label class="block text-sm font-medium text-slate-700 mb-1">Harga Modal (Rp)</label>
             <InputNumber v-model="productForm.cost" class="w-full" :min="0" :minFractionDigits="0"
               placeholder="0" />
+          </div>
+          <!-- Stock (product mode) -->
+          <div v-if="outletStockMode === 'product'">
+            <label class="block text-sm font-medium text-slate-700 mb-1">Stok</label>
+            <InputNumber v-model="productForm.stock" :min="0" class="w-full" placeholder="0" />
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-700 mb-1">Status</label>
@@ -259,6 +273,52 @@
       </div>
     </Dialog>
 
+    <!-- Product Ingredients Dialog -->
+    <Dialog v-model:visible="showProductIngredientsDialog" :header="'Atur Bahan: ' + (editingIngredientProduct?.name || '')" modal class="w-lg">
+      <div class="space-y-4">
+        <p class="text-sm text-slate-500">Centang bahan yang tersedia untuk produk ini. Atur apakah bisa dimatiin pelanggan, atau sebagai add-on berbayar.</p>
+
+        <!-- Loading -->
+        <div v-if="loadingIngredients" class="flex items-center justify-center py-8">
+          <i class="pi pi-spin pi-spinner text-2xl text-slate-400"></i>
+        </div>
+
+        <div v-else-if="availableIngredients.length === 0" class="text-sm text-slate-400 text-center py-4">
+          Belum ada bahan. Tambah bahan dulu lewat tombol "Bahan" di atas.
+        </div>
+
+        <div v-else class="space-y-2 max-h-96 overflow-y-auto">
+          <div v-for="ing in availableIngredients" :key="ing.id"
+            class="flex items-center gap-3 p-3 rounded-xl border"
+            :class="productIngredientMap[ing.id] ? 'border-violet-200 bg-violet-50' : 'border-slate-200 bg-white'">
+            <Checkbox :binary="true" v-model="productIngredientMap[ing.id]" @change="toggleProductIngredient(ing)" />
+            <span class="flex-1 text-sm font-medium" :class="productIngredientMap[ing.id] ? 'text-violet-800' : 'text-slate-600'">
+              {{ ing.name }}
+            </span>
+            <template v-if="productIngredientMap[ing.id]">
+              <div class="flex items-center gap-2">
+                <label class="text-xs text-slate-500 whitespace-nowrap">Harga tambahan</label>
+                <InputNumber v-model="productIngredientPrices[ing.id]" :min="0" :minFractionDigits="0" class="w-24" placeholder="0" size="small" />
+              </div>
+              <div class="flex items-center gap-1.5">
+                <label class="text-xs text-slate-500">Bisa dimatiin</label>
+                <Checkbox :binary="true" v-model="productIngredientRemovable[ing.id]" />
+              </div>
+              <div class="flex items-center gap-1.5">
+                <label class="text-xs text-slate-500">Default</label>
+                <Checkbox :binary="true" v-model="productIngredientDefault[ing.id]" />
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+          <Button label="Batal" severity="secondary" @click="showProductIngredientsDialog = false" />
+          <Button label="Simpan Bahan" :loading="savingProductIngredients" @click="saveProductIngredients" />
+        </div>
+      </div>
+    </Dialog>
+
     <!-- Station Modal (inline) -->
     <Dialog v-model:visible="showStationModal" header="Manajemen Station" modal class="w-md">
       <div class="space-y-4">
@@ -299,7 +359,7 @@
         </div>
         <p v-if="deleteTarget?.type === 'Kategori'" class="text-xs text-slate-500">Produk dengan kategori ini tidak akan terhapus, hanya kategori-nya yang hilang.</p>
         <p v-else-if="deleteTarget?.type === 'Station'" class="text-xs text-slate-500">Produk dengan station ini akan otomatis kehilangan station-nya.</p>
-        <div class="flex justify-end gap-2 pt-2">
+            <div class="flex justify-end gap-2 pt-2">
           <Button label="Batal" severity="secondary" @click="showDeleteDialog = false" />
           <Button label="Hapus" severity="danger" :loading="deleting" @click="executeDelete" />
         </div>
@@ -323,6 +383,7 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
+import Checkbox from 'primevue/checkbox'
 import Tooltip from 'primevue/tooltip'
 
 const perm = usePermission()
@@ -340,6 +401,7 @@ const showDetailDialog = ref(false)
 const showDeleteDialog = ref(false)
 const showCategoryModal = ref(false)
 const showStationModal = ref(false)
+const showProductIngredientsDialog = ref(false)
 const editingProduct = ref(false)
 const savingProduct = ref(false)
 const savingCategory = ref(false)
@@ -350,14 +412,27 @@ const newCategoryName = ref('')
 const newStationName = ref('')
 const deleteTarget = ref(null)
 const viewingProduct = ref(null)
+const editingIngredientProduct = ref(null)
 const fileInput = ref(null)
+
+// Ingredients state
+// Stock mode
+const outletStockMode = ref('product')
+
+const availableIngredients = ref([])
+const loadingIngredients = ref(false)
+const savingProductIngredients = ref(false)
+const productIngredientMap = ref({})
+const productIngredientPrices = ref({})
+const productIngredientRemovable = ref({})
+const productIngredientDefault = ref({})
 
 const statusOptions = [
   { label: 'Aktif', value: true },
   { label: 'Non-Aktif', value: false },
 ]
 
-const productForm = ref({ name: '', category_id: null, station_id: null, price: 0, cost: 0, description: '', is_active: true, image: null })
+const productForm = ref({ name: '', category_id: null, station_id: null, price: 0, cost: 0, stock: 0, description: '', is_active: true, image: null })
 
 const activeCount = computed(() => products.value.filter((p) => p.is_active).length)
 const inactiveCount = computed(() => products.value.filter((p) => !p.is_active).length)
@@ -380,11 +455,13 @@ async function fetchData() {
     const { data: outletRes } = await client.get('/outlets')
     const outletId = outletRes.data[0]?.id
     if (!outletId) return
-    const [prodRes, catRes, staRes] = await Promise.all([
+    const [outletRes2, prodRes, catRes, staRes] = await Promise.all([
+      client.get(`/outlets/${outletId}`),
       client.get('/products', { params: { outlet_id: outletId } }),
       client.get('/categories', { params: { outlet_id: outletId } }),
       client.get('/stations', { params: { outlet_id: outletId } }),
     ])
+    outletStockMode.value = outletRes2.data.data?.stock_mode || 'product'
     products.value = prodRes.data.data
     categories.value = catRes.data.data
     stations.value = staRes.data.data
@@ -404,13 +481,14 @@ function openProductDialog(product) {
       station_id: product.station_id,
       price: product.price,
       cost: product.cost || 0,
+      stock: product.stock ?? 0,
       description: product.description || '',
       is_active: product.is_active ?? true,
       image: product.image || null,
     }
   } else {
     editingProduct.value = false
-    productForm.value = { name: '', category_id: null, station_id: null, price: 0, cost: 0, description: '', is_active: true, image: null }
+    productForm.value = { name: '', category_id: null, station_id: null, price: 0, cost: 0, stock: 0, description: '', is_active: true, image: null }
   }
   showProductDialog.value = true
 }
@@ -426,6 +504,7 @@ async function saveProduct() {
       station_id: productForm.value.station_id || null,
       price: productForm.value.price,
       cost: productForm.value.cost || 0,
+      stock: productForm.value.stock ?? 0,
       description: productForm.value.description || null,
       is_active: productForm.value.is_active,
       image: productForm.value.image || null,
@@ -550,6 +629,89 @@ async function addStation() {
 function confirmDeleteStation(st) {
   deleteTarget.value = { id: st.id, name: st.name, type: 'Station' }
   showDeleteDialog.value = true
+}
+
+// ── Product Ingredients ──
+async function openProductIngredients(product) {
+  editingIngredientProduct.value = product
+  showProductIngredientsDialog.value = true
+  loadingIngredients.value = true
+
+  // Reset maps
+  productIngredientMap.value = {}
+  productIngredientPrices.value = {}
+  productIngredientRemovable.value = {}
+  productIngredientDefault.value = {}
+
+  try {
+    const { data: outletRes } = await client.get('/outlets')
+    const outletId = outletRes.data[0]?.id
+    if (!outletId) return
+
+    const [ingRes, prodIngRes] = await Promise.all([
+      client.get('/ingredients', { params: { outlet_id: outletId } }),
+      client.get(`/products/${product.id}/ingredients`),
+    ])
+
+    availableIngredients.value = ingRes.data.data
+
+    // Populate maps from assigned ingredients
+    if (prodIngRes.data.success) {
+      const assigned = prodIngRes.data.data.assigned
+      assigned.forEach((i) => {
+        productIngredientMap.value[i.id] = true
+        productIngredientPrices.value[i.id] = i.extra_price
+        productIngredientRemovable.value[i.id] = i.is_removable
+        productIngredientDefault.value[i.id] = i.is_default
+      })
+    }
+  } catch (e) {
+    toast.error('Gagal', 'Gagal memuat data bahan')
+  } finally {
+    loadingIngredients.value = false
+  }
+}
+
+function toggleProductIngredient(ing) {
+  const checked = productIngredientMap.value[ing.id]
+  if (checked) {
+    // Initialize defaults when adding
+    if (productIngredientPrices.value[ing.id] === undefined) {
+      productIngredientPrices.value[ing.id] = 0
+    }
+    if (productIngredientRemovable.value[ing.id] === undefined) {
+      productIngredientRemovable.value[ing.id] = true
+    }
+    if (productIngredientDefault.value[ing.id] === undefined) {
+      productIngredientDefault.value[ing.id] = true
+    }
+  }
+}
+
+async function saveProductIngredients() {
+  if (!editingIngredientProduct.value) return
+  savingProductIngredients.value = true
+  try {
+    const ingredients = []
+    for (const ing of availableIngredients.value) {
+      if (productIngredientMap.value[ing.id]) {
+        ingredients.push({
+          ingredient_id: ing.id,
+          is_removable: productIngredientRemovable.value[ing.id] ?? true,
+          extra_price: productIngredientPrices.value[ing.id] ?? 0,
+          is_default: productIngredientDefault.value[ing.id] ?? true,
+          sort_order: 0,
+        })
+      }
+    }
+    await client.post(`/products/${editingIngredientProduct.value.id}/ingredients`, { ingredients })
+    showProductIngredientsDialog.value = false
+    toast.success('Berhasil', 'Bahan produk berhasil disimpan')
+  } catch (e) {
+    toast.error('Gagal Simpan', e.response?.data?.message || 'Gagal menyimpan bahan produk')
+  } finally {
+    savingProductIngredients.value = false
+  }
 }
 
 function openDetail(product) {

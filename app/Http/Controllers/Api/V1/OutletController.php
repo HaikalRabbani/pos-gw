@@ -44,6 +44,7 @@ class OutletController extends Controller
             'address' => 'nullable|string',
             'phone' => 'nullable|string|max:20',
             'is_active' => 'sometimes|boolean',
+            'stock_mode' => 'sometimes|in:product,ingredient',
             'midtrans_server_key' => 'nullable|string|max:255',
         ]);
 

@@ -42,7 +42,7 @@
     <div v-else class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
       <div class="p-3 border-b border-slate-100 flex flex-wrap items-center gap-2">
         <span class="flex-1 min-w-[200px]">
-          <InputText v-model="search" placeholder="🔍 Cari meja..." class="w-full" />
+          <InputText v-model="search" placeholder="Cari meja..." class="w-full" />
         </span>
         <Select v-if="outlets.length > 1" v-model="selectedOutletId" :options="outlets" optionLabel="name" optionValue="id"
           placeholder="Pilih outlet" class="w-44" @change="fetchTables" />

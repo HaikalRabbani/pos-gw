@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Outlet extends Model
 {
     use HasFactory;
-    protected $fillable = ['tenant_id', 'name', 'address', 'phone', 'is_active', 'midtrans_server_key'];
+    protected $fillable = ['tenant_id', 'name', 'address', 'phone', 'is_active', 'midtrans_server_key', 'stock_mode'];
 
     protected function casts(): array
     {

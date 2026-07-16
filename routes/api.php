@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\DiscountController;
+use App\Http\Controllers\Api\V1\IngredientController;
 use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\OutletController;
 use App\Http\Controllers\Api\V1\PaymentController;
@@ -72,6 +73,19 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/v1/products/{product}', [ProductController::class, 'show']);
         Route::put('/v1/products/{product}', [ProductController::class, 'update']);
         Route::delete('/v1/products/{product}', [ProductController::class, 'destroy']);
+
+        // Product Customize (Self-Order)
+        Route::get('/v1/products/{product}/customize', [IngredientController::class, 'customize']);
+
+        // Product Ingredients
+        Route::get('/v1/products/{product}/ingredients', [IngredientController::class, 'productIngredients']);
+        Route::post('/v1/products/{product}/ingredients', [IngredientController::class, 'syncProductIngredients']);
+
+        // Ingredients
+        Route::get('/v1/ingredients', [IngredientController::class, 'index']);
+        Route::post('/v1/ingredients', [IngredientController::class, 'store']);
+        Route::put('/v1/ingredients/{ingredient}', [IngredientController::class, 'update']);
+        Route::delete('/v1/ingredients/{ingredient}', [IngredientController::class, 'destroy']);
 
         // Taxes
         Route::get('/v1/taxes', [TaxController::class, 'index']);

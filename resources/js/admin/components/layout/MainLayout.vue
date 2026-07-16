@@ -249,6 +249,7 @@ const menuGroups = [
       { path: '/menu', label: 'Menu', icon: 'pi pi-list' },
       { path: '/discounts', label: 'Diskon', icon: 'pi pi-percentage' },
       { path: '/taxes', label: 'Pajak', icon: 'pi pi-shield' },
+      { path: '/ingredients', label: 'Bahan & Add-on', icon: 'pi pi-list' },
       { path: '/tables', label: 'Meja', icon: 'pi pi-table' },
     ],
   },
@@ -326,6 +327,7 @@ const pageTitles = {
   '/report/financial': 'Laporan Keuangan',
   '/report/shift': 'Laporan Shift',
   '/withdraw': 'Penarikan Saldo',
+  '/ingredients': 'Bahan & Add-on',
   '/profile': 'Pengaturan Profil',
 }
 

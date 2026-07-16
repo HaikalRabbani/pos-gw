@@ -21,6 +21,7 @@ const routes = [
       { path: 'outlets', name: 'Outlets', component: () => import('../pages/outlets/OutletManagement.vue') },
       { path: 'discounts', name: 'Discounts', component: () => import('../pages/master/DiscountManagement.vue') },
       { path: 'taxes', name: 'Taxes', component: () => import('../pages/master/TaxManagement.vue') },
+      { path: 'ingredients', name: 'Ingredients', component: () => import('../pages/master/IngredientManagement.vue') },
       { path: 'tables', name: 'Tables', component: () => import('../pages/tables/TableManagement.vue') },
       { path: 'withdraw', name: 'Withdraw', component: () => import('../pages/withdraw/WithdrawManagement.vue') },
       { path: 'profile', name: 'Profile', component: () => import('../pages/auth/ProfileSettings.vue') },

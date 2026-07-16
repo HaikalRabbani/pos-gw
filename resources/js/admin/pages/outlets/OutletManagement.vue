@@ -58,7 +58,7 @@
     <div v-else class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
       <div class="p-3 border-b border-slate-100 flex flex-wrap items-center gap-2">
         <span class="flex-1 min-w-[200px]">
-          <InputText v-model="search" placeholder="🔍 Cari outlet..." class="w-full" />
+          <InputText v-model="search" placeholder="Cari outlet..." class="w-full" />
         </span>
         <Button v-if="perm.can('manageOutlets')" label="Tambah Outlet" icon="pi pi-plus" size="small" @click="openAddDialog" />
       </div>
@@ -148,6 +148,30 @@
           </div>
         </div>
 
+        <!-- Section: Manajemen Stok (hanya saat edit) -->
+        <div v-if="editing">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-6 h-6 rounded-lg bg-emerald-100 flex items-center justify-center">
+              <i class="pi pi-box text-xs text-emerald-700"></i>
+            </div>
+            <h3 class="text-sm font-semibold text-slate-800">Manajemen Stok</h3>
+          </div>
+          <div class="bg-slate-50 rounded-xl p-4 space-y-3">
+            <div class="flex items-center gap-3 p-3 rounded-xl bg-emerald-50 border border-emerald-100">
+              <i class="pi pi-info-circle text-emerald-400 text-lg shrink-0"></i>
+              <p class="text-xs text-emerald-700">
+                <strong>Per Produk:</strong> stok diatur langsung di tiap menu. Cocok untuk usaha simpel.<br>
+                <strong>Per Bahan (BOM):</strong> stok diatur per ingredient, otomatis berkurang pas order. Cocok untuk restoran dengan resep kompleks.
+              </p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Mode Stok</label>
+              <Select v-model="form.stock_mode" :options="stockModeOptions" optionLabel="label" optionValue="value"
+                class="w-full" />
+            </div>
+          </div>
+        </div>
+
         <!-- Section: Pembayaran QRIS (hanya saat edit) -->
         <div v-if="editing">
           <div class="flex items-center gap-2 mb-3">
@@ -220,6 +244,7 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
+import Select from 'primevue/select'
 import Tooltip from 'primevue/tooltip'
 
 const perm = usePermission()
@@ -235,8 +260,13 @@ const showDeleteDialog = ref(false)
 const editing = ref(false)
 const deletingOutlet = ref(null)
 
-const form = ref({ name: '', address: '', phone: '', midtrans_server_key: '' })
+const form = ref({ name: '', address: '', phone: '', stock_mode: 'product', midtrans_server_key: '' })
 const showMidtransKey = ref(false)
+
+const stockModeOptions = [
+  { label: 'Per Produk — stok diatur langsung di tiap menu', value: 'product' },
+  { label: 'Per Bahan (BOM) — stok di ingredient, otomatis terpotong', value: 'ingredient' },
+]
 
 const activeCount = computed(() => outlets.value.filter((o) => o.is_active).length)
 const inactiveCount = computed(() => outlets.value.filter((o) => !o.is_active).length)
@@ -270,6 +300,7 @@ function openEditDialog(outlet) {
     name: outlet.name,
     address: outlet.address || '',
     phone: outlet.phone || '',
+    stock_mode: outlet.stock_mode || 'product',
     midtrans_server_key: outlet.midtrans_server_key || '',
   }
   showMidtransKey.value = false
@@ -284,6 +315,7 @@ async function saveOutlet() {
         name: form.value.name,
         address: form.value.address,
         phone: form.value.phone,
+        stock_mode: form.value.stock_mode,
         midtrans_server_key: form.value.midtrans_server_key || null,
       })
     } else {
