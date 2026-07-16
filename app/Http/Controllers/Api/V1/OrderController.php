@@ -131,16 +131,26 @@ class OrderController extends Controller
             'items.*.order_item_id' => 'required|integer|exists:order_items,id',
             'items.*.qty' => 'required|integer|min:1',
             'reason' => 'required|string|max:500',
+            'override_pin' => 'nullable|string|digits:6',
         ]);
+
+        // Kalau request ini lolos lewat PIN override (middleware VerifyOutletAccess),
+        // refund tercatat atas nama pemilik PIN, bukan kasir yang login.
+        $pinOwnerId = $request->attributes->get('pin_override_by');
+        $approvedBy = $pinOwnerId ?? $request->user()->id;
 
         $order = $this->orderService->refund(
             $order,
-            $request->user()->id,
+            $approvedBy,
             $validated['items'],
             $validated['reason'] ?? null,
         );
 
-        return response()->json(['success' => true, 'data' => $order]);
+        return response()->json([
+            'success' => true,
+            'data' => $order,
+            'authorized_via_pin' => (bool) $pinOwnerId,
+        ]);
     }
 
     public function split(Request $request, Order $order)

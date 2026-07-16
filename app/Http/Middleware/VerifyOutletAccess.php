@@ -4,7 +4,9 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpFoundation\Response;
+use App\Models\User;
 
 class VerifyOutletAccess
 {
@@ -120,6 +122,19 @@ class VerifyOutletAccess
 
             // Cek apakah role user cukup untuk aksi ini
             if (!$this->hasRoleAccess($request, $userRole)) {
+                // PIN override: khusus aksi refund, kasir yang role-nya kurang
+                // bisa tetep lanjut kalau kasih PIN milik manager/admin di outlet ini.
+                // Ini gantiin flow "request lalu tunggu approve remote" karena manager
+                // belum tentu standby di app manapun — dia cukup ada di lokasi sebentar.
+                if (str_contains($request->path(), 'refund') && $request->filled('override_pin')) {
+                    $approver = $this->findPinOwner($request->input('override_pin'), $outletId);
+                    if ($approver) {
+                        $request->attributes->set('pin_override_by', $approver->id);
+                        return $next($request);
+                    }
+                    abort(403, 'PIN tidak valid atau bukan milik manager/admin di outlet ini.');
+                }
+
                 abort(403, "Role '{$userRole}' tidak diizinkan melakukan aksi ini.");
             }
         }
@@ -148,5 +163,26 @@ class VerifyOutletAccess
 
         // Default: semua role yang punya akses outlet boleh (GET read, dll)
         return true;
+    }
+
+    /**
+     * Cari user dengan role manager/admin/developer di outlet tertentu yang
+     * PIN-nya cocok sama input. Dipakai buat PIN override refund — manager
+     * gak perlu standby di app, cukup ketik PIN di device kasir pas dibutuhin.
+     */
+    protected function findPinOwner(string $pin, int $outletId): ?User
+    {
+        $candidates = User::whereHas('outlets', function ($q) use ($outletId) {
+            $q->where('outlet_id', $outletId)
+              ->whereIn('user_outlets.role', ['manager', 'admin', 'developer']);
+        })->whereNotNull('pin')->get();
+
+        foreach ($candidates as $candidate) {
+            if (Hash::check($pin, $candidate->pin)) {
+                return $candidate;
+            }
+        }
+
+        return null;
     }
 }
