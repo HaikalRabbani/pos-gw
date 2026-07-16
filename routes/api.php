@@ -147,6 +147,8 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/top-products', [ReportController::class, 'topProducts']);
             Route::get('/export-excel', [ReportController::class, 'exportExcel']);
             Route::get('/export-pdf', [ReportController::class, 'exportPdf']);
+            Route::get('/export-shift-excel', [ReportController::class, 'exportShiftExcel']);
+            Route::get('/export-shift-pdf', [ReportController::class, 'exportShiftPdf']);
         });
 
 

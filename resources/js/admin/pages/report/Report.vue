@@ -165,7 +165,8 @@ import client from '../../api/client'
 import { formatRupiah } from '../../utils/format'
 import { useAuthStore } from '../../stores/auth'
 import { useToastStore } from '../../stores/toast'
-import Chart from 'chart.js/auto'
+import { Chart, registerables } from 'chart.js'
+Chart.register(...registerables)
 import Button from 'primevue/button'
 import DatePicker from 'primevue/datepicker'
 import DataTable from 'primevue/datatable'
@@ -429,7 +430,9 @@ async function fetchData() {
     topProducts.value = topRes.data.data || []
 
   } catch (err) {
-    toast.error('Gagal', 'Gagal memuat data laporan')
+    console.error('Report fetch error:', err)
+    const msg = err.response?.data?.message || err.message || 'Gagal memuat data laporan'
+    toast.error('Gagal', msg)
   } finally {
     loading.value = false
     await nextTick()

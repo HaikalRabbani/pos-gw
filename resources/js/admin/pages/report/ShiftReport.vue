@@ -1,9 +1,15 @@
 <template>
   <div class="space-y-6">
     <!-- Header -->
-    <div>
-      <h1 class="text-2xl font-bold text-slate-900">Laporan Shift</h1>
-      <p class="text-sm text-slate-500 mt-1">Rekap shift karyawan dan total kas</p>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-900">Laporan Shift</h1>
+        <p class="text-sm text-slate-500 mt-1">Rekap shift karyawan dan total kas</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <Button label="Export Excel" icon="pi pi-file-excel" severity="success" outlined @click="exportExcel" />
+        <Button label="Export PDF" icon="pi pi-file-pdf" severity="danger" outlined @click="exportPdf" />
+      </div>
     </div>
 
     <!-- Filter -->
@@ -117,13 +123,16 @@ import { ref, computed, onMounted } from 'vue'
 import client from '../../api/client'
 import { formatRupiah } from '../../utils/format'
 import { useAuthStore } from '../../stores/auth'
+import { useToastStore } from '../../stores/toast'
 import DatePicker from 'primevue/datepicker'
 import Select from 'primevue/select'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
+import Button from 'primevue/button'
 
 const auth = useAuthStore()
+const toast = useToastStore()
 const loading = ref(true)
 const dateRange = ref(null)
 const outletId = ref(null)
@@ -224,6 +233,52 @@ async function fetchData() {
 function onFilterChange() {
   if (dateRange.value?.length === 2) {
     fetchData()
+  }
+}
+
+async function exportExcel() {
+  if (!outletId.value) return
+  try {
+    const params = { outlet_id: outletId.value }
+    if (dateRange.value?.length === 2) {
+      params.start_date = dateRange.value[0].toISOString().split('T')[0]
+      params.end_date = dateRange.value[1].toISOString().split('T')[0]
+    }
+    const res = await client.get('/reports/export-shift-excel', {
+      params,
+      responseType: 'blob',
+    })
+    const url = window.URL.createObjectURL(new Blob([res.data]))
+    const link = document.createElement('a')
+    link.href = url
+    const start = params.start_date || 'all'
+    const end = params.end_date || 'all'
+    link.setAttribute('download', `laporan-shift-${start}_${end}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+  } catch (err) {
+    toast.error('Gagal Export Excel', 'Terjadi kesalahan saat export')
+  }
+}
+
+async function exportPdf() {
+  if (!outletId.value) return
+  try {
+    const params = { outlet_id: outletId.value }
+    if (dateRange.value?.length === 2) {
+      params.start_date = dateRange.value[0].toISOString().split('T')[0]
+      params.end_date = dateRange.value[1].toISOString().split('T')[0]
+    }
+    const res = await client.get('/reports/export-shift-pdf', { params })
+    const win = window.open('', '_blank')
+    if (win) {
+      win.document.write(res.data)
+      win.document.close()
+    }
+  } catch (err) {
+    toast.error('Gagal Export PDF', 'Terjadi kesalahan saat export')
   }
 }
 

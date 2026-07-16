@@ -333,7 +333,7 @@ Self-Order → API POS → Mobile POS → (sync)
 29. ✅ **Migration target_id** — Kolom diubah dari integer ke text untuk simpan JSON array
 
 ### Pending / Next
-- [ ] Export laporan Excel/PDF
+- [x] Export laporan Excel/PDF
 - [ ] POS Mobile (Flutter) — integrasi API
 - [ ] Web Self-Order via QR — pelanggan scan QR meja → pesan sendiri
 - [ ] Manajemen metode pembayaran (Flutter/QR)
@@ -343,6 +343,7 @@ Self-Order → API POS → Mobile POS → (sync)
 - [ ] Kitchen Display System (KDS) — layar dapur otomatis
 - [x] Optimasi N+1 di Discount model accessors
 - [x] Testing — unit test OrderService, ShiftService, ReportService
+- [x] Export laporan Excel/PDF (Shift)
 
 ---
 
