@@ -24,46 +24,44 @@
       <div class="relative">
         <div class="absolute inset-0 bg-white/5 rounded-2xl blur-sm"></div>
         <div class="relative bg-white rounded-2xl shadow-2xl p-8">
-          <form @submit.prevent="handleLogin" class="space-y-4">
+          <form @submit.prevent="handleLogin" class="space-y-5">
             <!-- Email -->
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
-              <span class="p-input-icon-left w-full block">
-                <i class="pi pi-envelope text-slate-400"></i>
-                <InputText v-model="email" type="email" class="w-full pl-10" placeholder="admin@pos.com" required />
-              </span>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                  <i class="pi pi-envelope text-slate-400 text-sm"></i>
+                </div>
+                <input
+                  v-model="email"
+                  type="email"
+                  class="w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500 transition-all duration-200"
+                  placeholder="admin@pos.com"
+                  required
+                />
+              </div>
             </div>
 
             <!-- Password -->
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
-              <span class="p-input-icon-left w-full block">
-                <i class="pi pi-lock text-slate-400"></i>
-                <InputText v-model="password" type="password" class="w-full pl-10" placeholder="Masukkan password" required />
-              </span>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                  <i class="pi pi-lock text-slate-400 text-sm"></i>
+                </div>
+                <input
+                  v-model="password"
+                  type="password"
+                  class="w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500 transition-all duration-200"
+                  placeholder="Masukkan password"
+                  required
+                />
+              </div>
             </div>
 
             <!-- Submit -->
-            <Button type="submit" label="Masuk" class="w-full" :loading="loading" />
+            <Button type="submit" label="Masuk" class="w-full !py-2.5 !text-sm font-semibold" :loading="loading" />
           </form>
-
-          <!-- Divider -->
-          <div class="relative my-6">
-            <div class="absolute inset-0 flex items-center">
-              <div class="w-full border-t border-slate-100"></div>
-            </div>
-            <div class="relative flex justify-center text-xs">
-              <span class="bg-white px-3 text-slate-400">atau</span>
-            </div>
-          </div>
-
-          <!-- PIN Login Link -->
-          <router-link to="/pin-login"
-            class="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 group">
-            <i class="pi pi-key text-amber-500 group-hover:scale-110 transition-transform"></i>
-            Login dengan PIN
-            <i class="pi pi-arrow-right ml-auto text-xs text-slate-300 group-hover:text-amber-500 group-hover:translate-x-0.5 transition-all"></i>
-          </router-link>
         </div>
       </div>
 
@@ -78,7 +76,6 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import { useToastStore } from '../../stores/toast'
-import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
 
 const router = useRouter()

@@ -3,7 +3,6 @@ import { useAuthStore } from '../stores/auth'
 
 const routes = [
   { path: '/login', name: 'Login', component: () => import('../pages/auth/Login.vue') },
-  { path: '/pin-login', name: 'PinLogin', component: () => import('../pages/auth/PinLogin.vue') },
   { path: '/no-access', name: 'NoAccess', component: () => import('../pages/auth/NoAccess.vue') },
   {
     path: '/',
@@ -45,7 +44,6 @@ router.beforeEach(async (to, _, next) => {
 
   // If already logged in and going to login page, redirect to dashboard
   if (to.path === '/login' && auth.user) return next('/dashboard')
-  if (to.path === '/pin-login' && auth.user) return next('/dashboard')
 
   // Check admin panel access: cashier/kitchen staff cannot access admin panel
   if (to.meta.requiresAdminAccess && auth.user && !auth.canAccessAdmin) {
