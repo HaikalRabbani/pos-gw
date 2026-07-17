@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\LoginRequest;
 use App\Http\Requests\Api\V1\PinLoginRequest;
 use App\Http\Requests\Api\V1\RegisterRequest;
+use App\Models\User;
 use App\Services\AuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -41,7 +42,16 @@ class AuthController extends Controller
 
         $this->authService->verifyEmail($validated['email'], $validated['code']);
 
-        $user = Auth::user()->load('outlets');
+        $user = Auth::user();
+
+        if (!$user) {
+            $user = User::where('email', $validated['email'])->first();
+            if ($user) {
+                Auth::guard('web')->login($user);
+            }
+        }
+
+        $user?->load('outlets');
 
         return response()->json([
             'success' => true,

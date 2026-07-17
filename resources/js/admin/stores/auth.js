@@ -11,6 +11,14 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = u
   }
 
+  function setSession(data) {
+    if (data?.user) {
+      user.value = data.user
+    } else {
+      user.value = data
+    }
+  }
+
   /**
    * Gets the highest role the user has across all outlets.
    * Order: developer > admin > manager > cashier > kitchen
@@ -91,7 +99,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   return {
-    user, setUser,
+    user, setUser, setSession,
     login, loginPin, logout, checkSession,
     highestRole, roleLabel, canAccessAdmin, isSuper, isManager, isStaff, outletIds,
   }

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Mail\ResetPasswordMail;
 use App\Mail\VerificationCodeMail;
+use App\Models\Outlet;
 use App\Models\Shift;
 use App\Models\Tenant;
 use App\Models\User;
@@ -91,6 +92,18 @@ class AuthService
         ]);
 
         $verification->delete();
+
+        // Bikin outlet baru buat user kalo belum punya outlet
+        if ($user->outlets()->count() === 0) {
+            $newOutlet = Outlet::create([
+                'tenant_id' => $user->tenant_id,
+                'name' => $user->name . "'s Outlet",
+                'address' => null,
+                'phone' => null,
+                'is_active' => true,
+            ]);
+            $user->outlets()->attach($newOutlet->id, ['role' => 'admin']);
+        }
 
         // Auto login
         Auth::guard('web')->login($user);

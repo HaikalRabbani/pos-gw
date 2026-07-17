@@ -19,6 +19,15 @@
 
 ---
 
+## ✅ Bug Fixes (Sesi 17 Juli)
+
+| Bug | Status |
+|---|---|
+| Verifikasi email: kode cocok tapi frontend error | ✅ `auth.js` — tambah `setSession()` |
+| Login: backend sukses tapi frontend error | ✅ `auth.js` — tambah `setSession()` |
+| User baru kena No Access (gak punya outlet) | ✅ `AuthService@verifyEmail` — bikin outlet baru otomatis |
+| Auth::user() null setelah verify email | ✅ `AuthController@verifyEmail` — fallback cari manual |
+
 ## 🗺️ Roadmap Selanjutnya
 
 ### 🥇 Prioritas 1: Web Self-Order via QR
