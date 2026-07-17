@@ -90,7 +90,7 @@
                 </template>
               </Button>
               <Button v-if="perm.can('manageTaxes')" text rounded size="small"
-                :class="data.is_active ? 'text-amber-600' : 'text-teal-600'"
+                :severity="data.is_active ? 'warn' : 'success'"
                 v-tooltip.top="data.is_active ? 'Nonaktifkan' : 'Aktifkan'"
                 @click="toggleActive(data)">
                 <template #icon>

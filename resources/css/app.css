@@ -150,6 +150,42 @@ body {
 }
 .p-button-text {
     border-radius: 0.5rem !important;
+    color: #0f766e !important; /* default: teal, biar kebaca di atas background putih */
+}
+.p-button-text:hover {
+    background: #f0fdfa !important;
+}
+.p-button-text.p-button-danger {
+    color: #dc2626 !important;
+}
+.p-button-text.p-button-danger:hover {
+    background: #fef2f2 !important;
+}
+.p-button-text.p-button-warn {
+    color: #d97706 !important; /* amber — dipakai buat aksi "nonaktifkan" */
+}
+.p-button-text.p-button-warn:hover {
+    background: #fffbeb !important;
+}
+.p-button-text.p-button-success {
+    color: #0d9488 !important; /* teal — dipakai buat aksi "aktifkan" */
+}
+.p-button-text.p-button-success:hover {
+    background: #f0fdfa !important;
+}
+.p-button-text.p-button-secondary {
+    color: #475569 !important;
+}
+.p-button-text.p-button-secondary:hover {
+    background: #f1f5f9 !important;
+}
+/* Icon (Lucide svg lewat #icon slot) WAJIB ikut warna tombolnya (inherit),
+   bukan warna sendiri — ini yang bikin tombol keliatan "putih"/invisible
+   padahal elemen-nya ada, kalau ada style lain yang nge-set warna svg
+   secara terpisah dari .p-button-text di atas. */
+.p-button .p-button-icon,
+.p-button svg {
+    color: inherit !important;
 }
 
 /* -- DataTable -- */
