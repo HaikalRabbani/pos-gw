@@ -107,14 +107,14 @@
                   <UserPen class="w-4 h-4" stroke-width="1.5" />
                 </template>
               </Button>
-              <Button text rounded size="small" class="text-amber-600"
+              <Button text rounded size="small" severity="warn"
                 v-tooltip.top="'Set PIN'" @click="openPinDialog(data)">
                 <template #icon>
                   <KeyRound class="w-4 h-4" stroke-width="1.5" />
                 </template>
               </Button>
               <Button text rounded size="small"
-                :class="data.is_active ? 'text-red-500' : 'text-teal-600'"
+                :severity="data.is_active ? 'danger' : 'success'"
                 v-tooltip.top="data.is_active ? 'Nonaktifkan' : 'Aktifkan'"
                 @click="toggleActive(data)">
                 <template #icon>

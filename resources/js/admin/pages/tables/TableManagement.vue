@@ -103,7 +103,7 @@
                     <Printer class="w-3 h-3" stroke-width="1.5" />
                   </template>
                 </Button>
-                <Button text rounded size="small" class="!w-7 !h-7 text-amber-600"
+                <Button text rounded size="small" class="!w-7 !h-7 !text-amber-600"
                   v-tooltip.top="'Regenerate QR'" @click="regenerateQr(data)">
                   <template #icon>
                     <RefreshCw class="w-3 h-3" stroke-width="1.5" />
@@ -135,7 +135,7 @@
                 </template>
               </Button>
               <Button v-if="perm.can('manageTables')" text rounded size="small"
-                :class="data.is_active ? 'text-amber-600' : 'text-teal-600'"
+                :severity="data.is_active ? 'warn' : 'success'"
                 v-tooltip.top="data.is_active ? 'Nonaktifkan' : 'Aktifkan'"
                 @click="toggleActive(data)">
                 <template #icon>
