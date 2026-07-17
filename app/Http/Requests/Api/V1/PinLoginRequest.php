@@ -14,7 +14,7 @@ class PinLoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'pin' => 'required|string|size:4',
+            'pin' => 'required|string|size:6',
             'outlet_id' => 'nullable|exists:outlets,id',
         ];
     }

@@ -26,7 +26,12 @@ use Illuminate\Support\Facades\Storage;
 // Public — with rate limiting to prevent brute force attacks
 Route::post('/v1/auth/register', [AuthController::class, 'register'])->middleware('throttle:5,60');
 Route::post('/v1/auth/login', [AuthController::class, 'login'])->middleware('throttle:10,60');
-Route::post('/v1/auth/login-pin', [AuthController::class, 'loginPin'])->middleware('throttle:10,60');
+Route::post('/v1/auth/pin-login', [AuthController::class, 'loginPin'])->middleware('throttle:10,60');
+Route::post('/v1/auth/verify-email', [AuthController::class, 'verifyEmail'])->middleware('throttle:10,60');
+Route::post('/v1/auth/resend-verification', [AuthController::class, 'resendVerification'])->middleware('throttle:5,60');
+Route::post('/v1/auth/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:3,60');
+Route::post('/v1/auth/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:5,60');
+
 // Payment callbacks
 Route::post('/v1/midtrans/notification', [PaymentController::class, 'midtransNotification']);
 Route::post('/v1/xendit/callback', [PaymentController::class, 'xenditCallback']);

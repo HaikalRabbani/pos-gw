@@ -24,8 +24,53 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $user,
+            'data' => [
+                'email' => $user->email,
+                'name' => $user->name,
+            ],
+            'message' => 'Akun berhasil dibuat. Silakan cek email untuk kode aktivasi.',
         ], 201);
+    }
+
+    public function verifyEmail(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => 'required|email',
+            'code' => 'required|string|size:6',
+        ]);
+
+        $this->authService->verifyEmail($validated['email'], $validated['code']);
+
+        $user = Auth::user()->load('outlets');
+
+        return response()->json([
+            'success' => true,
+            'data' => ['user' => $user],
+            'message' => 'Email berhasil diverifikasi. Selamat datang!',
+        ]);
+    }
+
+    public function resendVerification(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        $user = \App\Models\User::where('email', $validated['email'])->first();
+
+        if ($user->email_verified_at) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Email sudah diverifikasi.',
+            ], 400);
+        }
+
+        $this->authService->sendVerificationCode($user);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Kode aktivasi baru telah dikirim ke email Anda.',
+        ]);
     }
 
     public function login(LoginRequest $request)
@@ -58,6 +103,40 @@ class AuthController extends Controller
         ]);
     }
 
+    public function forgotPassword(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $this->authService->forgotPassword($validated['email']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Jika email terdaftar, tautan reset password akan dikirim.',
+        ]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => 'required|email',
+            'token' => 'required|string',
+            'password' => 'required|string|min:6|confirmed',
+        ]);
+
+        $this->authService->resetPassword(
+            $validated['email'],
+            $validated['token'],
+            $validated['password']
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password berhasil direset. Silakan login dengan password baru.',
+        ]);
+    }
+
     public function me()
     {
         $user = request()->user()->load('outlets');
@@ -68,9 +147,6 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * Update the authenticated user's profile.
-     */
     public function updateProfile(Request $request)
     {
         $user = $request->user();
@@ -105,7 +181,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Logged out.',
+            'message' => 'Berhasil keluar.',
         ]);
     }
 }

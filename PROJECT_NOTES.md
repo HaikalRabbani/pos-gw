@@ -40,6 +40,71 @@
 
 ---
 
+## 📧 Email Service (Belum Aktif)
+
+Untuk ngirim email beneran (kode aktivasi & reset password), setup `.env` pilih salah satu:
+
+### Opsi 1: Gmail SMTP (gratis, udah punya akun)
+```
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=emailkamu@gmail.com
+MAIL_PASSWORD=password_app_gmail_16_karakter
+MAIL_FROM_ADDRESS=emailkamu@gmail.com
+MAIL_FROM_NAME="POS Admin"
+```
+Bikin App Password di: https://myaccount.google.com/apppasswords
+
+### Opsi 2: Mailtrap (testing)
+Daftar di https://mailtrap.io → ambil SMTP credentials
+
+### Opsi 3: Log (gak perlu setup — nulis ke file)
+Default `MAIL_MAILER=log` — email bisa dibaca di `storage/logs/laravel.log`
+
+### Setting lain:
+```
+APP_FRONTEND_URL=http://localhost:5173
+```
+
+---
+
+## 🔐 Auth & Verifikasi
+
+### Halaman Publik (gak perlu login)
+| Route | Halaman | Keterangan |
+|---|---|---|
+| `/login` | Login.vue | Login email/password + PIN |
+| `/register` | Register.vue | Daftar akun baru |
+| `/verify-email` | VerifyEmail.vue | Input kode 6 digit aktivasi |
+| `/forgot-password` | ForgotPassword.vue | Minta link reset password |
+| `/reset-password` | ResetPassword.vue | Ganti password baru (dari link email) |
+
+### Alur Register
+```
+Daftar → Email kode 6 digit → Input kode → Auto login → Dashboard
+```
+
+### Alur Forgot Password
+```
+Minta reset → Email link → Klik link → Ganti password → Login ulang
+```
+
+### API Endpoints
+| Method | Endpoint | Auth |
+|---|---|---|
+| POST | `/api/v1/auth/register` | ❌ |
+| POST | `/api/v1/auth/verify-email` | ❌ |
+| POST | `/api/v1/auth/resend-verification` | ❌ |
+| POST | `/api/v1/auth/forgot-password` | ❌ |
+| POST | `/api/v1/auth/reset-password` | ❌ |
+| POST | `/api/v1/auth/login` | ❌ |
+| POST | `/api/v1/auth/pin-login` | ❌ |
+| GET | `/api/v1/auth/me` | ✅ |
+| POST | `/api/v1/auth/logout` | ✅ |
+
+---
+
 ## 🧪 Testing
 Unit tests ada di:
 - `tests/Unit/OrderServiceTest.php` — split, merge, refund, diskon, pajak

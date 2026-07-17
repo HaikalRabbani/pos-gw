@@ -3,6 +3,10 @@ import { useAuthStore } from '../stores/auth'
 
 const routes = [
   { path: '/login', name: 'Login', component: () => import('../pages/auth/Login.vue') },
+  { path: '/register', name: 'Register', component: () => import('../pages/auth/Register.vue') },
+  { path: '/verify-email', name: 'VerifyEmail', component: () => import('../pages/auth/VerifyEmail.vue') },
+  { path: '/forgot-password', name: 'ForgotPassword', component: () => import('../pages/auth/ForgotPassword.vue') },
+  { path: '/reset-password', name: 'ResetPassword', component: () => import('../pages/auth/ResetPassword.vue') },
   { path: '/no-access', name: 'NoAccess', component: () => import('../pages/auth/NoAccess.vue') },
   {
     path: '/',
