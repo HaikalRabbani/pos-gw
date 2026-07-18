@@ -242,7 +242,7 @@
                   </template>
                 </Button>
                 <Button v-if="perm.can('refundOrder') && canRefund(selectedOrder)" label="Refund"
-                  severity="warning" text size="small" @click="orderTab='1'">
+                  severity="warn" text size="small" @click="orderTab='1'">
                   <template #icon>
                     <Undo2 class="w-4 h-4" stroke-width="1.5" />
                   </template>
