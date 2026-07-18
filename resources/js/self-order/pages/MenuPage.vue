@@ -1,14 +1,14 @@
 <template>
-  <div class="max-w-lg mx-auto px-4 py-6 pb-28 space-y-5">
+  <div class="min-h-screen bg-slate-50 pb-32">
 
     <!-- Loading awal -->
-    <div v-if="loading" class="text-center py-20">
+    <div v-if="loading" class="text-center py-24">
       <LoaderCircle class="w-6 h-6 text-slate-400 mx-auto animate-spin" stroke-width="1.5" />
       <p class="text-sm text-slate-500 mt-2">Memuat menu...</p>
     </div>
 
     <!-- Error (qr invalid, outlet nonaktif, dll) -->
-    <div v-else-if="errorMsg" class="text-center py-20 px-4">
+    <div v-else-if="errorMsg" class="text-center py-24 px-4">
       <div class="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-3">
         <TriangleAlert class="w-7 h-7 text-red-500" stroke-width="1.5" />
       </div>
@@ -16,10 +16,10 @@
     </div>
 
     <!-- Status pesanan (setelah submit) -->
-    <div v-else-if="view === 'status'" class="space-y-4">
+    <div v-else-if="view === 'status'" class="max-w-lg mx-auto px-4 py-6 space-y-4">
       <div class="text-center">
-        <div class="w-14 h-14 rounded-2xl bg-teal-100 flex items-center justify-center mx-auto mb-3">
-          <component :is="statusIcon" class="w-7 h-7 text-teal-700" stroke-width="1.5" />
+        <div class="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center mx-auto mb-3">
+          <component :is="statusIcon" class="w-7 h-7 text-blue-700" stroke-width="1.5" />
         </div>
         <h1 class="text-lg font-bold text-slate-900">{{ statusLabel }}</h1>
         <p class="text-xs text-slate-500 mt-1">Meja {{ table?.name }} — Pesanan #{{ activeOrder?.id }}</p>
@@ -42,7 +42,7 @@
 
       <button
         v-if="isOrderFinished"
-        class="w-full py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-600"
+        class="w-full py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 bg-white"
         @click="startNewOrder">
         Pesan lagi
       </button>
@@ -50,56 +50,108 @@
 
     <!-- Browsing menu + cart -->
     <template v-else>
-      <div class="text-center">
-        <h1 class="text-lg font-bold text-slate-900">{{ outlet?.name }}</h1>
-        <p class="text-xs text-slate-500 mt-1">Meja {{ table?.name }}</p>
-      </div>
+      <div class="max-w-lg mx-auto px-4 pt-6 space-y-6">
 
-      <div v-for="category in categories" :key="category.id" class="space-y-2">
-        <h2 class="text-sm font-semibold text-slate-700">{{ category.name }}</h2>
-        <div
-          v-for="product in productsByCategory(category.id)"
-          :key="product.id"
-          class="bg-white rounded-2xl border border-slate-200 p-3.5 flex items-center gap-3">
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium text-slate-800 truncate">{{ product.name }}</p>
-            <p class="text-sm text-teal-700 font-semibold mt-0.5">{{ formatRupiah(product.price) }}</p>
+        <!-- Header banner -->
+        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-blue-500 px-5 py-5 flex items-center justify-between">
+          <div>
+            <p class="text-white font-bold text-base">Halo, selamat datang!</p>
+            <p class="text-blue-100 text-xs mt-0.5">Pesan menu favoritmu dari sini.</p>
           </div>
-          <div class="flex items-center gap-2 shrink-0">
-            <button v-if="cartQty(product.id) > 0" class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"
-              @click="decrementCart(product)">
-              <Minus class="w-3.5 h-3.5 text-slate-600" />
-            </button>
-            <span v-if="cartQty(product.id) > 0" class="text-sm font-semibold w-4 text-center">{{ cartQty(product.id) }}</span>
-            <button class="w-7 h-7 rounded-lg bg-teal-600 flex items-center justify-center"
-              @click="incrementCart(product)">
-              <Plus class="w-3.5 h-3.5 text-white" />
-            </button>
+          <div class="text-right shrink-0 pl-3">
+            <p class="text-blue-100 text-[10px] font-semibold tracking-wide">MEJA</p>
+            <p class="text-white font-bold text-2xl leading-tight">{{ table?.name }}</p>
           </div>
         </div>
-      </div>
 
-      <!-- Produk tanpa kategori -->
-      <div v-if="productsByCategory(null).length" class="space-y-2">
-        <h2 class="text-sm font-semibold text-slate-700">Lainnya</h2>
-        <div
-          v-for="product in productsByCategory(null)"
-          :key="product.id"
-          class="bg-white rounded-2xl border border-slate-200 p-3.5 flex items-center gap-3">
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium text-slate-800 truncate">{{ product.name }}</p>
-            <p class="text-sm text-teal-700 font-semibold mt-0.5">{{ formatRupiah(product.price) }}</p>
+        <!-- Category chips -->
+        <div v-if="categories.length" class="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4">
+          <button
+            v-for="category in categories"
+            :key="category.id"
+            class="shrink-0 px-4 py-1.5 rounded-full text-sm font-medium border transition-colors"
+            :class="activeCategory === category.id
+              ? 'border-blue-500 bg-blue-50 text-blue-700'
+              : 'border-slate-200 text-slate-600 bg-white'"
+            @click="scrollToCategory(category.id)">
+            {{ category.name }}
+          </button>
+        </div>
+
+        <!-- Rekomendasi -->
+        <div v-if="featuredProducts.length" class="space-y-3">
+          <h2 class="text-base font-bold text-slate-900 pb-2 border-b border-dashed border-slate-200">Rekomendasi</h2>
+          <div class="grid grid-cols-2 gap-3">
+            <div v-for="product in featuredProducts" :key="product.id"
+              class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+              <div class="relative aspect-square bg-blue-50 flex items-center justify-center">
+                <span class="absolute top-2 left-2 bg-amber-400 text-amber-950 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <Star class="w-2.5 h-2.5" fill="currentColor" /> Best Seller
+                </span>
+                <img v-if="product.image" :src="product.image" :alt="product.name" class="w-full h-full object-cover" />
+                <span v-else class="text-blue-200 text-sm font-semibold">No Image</span>
+              </div>
+              <div class="p-3">
+                <p class="text-xs text-slate-400">{{ categoryName(product.category_id) }}</p>
+                <p class="text-sm font-semibold text-slate-800 truncate">{{ product.name }}</p>
+                <div class="flex items-center justify-between mt-1.5">
+                  <div class="min-w-0">
+                    <p class="text-sm font-bold text-blue-700">{{ formatRupiah(product.discounted_price ?? product.price) }}</p>
+                    <p v-if="product.discounted_price" class="text-[11px] text-slate-400 line-through">{{ formatRupiah(product.price) }}</p>
+                  </div>
+                  <CartStepper :product="product" :qty="cartQty(product.id)" @inc="incrementCart(product)" @dec="decrementCart(product)" />
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="flex items-center gap-2 shrink-0">
-            <button v-if="cartQty(product.id) > 0" class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"
-              @click="decrementCart(product)">
-              <Minus class="w-3.5 h-3.5 text-slate-600" />
-            </button>
-            <span v-if="cartQty(product.id) > 0" class="text-sm font-semibold w-4 text-center">{{ cartQty(product.id) }}</span>
-            <button class="w-7 h-7 rounded-lg bg-teal-600 flex items-center justify-center"
-              @click="incrementCart(product)">
-              <Plus class="w-3.5 h-3.5 text-white" />
-            </button>
+        </div>
+
+        <!-- Per kategori -->
+        <div v-for="category in categories" :key="category.id" :id="`cat-${category.id}`" class="space-y-2 scroll-mt-4">
+          <div class="flex items-center justify-between pb-2 border-b border-dashed border-slate-200">
+            <h2 class="text-base font-bold text-slate-900">{{ category.name }}</h2>
+            <span class="text-xs text-slate-400">{{ productsByCategory(category.id).length }} Produk</span>
+          </div>
+          <div v-for="product in productsByCategory(category.id)" :key="product.id"
+            class="bg-white rounded-2xl border border-slate-200 p-3 flex items-center gap-3">
+            <div class="w-16 h-16 rounded-xl bg-blue-50 flex items-center justify-center shrink-0 overflow-hidden">
+              <img v-if="product.image" :src="product.image" :alt="product.name" class="w-full h-full object-cover" />
+              <span v-else class="text-blue-200 text-[10px] font-semibold text-center px-1">No Image</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <span v-if="product.is_featured" class="inline-flex items-center gap-1 bg-amber-400 text-amber-950 text-[10px] font-bold px-2 py-0.5 rounded-full mb-1">
+                <Star class="w-2.5 h-2.5" fill="currentColor" /> Best Seller
+              </span>
+              <p class="text-sm font-semibold text-slate-800 truncate">{{ product.name }}</p>
+              <div class="flex items-baseline gap-1.5 mt-0.5">
+                <p class="text-sm font-bold text-blue-700">{{ formatRupiah(product.discounted_price ?? product.price) }}</p>
+                <p v-if="product.discounted_price" class="text-xs text-slate-400 line-through">{{ formatRupiah(product.price) }}</p>
+              </div>
+            </div>
+            <CartStepper :product="product" :qty="cartQty(product.id)" @inc="incrementCart(product)" @dec="decrementCart(product)" />
+          </div>
+        </div>
+
+        <!-- Produk tanpa kategori -->
+        <div v-if="productsByCategory(null).length" class="space-y-2">
+          <div class="flex items-center justify-between pb-2 border-b border-dashed border-slate-200">
+            <h2 class="text-base font-bold text-slate-900">Lainnya</h2>
+            <span class="text-xs text-slate-400">{{ productsByCategory(null).length }} Produk</span>
+          </div>
+          <div v-for="product in productsByCategory(null)" :key="product.id"
+            class="bg-white rounded-2xl border border-slate-200 p-3 flex items-center gap-3">
+            <div class="w-16 h-16 rounded-xl bg-blue-50 flex items-center justify-center shrink-0 overflow-hidden">
+              <img v-if="product.image" :src="product.image" :alt="product.name" class="w-full h-full object-cover" />
+              <span v-else class="text-blue-200 text-[10px] font-semibold text-center px-1">No Image</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-slate-800 truncate">{{ product.name }}</p>
+              <div class="flex items-baseline gap-1.5 mt-0.5">
+                <p class="text-sm font-bold text-blue-700">{{ formatRupiah(product.discounted_price ?? product.price) }}</p>
+                <p v-if="product.discounted_price" class="text-xs text-slate-400 line-through">{{ formatRupiah(product.price) }}</p>
+              </div>
+            </div>
+            <CartStepper :product="product" :qty="cartQty(product.id)" @inc="incrementCart(product)" @dec="decrementCart(product)" />
           </div>
         </div>
       </div>
@@ -107,7 +159,7 @@
       <!-- Bar keranjang, sticky di bawah -->
       <div v-if="cartTotalQty > 0" class="fixed bottom-0 left-0 right-0 px-4 pb-4">
         <button
-          class="max-w-lg mx-auto w-full bg-teal-600 text-white rounded-2xl py-3.5 px-4 flex items-center justify-between shadow-lg disabled:opacity-60"
+          class="max-w-lg mx-auto w-full bg-blue-600 text-white rounded-2xl py-3.5 px-4 flex items-center justify-between shadow-lg disabled:opacity-60"
           :disabled="submitting"
           @click="checkout">
           <span class="flex items-center gap-2 text-sm font-semibold">
@@ -124,11 +176,30 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, h } from 'vue'
 import { useRoute } from 'vue-router'
-import { ShoppingBag, LoaderCircle, TriangleAlert, Plus, Minus, ClipboardList, ChefHat, CheckCheck } from 'lucide-vue-next'
+import { ShoppingBag, LoaderCircle, TriangleAlert, Plus, Minus, Star, ClipboardList, ChefHat, CheckCheck } from 'lucide-vue-next'
 import client from '../api/client'
 import { formatRupiah } from '../../admin/utils/format'
+
+// Tombol qty kecil (+ / - / angka), dipakai di kartu Rekomendasi & list kategori
+const CartStepper = {
+  props: ['product', 'qty'],
+  emits: ['inc', 'dec'],
+  setup(props, { emit }) {
+    return () => h('div', { class: 'flex items-center gap-2 shrink-0' }, [
+      props.qty > 0 && h('button', {
+        class: 'w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center',
+        onClick: () => emit('dec'),
+      }, [h(Minus, { class: 'w-3.5 h-3.5 text-slate-600' })]),
+      props.qty > 0 && h('span', { class: 'text-sm font-semibold w-4 text-center' }, String(props.qty)),
+      h('button', {
+        class: 'w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center',
+        onClick: () => emit('inc'),
+      }, [h(Plus, { class: 'w-3.5 h-3.5 text-white' })]),
+    ])
+  },
+}
 
 const route = useRoute()
 const qrToken = route.params.qrToken
@@ -139,6 +210,7 @@ const outlet = ref(null)
 const table = ref(null)
 const categories = ref([])
 const products = ref([])
+const activeCategory = ref(null)
 
 const cart = ref({}) // { [product_id]: { product, qty } }
 const submitting = ref(false)
@@ -149,8 +221,19 @@ let pollTimer = null
 
 const storageKey = `pos-gw-self-order:${qrToken}`
 
+const featuredProducts = computed(() => products.value.filter((p) => p.is_featured))
+
 function productsByCategory(categoryId) {
   return products.value.filter((p) => p.category_id === categoryId)
+}
+
+function categoryName(categoryId) {
+  return categories.value.find((c) => c.id === categoryId)?.name || ''
+}
+
+function scrollToCategory(categoryId) {
+  activeCategory.value = categoryId
+  document.getElementById(`cat-${categoryId}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 function cartQty(productId) {
@@ -180,7 +263,7 @@ function decrementCart(product) {
 
 const cartTotalQty = computed(() => Object.values(cart.value).reduce((sum, c) => sum + c.qty, 0))
 const cartTotalPrice = computed(() =>
-  Object.values(cart.value).reduce((sum, c) => sum + c.qty * c.product.price, 0),
+  Object.values(cart.value).reduce((sum, c) => sum + c.qty * (c.product.discounted_price ?? c.product.price), 0),
 )
 
 const statusMeta = {
@@ -223,7 +306,7 @@ async function checkout() {
         product_id: product.id,
         product_name: product.name,
         qty,
-        unit_price: product.price,
+        unit_price: product.discounted_price ?? product.price,
       })
     }
 
@@ -268,6 +351,7 @@ function startNewOrder() {
 onMounted(async () => {
   await loadMenu()
   if (errorMsg.value) return
+  if (categories.value.length) activeCategory.value = categories.value[0].id
 
   // Kalau tab ditutup/refresh saat pesanan sudah submit, lanjutin nge-track
   const savedOrderId = localStorage.getItem(storageKey)
@@ -287,3 +371,8 @@ onMounted(async () => {
 
 onUnmounted(stopPolling)
 </script>
+
+<style scoped>
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>

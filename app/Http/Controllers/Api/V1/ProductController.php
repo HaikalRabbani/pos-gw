@@ -37,6 +37,7 @@ class ProductController extends Controller
             'stock' => 'sometimes|integer|min:0',
             'image' => 'nullable|string',
             'is_active' => 'sometimes|boolean',
+            'is_featured' => 'sometimes|boolean',
             'sort_order' => 'nullable|integer|min:0',
         ]);
 
@@ -62,6 +63,7 @@ class ProductController extends Controller
             'stock' => 'sometimes|integer|min:0',
             'image' => 'nullable|string',
             'is_active' => 'sometimes|boolean',
+            'is_featured' => 'sometimes|boolean',
             'sort_order' => 'nullable|integer|min:0',
         ]);
 

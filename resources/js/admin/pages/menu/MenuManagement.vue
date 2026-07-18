@@ -129,6 +129,14 @@
                   <Pencil class="w-4 h-4" stroke-width="1.5" />
                 </template>
               </Button>
+              <Button v-if="perm.can('manageProducts')" text rounded size="small"
+                :severity="data.is_featured ? 'warn' : 'secondary'"
+                v-tooltip.top="data.is_featured ? 'Batal jadikan Rekomendasi di Self-Order' : 'Jadikan Rekomendasi di Self-Order'"
+                @click="toggleFeatured(data)">
+                <template #icon>
+                  <Star class="w-4 h-4" :fill="data.is_featured ? 'currentColor' : 'none'" stroke-width="1.5" />
+                </template>
+              </Button>
               <Button v-if="perm.can('manageProducts')" text rounded severity="info" size="small"
                 v-tooltip.top="'Atur Bahan & Add-on'"
                 @click="openProductIngredients(data)">
@@ -429,7 +437,7 @@ import Checkbox from 'primevue/checkbox'
 import Tooltip from 'primevue/tooltip'
 import {
   Package, Image, Tags, Printer, Plus, Eye, Pencil, Palette,
-  Trash2, AlertTriangle, Upload, LoaderCircle
+  Trash2, AlertTriangle, Upload, LoaderCircle, Star
 } from 'lucide-vue-next'
 
 const perm = usePermission()
@@ -570,6 +578,13 @@ async function saveProduct() {
 async function toggleActive(product) {
   try {
     await client.put(`/products/${product.id}`, { is_active: !product.is_active })
+    fetchData()
+  } catch (_) {}
+}
+
+async function toggleFeatured(product) {
+  try {
+    await client.put(`/products/${product.id}`, { is_featured: !product.is_featured })
     fetchData()
   } catch (_) {}
 }
