@@ -179,6 +179,18 @@ body {
 .p-button-text.p-button-secondary:hover {
     background: #f1f5f9 !important;
 }
+.p-button-text.p-button-info {
+    color: #0369a1 !important;
+}
+.p-button-text.p-button-info:hover {
+    background: #f0f9ff !important;
+}
+.p-button-text.p-button-contrast {
+    color: #1e293b !important;
+}
+.p-button-text.p-button-contrast:hover {
+    background: #f1f5f9 !important;
+}
 /* Icon (Lucide svg lewat #icon slot) WAJIB ikut warna tombolnya (inherit),
    bukan warna sendiri — ini yang bikin tombol keliatan "putih"/invisible
    padahal elemen-nya ada, kalau ada style lain yang nge-set warna svg
