@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Discount;
 use App\Models\Order;
 use App\Models\Product;
 use App\Services\OrderService;
@@ -37,6 +38,13 @@ class PublicOrderController extends Controller
             ->orderBy('name')
             ->get();
 
+        $activeDiscounts = $this->getActiveDiscounts($outlet->id);
+
+        $products = $products->map(function ($product) use ($activeDiscounts) {
+            $product->discounted_price = $this->computeDiscountedPrice($product, $activeDiscounts);
+            return $product;
+        });
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -46,6 +54,60 @@ class PublicOrderController extends Controller
                 'products' => $products,
             ],
         ]);
+    }
+
+    /**
+     * Diskon aktif hari ini buat outlet ini, khusus yang bisa dipreview
+     * per-produk (target product/category, bukan BOGO/transaction-wide).
+     */
+    protected function getActiveDiscounts(int $outletId)
+    {
+        $today = now()->toDateString();
+
+        return Discount::where('outlet_id', $outletId)
+            ->where('is_active', true)
+            ->whereIn('target_type', ['product', 'category'])
+            ->whereNull('buy_x')
+            ->whereNull('buy_y')
+            ->where(fn($q) => $q->whereNull('start_date')->orWhere('start_date', '<=', $today))
+            ->where(fn($q) => $q->whereNull('end_date')->orWhere('end_date', '>=', $today))
+            ->get();
+    }
+
+    /**
+     * Preview harga setelah diskon (buat ditampilkan sebagai harga coret
+     * di Self-Order). Ini cuma preview tampilan — kalkulasi final tetap
+     * dihitung ulang oleh OrderService pas checkout, jadi selalu akurat
+     * meskipun ada diskon lain (kombinasi produk, min_purchase, dst) yang
+     * gak dimodelkan di preview sesimpel ini.
+     */
+    protected function computeDiscountedPrice(Product $product, $discounts): ?int
+    {
+        $bestReduction = 0;
+
+        foreach ($discounts as $discount) {
+            $ids = (array) $discount->target_id;
+
+            if ($discount->target_type === 'product' && !in_array($product->id, $ids)) {
+                continue;
+            }
+            if ($discount->target_type === 'category' && (!$product->category_id || !in_array($product->category_id, $ids))) {
+                continue;
+            }
+
+            $reduction = $discount->type === 'percent'
+                ? (int) round($product->price * $discount->value / 100)
+                : (int) $discount->value;
+
+            if ($discount->max_discount) {
+                $reduction = min($reduction, (int) $discount->max_discount);
+            }
+            $reduction = min($reduction, $product->price);
+
+            $bestReduction = max($bestReduction, $reduction);
+        }
+
+        return $bestReduction > 0 ? $product->price - $bestReduction : null;
     }
 
     /**
