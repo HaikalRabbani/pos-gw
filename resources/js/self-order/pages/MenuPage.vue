@@ -18,8 +18,8 @@
     <!-- Status pesanan (setelah submit) -->
     <div v-else-if="view === 'status'" class="max-w-lg mx-auto px-4 py-6 space-y-4">
       <div class="text-center">
-        <div class="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center mx-auto mb-3">
-          <component :is="statusIcon" class="w-7 h-7 text-blue-700" stroke-width="1.5" />
+        <div class="w-14 h-14 rounded-2xl bg-teal-100 flex items-center justify-center mx-auto mb-3">
+          <component :is="statusIcon" class="w-7 h-7 text-teal-700" stroke-width="1.5" />
         </div>
         <h1 class="text-lg font-bold text-slate-900">{{ statusLabel }}</h1>
         <p class="text-xs text-slate-500 mt-1">Meja {{ table?.name }} — Pesanan #{{ activeOrder?.id }}</p>
@@ -53,13 +53,13 @@
       <div class="max-w-lg mx-auto px-4 pt-6 space-y-6">
 
         <!-- Header banner -->
-        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-blue-500 px-5 py-5 flex items-center justify-between">
+        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-teal-700 to-teal-600 px-5 py-5 flex items-center justify-between">
           <div>
             <p class="text-white font-bold text-base">Halo, selamat datang!</p>
-            <p class="text-blue-100 text-xs mt-0.5">Pesan menu favoritmu dari sini.</p>
+            <p class="text-teal-100 text-xs mt-0.5">Pesan menu favoritmu dari sini.</p>
           </div>
           <div class="text-right shrink-0 pl-3">
-            <p class="text-blue-100 text-[10px] font-semibold tracking-wide">MEJA</p>
+            <p class="text-teal-100 text-[10px] font-semibold tracking-wide">MEJA</p>
             <p class="text-white font-bold text-2xl leading-tight">{{ table?.name }}</p>
           </div>
         </div>
@@ -71,7 +71,7 @@
             :key="category.id"
             class="shrink-0 px-4 py-1.5 rounded-full text-sm font-medium border transition-colors"
             :class="activeCategory === category.id
-              ? 'border-blue-500 bg-blue-50 text-blue-700'
+              ? 'border-teal-600 bg-teal-50 text-teal-700'
               : 'border-slate-200 text-slate-600 bg-white'"
             @click="scrollToCategory(category.id)">
             {{ category.name }}
@@ -84,19 +84,19 @@
           <div class="grid grid-cols-2 gap-3">
             <div v-for="product in featuredProducts" :key="product.id"
               class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-              <div class="relative aspect-square bg-blue-50 flex items-center justify-center">
+              <div class="relative aspect-square bg-teal-50 flex items-center justify-center">
                 <span class="absolute top-2 left-2 bg-amber-400 text-amber-950 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
                   <Star class="w-2.5 h-2.5" fill="currentColor" /> Best Seller
                 </span>
                 <img v-if="product.image" :src="product.image" :alt="product.name" class="w-full h-full object-cover" />
-                <span v-else class="text-blue-200 text-sm font-semibold">No Image</span>
+                <span v-else class="text-teal-300 text-sm font-semibold">No Image</span>
               </div>
               <div class="p-3">
                 <p class="text-xs text-slate-400">{{ categoryName(product.category_id) }}</p>
                 <p class="text-sm font-semibold text-slate-800 truncate">{{ product.name }}</p>
                 <div class="flex items-center justify-between mt-1.5">
                   <div class="min-w-0">
-                    <p class="text-sm font-bold text-blue-700">{{ formatRupiah(product.discounted_price ?? product.price) }}</p>
+                    <p class="text-sm font-bold text-teal-700">{{ formatRupiah(product.discounted_price ?? product.price) }}</p>
                     <p v-if="product.discounted_price" class="text-[11px] text-slate-400 line-through">{{ formatRupiah(product.price) }}</p>
                   </div>
                   <CartStepper :product="product" :qty="cartQty(product.id)" @inc="incrementCart(product)" @dec="decrementCart(product)" />
@@ -114,9 +114,9 @@
           </div>
           <div v-for="product in productsByCategory(category.id)" :key="product.id"
             class="bg-white rounded-2xl border border-slate-200 p-3 flex items-center gap-3">
-            <div class="w-16 h-16 rounded-xl bg-blue-50 flex items-center justify-center shrink-0 overflow-hidden">
+            <div class="w-16 h-16 rounded-xl bg-teal-50 flex items-center justify-center shrink-0 overflow-hidden">
               <img v-if="product.image" :src="product.image" :alt="product.name" class="w-full h-full object-cover" />
-              <span v-else class="text-blue-200 text-[10px] font-semibold text-center px-1">No Image</span>
+              <span v-else class="text-teal-300 text-[10px] font-semibold text-center px-1">No Image</span>
             </div>
             <div class="flex-1 min-w-0">
               <span v-if="product.is_featured" class="inline-flex items-center gap-1 bg-amber-400 text-amber-950 text-[10px] font-bold px-2 py-0.5 rounded-full mb-1">
@@ -124,7 +124,7 @@
               </span>
               <p class="text-sm font-semibold text-slate-800 truncate">{{ product.name }}</p>
               <div class="flex items-baseline gap-1.5 mt-0.5">
-                <p class="text-sm font-bold text-blue-700">{{ formatRupiah(product.discounted_price ?? product.price) }}</p>
+                <p class="text-sm font-bold text-teal-700">{{ formatRupiah(product.discounted_price ?? product.price) }}</p>
                 <p v-if="product.discounted_price" class="text-xs text-slate-400 line-through">{{ formatRupiah(product.price) }}</p>
               </div>
             </div>
@@ -140,14 +140,14 @@
           </div>
           <div v-for="product in productsByCategory(null)" :key="product.id"
             class="bg-white rounded-2xl border border-slate-200 p-3 flex items-center gap-3">
-            <div class="w-16 h-16 rounded-xl bg-blue-50 flex items-center justify-center shrink-0 overflow-hidden">
+            <div class="w-16 h-16 rounded-xl bg-teal-50 flex items-center justify-center shrink-0 overflow-hidden">
               <img v-if="product.image" :src="product.image" :alt="product.name" class="w-full h-full object-cover" />
-              <span v-else class="text-blue-200 text-[10px] font-semibold text-center px-1">No Image</span>
+              <span v-else class="text-teal-300 text-[10px] font-semibold text-center px-1">No Image</span>
             </div>
             <div class="flex-1 min-w-0">
               <p class="text-sm font-semibold text-slate-800 truncate">{{ product.name }}</p>
               <div class="flex items-baseline gap-1.5 mt-0.5">
-                <p class="text-sm font-bold text-blue-700">{{ formatRupiah(product.discounted_price ?? product.price) }}</p>
+                <p class="text-sm font-bold text-teal-700">{{ formatRupiah(product.discounted_price ?? product.price) }}</p>
                 <p v-if="product.discounted_price" class="text-xs text-slate-400 line-through">{{ formatRupiah(product.price) }}</p>
               </div>
             </div>
@@ -159,7 +159,7 @@
       <!-- Bar keranjang, sticky di bawah -->
       <div v-if="cartTotalQty > 0" class="fixed bottom-0 left-0 right-0 px-4 pb-4">
         <button
-          class="max-w-lg mx-auto w-full bg-blue-600 text-white rounded-2xl py-3.5 px-4 flex items-center justify-between shadow-lg disabled:opacity-60"
+          class="max-w-lg mx-auto w-full bg-teal-700 text-white rounded-2xl py-3.5 px-4 flex items-center justify-between shadow-lg disabled:opacity-60"
           :disabled="submitting"
           @click="checkout">
           <span class="flex items-center gap-2 text-sm font-semibold">
@@ -194,7 +194,7 @@ const CartStepper = {
       }, [h(Minus, { class: 'w-3.5 h-3.5 text-slate-600' })]),
       props.qty > 0 && h('span', { class: 'text-sm font-semibold w-4 text-center' }, String(props.qty)),
       h('button', {
-        class: 'w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center',
+        class: 'w-7 h-7 rounded-full bg-teal-700 flex items-center justify-center',
         onClick: () => emit('inc'),
       }, [h(Plus, { class: 'w-3.5 h-3.5 text-white' })]),
     ])
