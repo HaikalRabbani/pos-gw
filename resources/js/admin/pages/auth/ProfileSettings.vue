@@ -127,7 +127,7 @@ import client from '../../api/client'
 import InputText from 'primevue/inputtext'
 import InputMask from 'primevue/inputmask'
 import Button from 'primevue/button'
-import { Check, CheckCircle, AlertCircle } from 'lucide-vue-next'
+import { Check, CheckCircle, AlertCircle } from '@lucide/vue'
 
 const auth = useAuthStore()
 const loading = ref(false)

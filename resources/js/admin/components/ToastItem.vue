@@ -35,7 +35,7 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
-import { CheckCircle, AlertCircle, Info, AlertTriangle, X } from 'lucide-vue-next'
+import { CheckCircle, AlertCircle, Info, AlertTriangle, X } from '@lucide/vue'
 
 const props = defineProps({
   toast: { type: Object, required: true },

@@ -245,7 +245,7 @@ import Dialog from 'primevue/dialog'
 import {
   ShoppingBag, Mail, Lock, AlertCircle, KeyRound,
   CheckCircle2, Info
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 const router = useRouter()
 const auth = useAuthStore()

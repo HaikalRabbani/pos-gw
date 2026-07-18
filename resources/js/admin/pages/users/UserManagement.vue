@@ -256,7 +256,7 @@ import { roleLabel, roleBadgeClass } from '../../utils/roleBadge'
 import {
   Plus, Users, User, Pencil, UserPen, KeyRound,
   Ban, CheckCircle, AlertTriangle
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 const auth = useAuthStore()
 const toast = useToastStore()

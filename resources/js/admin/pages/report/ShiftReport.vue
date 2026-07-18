@@ -206,7 +206,7 @@ import Button from 'primevue/button'
 import {
   FileSpreadsheet, FileText, Calendar, Clock, Users,
   RefreshCw, Calculator, DollarSign, TrendingUp
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 const auth = useAuthStore()
 const toast = useToastStore()

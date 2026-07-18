@@ -139,7 +139,7 @@ import client from '../../api/client'
 import { useToastStore } from '../../stores/toast'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
-import { UserPlus, User, Mail, Lock, AlertCircle, CheckCircle2 } from 'lucide-vue-next'
+import { UserPlus, User, Mail, Lock, AlertCircle, CheckCircle2 } from '@lucide/vue'
 
 const router = useRouter()
 const toast = useToastStore()

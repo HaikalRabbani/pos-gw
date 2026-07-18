@@ -383,7 +383,7 @@ import {
   Building2, Percent, Plus, Pencil, Trash2, Ban, CheckCircle,
   AlertTriangle, Crosshair, SlidersHorizontal, Calendar as CalendarIcon,
   Eye, Check, ShoppingCart, Package, Tags, X, Gift, DollarSign
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 const perm = usePermission()
 const toast = useToastStore()

@@ -258,7 +258,7 @@ import {
   Link2, ExternalLink, Building2, Grid3x3, Plus, QrCode,
   Download, Printer, RefreshCw, Pencil, Ban, CheckCircle,
   Trash2, AlertTriangle, Info, Copy
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 const perm = usePermission()
 const toast = useToastStore()

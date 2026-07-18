@@ -210,7 +210,7 @@ import {
   ArrowRight, Star, Package, Receipt, Inbox,
   DollarSign, BarChart3, TrendingUp, Calendar, Calculator,
   ArrowUp, ArrowDown
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 const auth = useAuthStore()
 const initialLoading = ref(true)

@@ -204,7 +204,7 @@ import Tag from 'primevue/tag'
 import { formatRupiah } from '../../utils/format'
 import { useToastStore } from '../../stores/toast'
 import { useAuthStore } from '../../stores/auth'
-import { Building2, CreditCard, CheckCircle, History, Inbox, Send } from 'lucide-vue-next'
+import { Building2, CreditCard, CheckCircle, History, Inbox, Send } from '@lucide/vue'
 
 const auth = useAuthStore()
 

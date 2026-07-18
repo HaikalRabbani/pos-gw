@@ -263,7 +263,7 @@ import Tooltip from 'primevue/tooltip'
 import {
   Building2, CheckCircle, Ban, Plus, Pencil, Trash2,
   Package, CreditCard, Info, AlertTriangle, Eye, EyeOff
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 const perm = usePermission()
 const toast = useToastStore()

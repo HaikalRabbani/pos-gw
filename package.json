@@ -25,6 +25,6 @@
     },
     "dependencies": {
         "chart.js": "^4.5.1",
-        "lucide-vue-next": "^1.0.0"
+        "@lucide/vue": "^1.0.0"
     }
 }

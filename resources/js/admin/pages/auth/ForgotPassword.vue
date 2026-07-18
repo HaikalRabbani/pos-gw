@@ -61,7 +61,7 @@ import { ref } from 'vue'
 import client from '../../api/client'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
-import { KeyRound, Mail, AlertCircle, CheckCircle2 } from 'lucide-vue-next'
+import { KeyRound, Mail, AlertCircle, CheckCircle2 } from '@lucide/vue'
 
 const loading = ref(false)
 const errorMsg = ref('')

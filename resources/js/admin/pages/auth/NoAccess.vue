@@ -21,7 +21,7 @@
 import { useAuthStore } from '../../stores/auth'
 import { useRouter } from 'vue-router'
 import Button from 'primevue/button'
-import { Lock, ArrowLeft } from 'lucide-vue-next'
+import { Lock, ArrowLeft } from '@lucide/vue'
 
 const auth = useAuthStore()
 const router = useRouter()

@@ -487,7 +487,7 @@ import {
   RefreshCw, FlaskConical, ArrowUpCircle, X, XCircle, User,
   Receipt, Eye, Undo2, GitBranch, History, Plus, Trash2,
   AlertTriangle, Circle, Ban
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 const perm = usePermission()
 const auth = useAuthStore()

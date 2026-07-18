@@ -178,7 +178,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, h } from 'vue'
 import { useRoute } from 'vue-router'
-import { ShoppingBag, LoaderCircle, TriangleAlert, Plus, Minus, Star, ClipboardList, ChefHat, CheckCheck } from 'lucide-vue-next'
+import { ShoppingBag, LoaderCircle, TriangleAlert, Plus, Minus, Star, ClipboardList, ChefHat, CheckCheck } from '@lucide/vue'
 import client from '../api/client'
 import { formatRupiah } from '../../admin/utils/format'
 

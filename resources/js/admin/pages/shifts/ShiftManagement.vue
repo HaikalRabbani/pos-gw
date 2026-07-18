@@ -392,7 +392,7 @@ import Checkbox from 'primevue/checkbox'
 import {
   Settings, Calendar, Clock, Plus, Pencil, Ban, CheckCircle, Trash2,
   ChevronLeft, ChevronRight, RefreshCw, Wand2, AlertTriangle
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 const perm = usePermission()
 const toast = useToastStore()

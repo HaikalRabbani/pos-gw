@@ -208,7 +208,7 @@ import {
   PieChart, Receipt, BarChart3, History, Menu as MenuIcon,
   Package, Percent, Shield, Grid3x3, CalendarClock,
   CreditCard, Users, Building2, ShoppingBag, LogOut, UserPen,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 const iconMap = {
   PieChart, Receipt, BarChart3, History, Menu: MenuIcon,

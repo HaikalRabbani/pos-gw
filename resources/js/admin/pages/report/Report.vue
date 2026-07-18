@@ -184,7 +184,7 @@ import {
   FileSpreadsheet, FileText, Calendar, TrendingUp, BarChart3,
   PieChart, Star, Package, DollarSign, Percent, Receipt,
   ShoppingCart, Truck, AlertCircle
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 const authStore = useAuthStore()
 const toast = useToastStore()

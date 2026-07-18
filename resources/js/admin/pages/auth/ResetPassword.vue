@@ -71,7 +71,7 @@ import client from '../../api/client'
 import { useToastStore } from '../../stores/toast'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
-import { KeyRound, Lock, AlertCircle } from 'lucide-vue-next'
+import { KeyRound, Lock, AlertCircle } from '@lucide/vue'
 
 const router = useRouter()
 const route = useRoute()

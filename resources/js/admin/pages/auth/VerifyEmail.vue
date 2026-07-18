@@ -73,7 +73,7 @@ import { useToastStore } from '../../stores/toast'
 import { useAuthStore } from '../../stores/auth'
 import Button from 'primevue/button'
 import InputMask from 'primevue/inputmask'
-import { MailCheck, AlertCircle } from 'lucide-vue-next'
+import { MailCheck, AlertCircle } from '@lucide/vue'
 
 const router = useRouter()
 const route = useRoute()

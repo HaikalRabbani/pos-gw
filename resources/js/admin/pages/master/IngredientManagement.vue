@@ -179,7 +179,7 @@ import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
 import Tooltip from 'primevue/tooltip'
-import { List, Plus, Pencil, Ban, CheckCircle, Trash2, AlertTriangle } from 'lucide-vue-next'
+import { List, Plus, Pencil, Ban, CheckCircle, Trash2, AlertTriangle } from '@lucide/vue'
 
 const perm = usePermission()
 const toast = useToastStore()

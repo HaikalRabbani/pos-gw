@@ -438,7 +438,7 @@ import Tooltip from 'primevue/tooltip'
 import {
   Package, Image, Tags, Printer, Plus, Eye, Pencil, Palette,
   Trash2, AlertTriangle, Upload, LoaderCircle, Star
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 const perm = usePermission()
 const toast = useToastStore()
