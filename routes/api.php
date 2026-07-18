@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\IngredientController;
 use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\OutletController;
 use App\Http\Controllers\Api\V1\PaymentController;
+use App\Http\Controllers\Api\V1\Public\PublicOrderController;
 use App\Http\Controllers\Api\V1\ProductController;
 use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\ShiftController;
@@ -35,6 +36,20 @@ Route::post('/v1/auth/reset-password', [AuthController::class, 'resetPassword'])
 // Payment callbacks
 Route::post('/v1/midtrans/notification', [PaymentController::class, 'midtransNotification']);
 Route::post('/v1/xendit/callback', [PaymentController::class, 'xenditCallback']);
+
+// Self-order publik (customer scan QR di meja) — TANPA auth:sanctum.
+// qr_token dari route jadi satu-satunya "kredensial", di-resolve middleware table.qr.
+Route::prefix('/v1/public/tables/{qrToken}')
+    ->middleware(['table.qr', 'throttle:120,1'])
+    ->group(function () {
+        Route::get('/menu', [PublicOrderController::class, 'menu']);
+        Route::get('/products/{product}/customize', [PublicOrderController::class, 'customize']);
+        Route::post('/orders', [PublicOrderController::class, 'store']);
+        Route::get('/orders/{order}', [PublicOrderController::class, 'show']);
+        Route::post('/orders/{order}/items', [PublicOrderController::class, 'addItem']);
+        Route::delete('/orders/{order}/items/{itemId}', [PublicOrderController::class, 'removeItem']);
+        Route::post('/orders/{order}/submit', [PublicOrderController::class, 'submit']);
+    });
 
 // Protected
 Route::middleware('auth:sanctum')->group(function () {

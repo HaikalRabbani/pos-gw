@@ -25,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'outlet.access' => \App\Http\Middleware\VerifyOutletAccess::class,
+            'table.qr' => \App\Http\Middleware\ResolveQrTable::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

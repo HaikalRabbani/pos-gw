@@ -34,17 +34,18 @@ class OrderService
         $order = Order::create([
             'outlet_id'     => $data['outlet_id'],
             'table_id'      => $data['table_id'] ?? null,
-            'user_id'       => $data['user_id'],
+            'user_id'       => $data['user_id'] ?? null,
             'customer_name' => $data['customer_name'] ?? null,
+            'source'        => $data['source'] ?? 'staff',
             'status'        => 'draft',
         ]);
 
-        $this->log($order->id, null, 'draft', $data['user_id']);
+        $this->log($order->id, null, 'draft', $data['user_id'] ?? null);
 
         return $order->fresh()->load('items');
     }
 
-    public function updateStatus(Order $order, string $newStatus, int $userId, ?string $note = null): Order
+    public function updateStatus(Order $order, string $newStatus, ?int $userId, ?string $note = null): Order
     {
         if (!$this->canTransition($order->status, $newStatus)) {
             throw ValidationException::withMessages([
@@ -604,7 +605,7 @@ class OrderService
         });
     }
 
-    protected function log(int $orderId, ?string $from, string $to, int $userId, ?string $note = null): void
+    protected function log(int $orderId, ?string $from, string $to, ?int $userId, ?string $note = null): void
     {
         OrderLog::create([
             'order_id'    => $orderId,
