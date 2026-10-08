@@ -191,13 +191,11 @@ body {
 .p-button-text.p-button-contrast:hover {
     background: #f1f5f9 !important;
 }
-/* Icon (Lucide svg lewat #icon slot) WAJIB ikut warna tombolnya (inherit),
-   bukan warna sendiri — ini yang bikin tombol keliatan "putih"/invisible
-   padahal elemen-nya ada, kalau ada style lain yang nge-set warna svg
-   secara terpisah dari .p-button-text di atas. */
-.p-button .p-button-icon,
+/* Lucide SVG (via #icon slot) wajib ikut warna tombol — paksa stroke
+   biar selalu pake currentColor, apapun default @lucide/vue. */
 .p-button svg {
     color: inherit !important;
+    stroke: currentColor !important;
 }
 
 /* -- DataTable -- */
